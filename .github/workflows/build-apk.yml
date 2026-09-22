@@ -21,18 +21,6 @@ jobs:
         java-version: 21
         cache: gradle
 
-    - name: Setup Android SDK
-      run: |
-        # Install Android SDK manually
-        sudo apt-get update
-        sudo apt-get install -y unzip
-        wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
-        mkdir -p $ANDROID_HOME/cmdline-tools/latest
-        unzip -q cmdline-tools.zip -d $ANDROID_HOME/cmdline-tools/latest
-        export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-        yes | sdkmanager --licenses || true
-        sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;27.0.12077973"
-
     - name: Build with Gradle
       run: ./gradlew assembleDebug --stacktrace
       env:
@@ -92,25 +80,3 @@ jobs:
           -H "Content-Type: application/json" \
           -d '{"text":"Build failed for Tournant With Cost on ${{ github.repository }} - ${{ github.workflow }} ${{ github.run_number }}"}' \
           ${{ secrets.SLACK_WEBHOOK_URL }} || true
-
-  release-publish:
-    needs: build
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-
-    steps:
-    - name: Download APK
-      uses: actions/download-artifact@v4
-      with:
-        name: debug-apk
-        path: apk
-
-    - name: Sign APK
-      run: |
-        echo "APK signing not yet configured"
-        ls -la apk/
-
-    - name: Publish to Play Store
-      run: |
-        echo "Play Store publishing requires additional setup"
-        echo "This would typically use the 'flutter-installer' or 'androidpublisher' actions"
