@@ -26,10 +26,13 @@ jobs:
       with:
         api-level: 36
         build-tools: 36.0.0
+        ndk-version: r27b
         emulator: false
+        cache: true
+        cmdline-tools-version: 13.0
 
     - name: Accept licenses
-      run: yes | sdkmanager --licenses || true
+      run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
     - name: Build with Gradle
       run: ./gradlew assembleDebug --stacktrace
