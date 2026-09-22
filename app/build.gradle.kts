@@ -15,10 +15,10 @@ plugins {
 
 android {
 	compileSdk = 36
-	namespace = "eu.zimbelstern.tournant"
+	namespace = "herohiman"
 
 	defaultConfig {
-		applicationId = "eu.zimbelstern.tournant"
+		applicationId = "herohiman"
 		minSdk = 21
 		targetSdk = 36
 		versionCode = 42
