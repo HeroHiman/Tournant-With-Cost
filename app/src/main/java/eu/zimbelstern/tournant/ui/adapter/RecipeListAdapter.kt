@@ -74,7 +74,7 @@ import eu.zimbelstern.tournant.Constants.Companion.SORTED_BY_INSTRUCTIONS_LENGTH
 import eu.zimbelstern.tournant.Constants.Companion.SORTED_BY_MODIFIED
 import eu.zimbelstern.tournant.Constants.Companion.SORTED_BY_PREPARATIONS_COUNT
 import eu.zimbelstern.tournant.Constants.Companion.SORTED_BY_PREPARED
-import eu.zimbelstern.tournant.R
+import com.herohiman.R
 import eu.zimbelstern.tournant.data.ChipData
 import eu.zimbelstern.tournant.data.RecipeDescription
 import eu.zimbelstern.tournant.databinding.RecyclerItemRecipeBinding

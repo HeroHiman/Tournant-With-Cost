@@ -23,7 +23,7 @@ import eu.zimbelstern.tournant.Constants.Companion.PREF_FILE
 import eu.zimbelstern.tournant.Constants.Companion.PREF_FILE_LAST_MODIFIED
 import eu.zimbelstern.tournant.Constants.Companion.PREF_MODE
 import eu.zimbelstern.tournant.Constants.Companion.PREF_SORT
-import eu.zimbelstern.tournant.R
+import com.herohiman.R
 import eu.zimbelstern.tournant.TournantApplication
 import eu.zimbelstern.tournant.data.ChipData
 import eu.zimbelstern.tournant.data.Recipe

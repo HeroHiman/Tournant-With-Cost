@@ -146,7 +146,7 @@ import eu.zimbelstern.tournant.Constants.Companion.MODE_SYNCED
 import eu.zimbelstern.tournant.Constants.Companion.PREF_MARKDOWN
 import eu.zimbelstern.tournant.Constants.Companion.PREF_MODE
 import eu.zimbelstern.tournant.Constants.Companion.PREF_SCREEN_ON
-import eu.zimbelstern.tournant.R
+import com.herohiman.R
 import eu.zimbelstern.tournant.TournantApplication
 import eu.zimbelstern.tournant.data.Ingredient
 import eu.zimbelstern.tournant.data.IngredientLine

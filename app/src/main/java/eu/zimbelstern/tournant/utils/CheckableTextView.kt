@@ -4,7 +4,7 @@ import android.content.Context
 import android.graphics.Color
 import android.util.AttributeSet
 import androidx.core.content.ContextCompat
-import eu.zimbelstern.tournant.R
+import com.herohiman.R
 
 class CheckableTextView : androidx.appcompat.widget.AppCompatTextView {
 

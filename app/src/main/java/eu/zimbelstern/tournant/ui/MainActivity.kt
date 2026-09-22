@@ -51,7 +51,7 @@ import eu.zimbelstern.tournant.Constants.Companion.PREF_COLOR_THEME
 import eu.zimbelstern.tournant.Constants.Companion.PREF_FILE
 import eu.zimbelstern.tournant.Constants.Companion.PREF_MODE
 import eu.zimbelstern.tournant.Constants.Companion.PREF_VERSION
-import eu.zimbelstern.tournant.R
+import com.herohiman.R
 import eu.zimbelstern.tournant.TournantApplication
 import eu.zimbelstern.tournant.databinding.ActivityMainBinding
 import eu.zimbelstern.tournant.databinding.SortOptionsBinding

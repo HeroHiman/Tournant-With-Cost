@@ -16,7 +16,7 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.google.android.material.textfield.TextInputLayout
-import eu.zimbelstern.tournant.R
+import com.herohiman.R
 import eu.zimbelstern.tournant.data.Ingredient
 import eu.zimbelstern.tournant.data.IngredientLine
 import eu.zimbelstern.tournant.data.IngredientLine.IngredientGroupTitle

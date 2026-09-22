@@ -3,7 +3,7 @@ package eu.zimbelstern.tournant.utils
 import android.content.Context
 import android.util.TypedValue
 import androidx.core.content.res.ResourcesCompat
-import eu.zimbelstern.tournant.R
+import com.herohiman.R
 import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.core.MarkwonTheme
 import org.commonmark.node.BlockQuote

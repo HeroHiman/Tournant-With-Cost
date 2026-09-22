@@ -13,7 +13,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import eu.zimbelstern.tournant.R
+import com.herohiman.R
 
 private val lightColorScheme = lightColors(
 	primary = Color(0xff003c8f),

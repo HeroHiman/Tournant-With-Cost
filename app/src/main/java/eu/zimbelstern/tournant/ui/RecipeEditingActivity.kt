@@ -79,7 +79,7 @@ import androidx.recyclerview.widget.RecyclerView
 import coil3.load
 import coil3.request.addLastModifiedToFileCacheKey
 import com.google.android.material.textfield.TextInputLayout
-import eu.zimbelstern.tournant.R
+import com.herohiman.R
 import eu.zimbelstern.tournant.TournantApplication
 import eu.zimbelstern.tournant.data.Ingredient
 import eu.zimbelstern.tournant.data.IngredientLine.IngredientGroupTitle

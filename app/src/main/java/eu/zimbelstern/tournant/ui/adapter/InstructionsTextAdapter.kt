@@ -13,7 +13,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import eu.zimbelstern.tournant.R
+import com.herohiman.R
 import eu.zimbelstern.tournant.data.Ingredient
 import eu.zimbelstern.tournant.databinding.RecyclerItemTextBinding
 import eu.zimbelstern.tournant.findFirstAmount
