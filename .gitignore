@@ -9,3 +9,12 @@ scripts/
 local.properties
 *.iml
 *.log
+
+# BMAD files - keep locally but don't commit
+.agent/
+.agents/
+.claude/
+_bmad/
+_bmad-output/
+*.memlog.md
+AGENTS.md
