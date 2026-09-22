@@ -1,0 +1,111 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main, develop, feature/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 21
+        cache: gradle
+
+    - name: Set up Android SDK
+      run: |
+        echo "y" | sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0" || true
+
+    - name: Validate Gradle wrapper
+      run: ./gradlew wrapper --validate
+
+    - name: Build with Gradle
+      run: ./gradlew assembleDebug --stacktrace
+      env:
+        ORG_GRADLE_PROJECT_MAVEN_URL: ${{ secrets.MAVEN_URL }}
+        ORG_GRADLE_PROJECT_MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+        ORG_GRADLE_PROJECT_MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+
+    - name: Run unit tests
+      run: ./gradlew testDebugUnitTest
+
+    - name: Run lint checks
+      run: ./gradlew lint
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: debug-apk
+        path: app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 7
+
+    - name: Create Release (on tag)
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/create-release@v1
+      with:
+        tag_name: ${{ github.ref_name }}
+        release_name: Release ${{ github.ref_name }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release APK
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: app/build/outputs/apk/debug/app-debug.apk
+        asset_name: app-debug.apk
+        asset_content_type: application/vnd.android.package-archive
+
+  quality-gate:
+    needs: build
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+    - name: Check build success
+      if: needs.build.result != 'success'
+      run: |
+        echo "Build failed, please check the logs"
+        exit 1
+
+    - name: Notify on failure
+      if: failure() && github.event_name == 'push'
+      run: |
+        echo "Build failed on push to ${{ github.ref }}"
+        curl -X POST \
+          -H "Content-Type: application/json" \
+          -d '{"text":"Build failed for Tournant With Cost on ${{ github.repository }} - ${{ github.workflow }} ${{ github.run_number }}"}' \
+          ${{ secrets.SLACK_WEBHOOK_URL }} || true
+
+  release-publish:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+    - name: Download APK
+      uses: actions/download-artifact@v4
+      with:
+        name: debug-apk
+        path: apk
+
+    - name: Sign APK
+      run: |
+        echo "APK signing not yet configured"
+        ls -la apk/
+
+    - name: Publish to Play Store
+      run: |
+        echo "Play Store publishing requires additional setup"
+        echo "This would typically use the 'flutter-installer' or 'androidpublisher' actions"
