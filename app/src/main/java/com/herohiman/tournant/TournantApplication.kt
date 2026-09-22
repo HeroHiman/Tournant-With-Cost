@@ -11,6 +11,7 @@ import android.util.Log
 import androidx.core.graphics.scale
 import androidx.core.text.toSpannable
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.herohiman.tournant.R
 import com.herohiman.tournant.data.Cookbook
 import com.herohiman.tournant.data.room.RecipeRepository
 import com.herohiman.tournant.data.room.RecipeRoomDatabase

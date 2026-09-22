@@ -15,10 +15,10 @@ plugins {
 
 android {
 	compileSdk = 36
-	namespace = "com.herohiman"
+	namespace = "com.herohiman.tournant"
 
 	defaultConfig {
-		applicationId = "com.herohiman"
+		applicationId = "com.herohiman.tournant"
 		minSdk = 21
 		targetSdk = 36
 		versionCode = 42
