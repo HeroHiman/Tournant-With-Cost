@@ -15,10 +15,10 @@ plugins {
 
 android {
 	compileSdk = 36
-	namespace = "herohiman"
+	namespace = "com.herohiman"
 
 	defaultConfig {
-		applicationId = "herohiman"
+		applicationId = "com.herohiman"
 		minSdk = 21
 		targetSdk = 36
 		versionCode = 42
