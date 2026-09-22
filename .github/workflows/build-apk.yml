@@ -22,13 +22,14 @@ jobs:
         cache: gradle
 
     - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
+      uses: android-actions/setup-android@v2
       with:
         api-level: 36
         build-tools: 36.0.0
-        ndk-version: r27b
         emulator: false
-        cache: true
+
+    - name: Accept licenses
+      run: yes | sdkmanager --licenses || true
 
     - name: Build with Gradle
       run: ./gradlew assembleDebug --stacktrace
