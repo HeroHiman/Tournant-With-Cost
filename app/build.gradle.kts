@@ -5,7 +5,7 @@ import java.util.Date
 plugins {
 	id("com.android.application")
 	id("com.github.triplet.play") version "3.12.1"
-	id("com.google.devtools.ksp") version "1.9.20-1.0.14"
+	id("com.google.devtools.ksp") version "2.2.0-2.0.2"
 	id("kotlin-android")
 	id("kotlin-kapt")
 	id("kotlin-parcelize")
