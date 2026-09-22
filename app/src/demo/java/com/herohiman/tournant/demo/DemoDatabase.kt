@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.core.content.ContextCompat
 import androidx.room.Room
-import com.herohiman.R
+import com.herohiman.tournant.R
 import com.herohiman.tournant.data.Ingredient
 import com.herohiman.tournant.data.Recipe
 import com.herohiman.tournant.data.room.RecipeRepository
