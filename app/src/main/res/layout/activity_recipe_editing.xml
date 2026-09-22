@@ -4,8 +4,8 @@
 	xmlns:tools="http://schemas.android.com/tools">
 
 	<data>
-		<import type="eu.zimbelstern.tournant.utils.Converter"/>
-		<variable name="recipe" type="eu.zimbelstern.tournant.data.Recipe"/>
+		<import type="com.herohiman.tournant.utils.Converter"/>
+		<variable name="recipe" type="com.herohiman.tournant.data.Recipe"/>
 	</data>
 
 	<androidx.core.widget.NestedScrollView

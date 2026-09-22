@@ -3,8 +3,8 @@
 	xmlns:app="http://schemas.android.com/apk/res-auto">
 
 	<data>
-		<import type="eu.zimbelstern.tournant.utils.Converter"/>
-		<variable name="ingredient" type="eu.zimbelstern.tournant.data.Ingredient"/>
+		<import type="com.herohiman.tournant.utils.Converter"/>
+		<variable name="ingredient" type="com.herohiman.tournant.data.Ingredient"/>
 	</data>
 
 	<LinearLayout

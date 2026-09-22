@@ -1,0 +1,8 @@
+package com.herohiman.tournant.data
+
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
+data class Cookbook(
+	val recipes: List<Recipe>
+)
