@@ -9,7 +9,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.shape.ShapeAppearanceModel
-import com.herohiman.R
+import com.herohiman.tournant.R
 import com.herohiman.tournant.data.ChipData
 import com.herohiman.tournant.databinding.RecyclerItemChipBinding
 import com.herohiman.tournant.ui.MainActivity

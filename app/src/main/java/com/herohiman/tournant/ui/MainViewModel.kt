@@ -23,7 +23,7 @@ import com.herohiman.tournant.Constants.Companion.PREF_FILE
 import com.herohiman.tournant.Constants.Companion.PREF_FILE_LAST_MODIFIED
 import com.herohiman.tournant.Constants.Companion.PREF_MODE
 import com.herohiman.tournant.Constants.Companion.PREF_SORT
-import com.herohiman.R
+import com.herohiman.tournant.R
 import com.herohiman.tournant.TournantApplication
 import com.herohiman.tournant.data.ChipData
 import com.herohiman.tournant.data.Recipe

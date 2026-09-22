@@ -74,7 +74,7 @@ import com.herohiman.tournant.Constants.Companion.SORTED_BY_INSTRUCTIONS_LENGTH
 import com.herohiman.tournant.Constants.Companion.SORTED_BY_MODIFIED
 import com.herohiman.tournant.Constants.Companion.SORTED_BY_PREPARATIONS_COUNT
 import com.herohiman.tournant.Constants.Companion.SORTED_BY_PREPARED
-import com.herohiman.R
+import com.herohiman.tournant.R
 import com.herohiman.tournant.data.ChipData
 import com.herohiman.tournant.data.RecipeDescription
 import com.herohiman.tournant.databinding.RecyclerItemRecipeBinding

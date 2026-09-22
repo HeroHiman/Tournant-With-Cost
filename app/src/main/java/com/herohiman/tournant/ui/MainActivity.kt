@@ -51,7 +51,7 @@ import com.herohiman.tournant.Constants.Companion.PREF_COLOR_THEME
 import com.herohiman.tournant.Constants.Companion.PREF_FILE
 import com.herohiman.tournant.Constants.Companion.PREF_MODE
 import com.herohiman.tournant.Constants.Companion.PREF_VERSION
-import com.herohiman.R
+import com.herohiman.tournant.R
 import com.herohiman.tournant.TournantApplication
 import com.herohiman.tournant.databinding.ActivityMainBinding
 import com.herohiman.tournant.databinding.SortOptionsBinding

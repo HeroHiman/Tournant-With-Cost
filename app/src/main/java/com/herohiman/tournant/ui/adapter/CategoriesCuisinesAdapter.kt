@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.flexbox.FlexboxLayoutManager
-import com.herohiman.R
+import com.herohiman.tournant.R
 import com.herohiman.tournant.data.ChipData
 import com.herohiman.tournant.databinding.CategoriesAndCuisinesBinding
 import com.herohiman.tournant.ui.MainActivity

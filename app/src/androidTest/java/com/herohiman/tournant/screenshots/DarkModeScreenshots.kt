@@ -11,7 +11,7 @@ import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.rules.activityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import com.herohiman.R
+import com.herohiman.tournant.R
 import com.herohiman.tournant.ui.MainActivity
 import org.junit.Rule
 import org.junit.Test

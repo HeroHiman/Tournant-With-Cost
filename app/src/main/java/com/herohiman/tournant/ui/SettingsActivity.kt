@@ -35,7 +35,7 @@ import com.herohiman.tournant.Constants.Companion.PREF_FILE_LAST_MODIFIED
 import com.herohiman.tournant.Constants.Companion.PREF_MARKDOWN
 import com.herohiman.tournant.Constants.Companion.PREF_MODE
 import com.herohiman.tournant.Constants.Companion.PREF_SCREEN_ON
-import com.herohiman.R
+import com.herohiman.tournant.R
 import com.herohiman.tournant.TournantApplication
 import com.herohiman.tournant.safeInsets
 import kotlinx.coroutines.Dispatchers

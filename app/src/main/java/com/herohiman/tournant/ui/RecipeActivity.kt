@@ -146,7 +146,7 @@ import com.herohiman.tournant.Constants.Companion.MODE_SYNCED
 import com.herohiman.tournant.Constants.Companion.PREF_MARKDOWN
 import com.herohiman.tournant.Constants.Companion.PREF_MODE
 import com.herohiman.tournant.Constants.Companion.PREF_SCREEN_ON
-import com.herohiman.R
+import com.herohiman.tournant.R
 import com.herohiman.tournant.TournantApplication
 import com.herohiman.tournant.data.Ingredient
 import com.herohiman.tournant.data.IngredientLine

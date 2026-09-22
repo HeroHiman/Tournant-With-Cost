@@ -7,7 +7,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.herohiman.R
+import com.herohiman.tournant.R
 import com.herohiman.tournant.TournantApplication
 import com.herohiman.tournant.addGroupTitles
 import com.herohiman.tournant.data.IngredientLine

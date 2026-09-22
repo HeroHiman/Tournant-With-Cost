@@ -3,7 +3,7 @@ package com.herohiman.tournant.utils
 import android.content.Context
 import android.util.TypedValue
 import androidx.core.content.res.ResourcesCompat
-import com.herohiman.R
+import com.herohiman.tournant.R
 import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.core.MarkwonTheme
 import org.commonmark.node.BlockQuote

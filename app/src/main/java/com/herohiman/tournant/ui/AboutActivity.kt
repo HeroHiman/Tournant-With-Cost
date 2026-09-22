@@ -20,7 +20,7 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.get
-import com.herohiman.R
+import com.herohiman.tournant.R
 import com.herohiman.tournant.safeInsets
 
 class AboutActivity : AppCompatActivity() {
