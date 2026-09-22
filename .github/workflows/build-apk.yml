@@ -39,7 +39,8 @@ jobs:
       if: success()
       with:
         name: debug-apk
-        path: app/build/outputs/apk/debug/app-debug.apk
+        path: |
+          app/build/outputs/apk/*/debug/*.apk
         retention-days: 7
 
     - name: Create Release (on tag)
@@ -56,7 +57,7 @@ jobs:
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: app/build/outputs/apk/debug/app-debug.apk
+        asset_path: app/build/outputs/apk/*/debug/app-debug.apk
         asset_name: app-debug.apk
         asset_content_type: application/vnd.android.package-archive
 
