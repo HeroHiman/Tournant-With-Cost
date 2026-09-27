@@ -4,7 +4,6 @@ package com.herohiman.tournant.ui.elements
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import androidx.lifecycle.MutableStateFlow
 import com.herohiman.tournant.R
 import com.herohiman.tournant.data.room.RecipeRepository
 import com.herohiman.tournant.data.room.RecipeWithIngredientsAndPreparations
@@ -42,7 +41,7 @@ class RecipePreparationManager(
 
     suspend fun removePreparation(recipeId: Long, date: Date): Result<Unit> {
         return try {
-            // Simplified implementation - in real usage you'd need the recipeId and date
+            withContext(Dispatchers.IO) { recipeRepository.removePreparation(recipeId, date) }
             Result.success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "Error removing preparation", e)

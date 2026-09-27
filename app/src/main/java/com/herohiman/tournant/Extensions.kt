@@ -44,6 +44,24 @@ fun Double?.toStringForCooks(thousands: Boolean = true): String {
 	if (this == null)
 		return ""
 
+	val intPart = toLong()
+	val fracPart = kotlin.math.abs(this - intPart)
+	val fracChar = when {
+		kotlin.math.abs(fracPart - 0.5) < 0.001 -> "½"
+		kotlin.math.abs(fracPart - 0.25) < 0.001 -> "¼"
+		kotlin.math.abs(fracPart - 0.75) < 0.001 -> "¾"
+		kotlin.math.abs(fracPart - 0.333) < 0.01 -> "⅓"
+		kotlin.math.abs(fracPart - 0.667) < 0.01 -> "⅔"
+		kotlin.math.abs(fracPart - 0.125) < 0.001 -> "⅛"
+		kotlin.math.abs(fracPart - 0.375) < 0.001 -> "⅜"
+		kotlin.math.abs(fracPart - 0.625) < 0.001 -> "⅝"
+		kotlin.math.abs(fracPart - 0.875) < 0.001 -> "⅞"
+		else -> null
+	}
+	if (fracChar != null) {
+		return if (intPart > 0) "$intPart$fracChar" else fracChar
+	}
+
 	var formattedNumber =
 		if (this <= toInt()) // i.e. Float == Int -> 123
 			NumberFormat.getInstance().format(this)

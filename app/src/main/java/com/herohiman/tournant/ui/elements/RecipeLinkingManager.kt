@@ -3,7 +3,6 @@ package com.herohiman.tournant.ui.elements
 
 import android.content.Context
 import android.util.Log
-import androidx.lifecycle.MutableStateFlow
 import com.herohiman.tournant.data.room.RecipeRepository
 import com.herohiman.tournant.data.room.RecipeWithIngredientsAndPreparations
 import kotlinx.coroutines.Dispatchers
@@ -24,8 +23,8 @@ class RecipeLinkingManager(
     suspend fun linkRecipes(sourceRecipeId: Long, targetRecipeId: Long): Result<Unit> {
         return try {
             withContext(Dispatchers.IO) {
-                val sourceRecipe: com.herohiman.tournant.data.room.RecipeWithIngredientsAndPreparations? = recipeRepository.getRecipeById(sourceRecipeId).firstOrNull()
-                val targetRecipe: com.herohiman.tournant.data.room.RecipeWithIngredientsAndPreparations? = recipeRepository.getRecipeById(targetRecipeId).firstOrNull()
+                val sourceRecipe = recipeRepository.getRecipeById(sourceRecipeId).firstOrNull<com.herohiman.tournant.data.room.RecipeWithIngredientsAndPreparations>()
+                val targetRecipe = recipeRepository.getRecipeById(targetRecipeId).firstOrNull<com.herohiman.tournant.data.room.RecipeWithIngredientsAndPreparations>()
 
                 if (sourceRecipe == null) {
                     return@withContext Result.failure(Exception("Source recipe not found"))
@@ -70,14 +69,14 @@ class RecipeLinkingManager(
     suspend fun unlinkRecipes(sourceRecipeId: Long, targetRecipeId: Long): Result<Unit> {
         return try {
             withContext(Dispatchers.IO) {
-                val sourceRecipe: com.herohiman.tournant.data.room.RecipeWithIngredientsAndPreparations? = recipeRepository.getRecipeById(sourceRecipeId).firstOrNull()
+                val sourceRecipe = recipeRepository.getRecipeById(sourceRecipeId).firstOrNull<com.herohiman.tournant.data.room.RecipeWithIngredientsAndPreparations>()
                 if (sourceRecipe == null) {
                     return@withContext Result.failure(Exception("Recipe not found"))
                 }
 
                 // Remove target from source ingredients
                 val updatedIngredients = sourceRecipe.toRecipe().ingredients.filter { ingredient ->
-                    (ingredient as? com.herohiman.tournant.data.IngredientLine.IngredientItem)?.ingredient?.refId != targetRecipeId
+                    ingredient.refId != targetRecipeId
                 }.toMutableList()
 
                 val updatedSourceRecipe = sourceRecipe.toRecipe().copy(
@@ -116,9 +115,7 @@ class RecipeLinkingManager(
                 }
 
                 val referencedIds = sourceRecipe.ingredients
-                    .filterIsInstance<com.herohiman.tournant.data.IngredientLine.IngredientItem>()
-                    .filter { it.ingredient.refId != null }
-                    .map { it.ingredient.refId!! }
+                    .mapNotNull { it.refId }
                     .distinct()
 
                 Result.success(referencedIds.map { id ->
@@ -147,10 +144,7 @@ class RecipeLinkingManager(
             // Get all recipes that currentId references
             val currentRecipe = recipeRepository.getRecipeById(currentId).firstOrNull()
             if (currentRecipe != null) {
-                val referencedIds = currentRecipe.ingredients
-                    .filterIsInstance<com.herohiman.tournant.data.IngredientLine.IngredientItem>()
-                    .filter { it.ingredient.refId != null }
-                    .map { it.ingredient.refId!! }
+                val referencedIds = currentRecipe.ingredients.mapNotNull { it.refId }
 
                 for (referencedId in referencedIds) {
                     if (hasCycle(referencedId)) return true

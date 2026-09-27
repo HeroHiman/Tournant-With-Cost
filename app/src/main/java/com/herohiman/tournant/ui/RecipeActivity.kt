@@ -656,8 +656,13 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 	) {
 		val amountMaxWidth = with(LocalDensity.current) {
 			items.filterIsInstance<IngredientItem>().maxOfOrNull {
+				val displayStr = if (it.originalIngredient != null && it.originalIngredient.amount != it.ingredient.amount) {
+					"${it.ingredient.amountToStringForCooks(appendSpace = false)} (${it.originalIngredient.amountToStringForCooks(appendSpace = false)}) "
+				} else {
+					it.ingredient.amountToStringForCooks()
+				}
 				textMeasurer.measure(
-					it.ingredient.amountToStringForCooks(),
+					displayStr,
 					MaterialTheme.typography.body1
 				).size.width.toDp()
 			}
@@ -696,6 +701,18 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 		var dialogVisible by remember { mutableStateOf(false) }
 		var value by remember { mutableStateOf(TextFieldValue("")) }
 
+		val amountText = if (item.originalIngredient != null && item.originalIngredient.amount != item.ingredient.amount) {
+			buildAnnotatedString {
+				append(item.ingredient.amountToStringForCooks(appendSpace = false))
+				withStyle(SpanStyle(fontSize = 12.sp, color = MaterialTheme.colors.onSurface.copy(alpha = 0.55f))) {
+					append(" (${item.originalIngredient.amountToStringForCooks(appendSpace = false)})")
+				}
+				append(" ")
+			}
+		} else {
+			buildAnnotatedString { append(item.ingredient.amountToStringForCooks()) }
+		}
+
 		Row(
 			Modifier
 				.alpha(if (weighMode && item.isSelected || !weighMode && item.isChecked) ContentAlpha.disabled else 1f)
@@ -713,7 +730,7 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 				)
 		) {
 			Text(
-				text = item.ingredient.amountToStringForCooks(),
+				text = amountText,
 				modifier = Modifier.width(amountMaxWidth),
 				textAlign = TextAlign.End,
 				lineHeight = 24.sp

@@ -59,12 +59,13 @@ class RecipeViewModel(application: TournantApplication, private val recipeId: Lo
 		ingredients.map { item ->
 			when (item) {
 				is IngredientGroupTitle -> item
-				is IngredientItem -> item.copy(
-					ingredient = item.ingredient.copy(
-						amount = item.ingredient.withScaledAmount(scale).amount,
-						amountRange = item.ingredient.withScaledAmount(scale).amountRange
+				is IngredientItem -> {
+					val scaled = item.ingredient.withScaledAmount(scale)
+					item.copy(
+						ingredient = scaled,
+						originalIngredient = if (scale != 1.0) item.ingredient else null
 					)
-				)
+				}
 			}
 		}
 	}

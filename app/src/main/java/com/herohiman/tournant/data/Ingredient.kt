@@ -44,17 +44,26 @@ data class Ingredient(
 	}
 
 	fun withScaledAmount(factor: Double): Ingredient {
-		if (factor == 1.0) {
+		if (factor <= 0.0 || factor == 1.0) {
 			return this
 		}
 
-		val amountScaled = amount.let {
-			it?.times(factor)?.roundToNDigits(it.getNumberOfDigits() + 1)
+		fun scaleValue(valToScale: Double?): Double? {
+			if (valToScale == null) return null
+			if (valToScale == 0.0) return 0.0
+			val raw = valToScale * factor
+			val roundedInt = kotlin.math.round(raw)
+			if (kotlin.math.abs(raw - roundedInt) < 0.001) {
+				return roundedInt
+			}
+			val digits = kotlin.math.min(valToScale.getNumberOfDigits() + 1, 4)
+			val rounded = raw.roundToNDigits(digits)
+			val roundedInt2 = kotlin.math.round(rounded)
+			return if (kotlin.math.abs(rounded - roundedInt2) < 0.001) roundedInt2 else rounded
 		}
 
-		val amountRangeScaled = amountRange.let {
-			it?.times(factor)?.roundToNDigits(it.getNumberOfDigits() + 1)
-		}
+		val amountScaled = scaleValue(amount)
+		val amountRangeScaled = scaleValue(amountRange)
 
 		return copy(amount = amountScaled, amountRange = amountRangeScaled)
 	}
