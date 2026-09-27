@@ -167,7 +167,7 @@ class IngredientScalingTest {
     }
 
     @Test
-    fun `test scaling preserves all properties when scale is 1.0`() {
+    fun `test scaling preserves all properties when scale is one`() {
         val ingredient = Ingredient(
             amount = 2.5,
             amountRange = 3.5,
