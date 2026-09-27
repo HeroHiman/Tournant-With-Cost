@@ -22,16 +22,11 @@ class RecipeLinkingManager(
 
     suspend fun linkRecipes(sourceRecipeId: Long, targetRecipeId: Long): Result<Unit> {
         return try {
-            withContext(Dispatchers.IO) {
-                val sourceRecipe = recipeRepository.getRecipeById(sourceRecipeId).firstOrNull<com.herohiman.tournant.data.room.RecipeWithIngredientsAndPreparations>()
-                val targetRecipe = recipeRepository.getRecipeById(targetRecipeId).firstOrNull<com.herohiman.tournant.data.room.RecipeWithIngredientsAndPreparations>()
-
-                if (sourceRecipe == null) {
-                    return@withContext Result.failure(Exception("Source recipe not found"))
-                }
-                if (targetRecipe == null) {
-                    return@withContext Result.failure(Exception("Target recipe not found"))
-                }
+            withContext<Result<Unit>>(Dispatchers.IO) {
+                val sourceRecipe = recipeRepository.getRecipeById(sourceRecipeId).firstOrNull()
+                    ?: return@withContext Result.failure(Exception("Source recipe not found"))
+                val targetRecipe = recipeRepository.getRecipeById(targetRecipeId).firstOrNull()
+                    ?: return@withContext Result.failure(Exception("Target recipe not found"))
 
                 // Check for circular references
                 if (wouldCreateCycle(sourceRecipeId, targetRecipeId)) {
@@ -58,8 +53,8 @@ class RecipeLinkingManager(
 
                 // Save the updated recipe with the new ingredient
                 recipeRepository.upsertSingleRecipe(updatedSourceRecipe.toRecipeWithIngredientsAndPreparations())
+                Result.success(Unit)
             }
-            Result.success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "Error linking recipes", e)
             Result.failure(e)
@@ -68,11 +63,9 @@ class RecipeLinkingManager(
 
     suspend fun unlinkRecipes(sourceRecipeId: Long, targetRecipeId: Long): Result<Unit> {
         return try {
-            withContext(Dispatchers.IO) {
-                val sourceRecipe = recipeRepository.getRecipeById(sourceRecipeId).firstOrNull<com.herohiman.tournant.data.room.RecipeWithIngredientsAndPreparations>()
-                if (sourceRecipe == null) {
-                    return@withContext Result.failure(Exception("Recipe not found"))
-                }
+            withContext<Result<Unit>>(Dispatchers.IO) {
+                val sourceRecipe = recipeRepository.getRecipeById(sourceRecipeId).firstOrNull()
+                    ?: return@withContext Result.failure(Exception("Recipe not found"))
 
                 // Remove target from source ingredients
                 val updatedIngredients = sourceRecipe.toRecipe().ingredients.filter { ingredient ->
@@ -84,8 +77,8 @@ class RecipeLinkingManager(
                 )
 
                 recipeRepository.upsertSingleRecipe(updatedSourceRecipe.toRecipeWithIngredientsAndPreparations())
+                Result.success(Unit)
             }
-            Result.success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "Error unlinking recipe", e)
             Result.failure(e)

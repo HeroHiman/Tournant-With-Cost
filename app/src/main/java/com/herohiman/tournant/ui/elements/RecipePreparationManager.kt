@@ -79,19 +79,19 @@ class RecipePreparationManager(
         }
     }
 
-    suspend fun getPreparationStats(recipeId: Long): Result<Map<String, Any>> {
+    suspend fun getPreparationStats(recipeId: Long): Result<Map<String, Any?>> {
         return try {
             val preparations = withContext(Dispatchers.IO) { recipeRepository.getPreparations(recipeId) }
             val totalPreparations = preparations.size
             
-            val stats = mutableMapOf<String, Any>(
+            val stats = mutableMapOf<String, Any?>(
                 "totalPreparations" to totalPreparations,
-                "lastPreparationDate" to (preparations.firstOrNull()?.date as Any?),
-                "firstPreparationDate" to (preparations.lastOrNull()?.date as Any?),
+                "lastPreparationDate" to preparations.firstOrNull()?.date,
+                "firstPreparationDate" to preparations.lastOrNull()?.date,
                 "averageDaysBetween" to if (totalPreparations > 1) {
                     val dates = preparations.map { it.date.time }.sortedDescending()
                     val intervals = dates.windowed(2).map { (it[0] - it[1]) / (1000 * 60 * 60 * 24) }
-                    intervals.average() as Any
+                    intervals.average()
                 } else null,
                 "preparationsThisMonth" to preparations.count { 
                     it.date.after(Date(System.currentTimeMillis() - 30L * 24 * 60 * 60 * 1000))
