@@ -1,10 +1,10 @@
 name: Build Release APK
 
 on:
+  workflow_dispatch: # Allows manual trigger from the GitHub Actions tab
   push:
     tags:
-      - 'v*' # Triggers workflow on tag pushes like v1.0.0
-  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+      - 'v*' # Only triggers when a tag starting with 'v' is pushed
 
 jobs:
   build:
