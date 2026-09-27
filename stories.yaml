@@ -1,0 +1,578 @@
+# Tournant Project - BMAD Stories
+
+# Team Structure
+team:
+  product_manager: John
+  technical_architect: Winston
+  ux_designer: Sally
+  developer: Amelia
+
+# Epic Definition
+epics:
+  
+  # Epic 1: Core Recipe Management
+  "1":
+    title: "Core Recipe Management"
+    goal: "Enable users to create, edit, and manage recipes with full-featured editing and preview capabilities"
+    priority: HIGH
+    stories:
+      "1.1":
+        title: "Create New Recipes"
+        description: "As a user, I want to create new recipes with title, description, ingredients, instructions, and metadata so that I can add new recipes to my cookbook"
+        acceptance_criteria:
+          - "User can create a recipe with title, description, and metadata fields"
+          - "User can add ingredients to a recipe (with amounts, units, and optional items)"
+          - "User can add ingredients to groups for organization"
+          - "User can add instructions using Markdown formatting"
+          - "User can set recipe metadata (season, category, cuisine, yield, language)"
+          - "User can save recipes to local database"
+          - "User can preview the created recipe before saving"
+        dependencies: []
+        tech_stack: [kotlin, android, room, retrofit, compose]
+        test_focus: [unit, ui, integration]
+        complexity: MEDIUM
+        
+      "1.2":
+        title: "Edit Existing Recipes"
+        description: "As a user, I want to edit existing recipes so that I can update and modify my cookbook entries"
+        acceptance_criteria:
+          - "User can select a recipe and open it in edit mode"
+          - "User can modify all recipe fields (title, description, metadata)"
+          - "User can add or remove ingredients"
+          - "User can modify ingredient details (amount, unit, item)"
+          - "User can add or remove ingredient groups"
+          - "User can modify instructions"
+          - "User can save changes and have them persisted"
+          - "User can revert to original recipe state"
+        dependencies: ["1.1"]
+        tech_stack: [kotlin, android, room, retrofit, compose]
+        test_focus: [unit, ui, integration]
+        complexity: MEDIUM
+        
+      "1.3":
+        title: "Recipe Preview"
+        description: "As a user, I want to see a preview of my recipe so that I can quickly review it before saving"
+        acceptance_criteria:
+          - "User can switch between edit and preview modes"
+          - "Preview shows recipe title, description, and metadata"
+          - "Preview displays ingredients in organized groups"
+          - "Preview shows instructions with Markdown formatting"
+          - "Preview includes yield information and scaling options"
+          - "User can navigate between preview sections easily"
+        dependencies: ["1.1", "1.2"]
+        tech_stack: [kotlin, android, compose, markdown, viewmodel]
+        test_focus: [ui, unit]
+        complexity: LOW
+
+  # Epic 2: Advanced Recipe Features
+  "2":
+    title: "Advanced Recipe Features"
+    goal: "Provide advanced recipe management features for experienced users"
+    priority: MEDIUM
+    stories:
+      "2.1":
+        title: "Ingredient Scaling"
+        description: "As a user, I want to scale recipe ingredients so that I can adjust serving sizes"
+        acceptance_criteria:
+          - "User can input a new yield amount"
+          - "System automatically scales all ingredient amounts proportionally"
+          - "Scaling preserves units and formatting"
+          - "User can scale up or down"
+          - "Scaling shows original and scaled amounts side by side"
+          - "User can reset to original amounts"
+          - "System handles fractional amounts correctly"
+          - "Scaling respects ingredient ranges when present"
+        dependencies: ["1.1", "1.2"]
+        tech_stack: [kotlin, android, viewmodel, state, flow]
+        test_focus: [unit, ui, performance]
+        complexity: MEDIUM
+        
+      "2.2":
+        title: "Ingredient Linking"
+        description: "As a user, I want to link related recipes so that I can create recipe dependencies"
+        acceptance_criteria:
+          - "User can link a recipe as an ingredient to another recipe"
+          - "Linked recipes appear as clickable references in ingredient lists"
+          - "When clicked, linked recipes open in full view"
+          - "System tracks dependencies between recipes"
+          - "User can view all recipes that reference a specific recipe"
+          - "Links are persistent across app sessions"
+          - "Breaking links is supported"
+        dependencies: ["1.1", "1.2"]
+        tech_stack: [kotlin, android, room, navigation, viewmodel]
+        test_focus: [unit, ui, integration]
+        complexity: MEDIUM
+        
+      "2.3":
+        title: "Preparation Logging"
+        description: "As a user, I want to log when I've prepared a recipe so that I can track my cooking history"
+        acceptance_criteria:
+          - "User can log a preparation date for any recipe"
+          - "System stores preparation dates locally"
+          - "User can view all past preparations for a recipe"
+          - "User can remove specific preparation entries"
+          - "System can calculate relative time since preparation"
+          - "Preparation logs are integrated with recipe lists"
+          - "Calendar integration for preparation dates"
+        dependencies: ["1.1"]
+        tech_stack: [kotlin, android, room, date, calendar]
+        test_focus: [unit, ui, integration]
+        complexity: MEDIUM
+
+  # Epic 3: Search and Organization
+  "3":
+    title: "Search and Organization"
+    goal: "Enable users to easily find and organize their recipes"
+    priority: MEDIUM
+    stories:
+      "3.1":
+        title: "Recipe Search"
+        description: "As a user, I want to search for recipes so that I can quickly find specific recipes"
+        acceptance_criteria:
+          - "User can search recipes by title, keywords, or content"
+          - "Search provides autocomplete suggestions as user types"
+          - "Search results show relevant recipes with thumbnails"
+          - "User can filter results by category, cuisine, or season"
+          - "Search preserves filters and query across sessions"
+          - "Search results are sortable"
+          - "Search supports partial matches"
+        dependencies: []
+        tech_stack: [kotlin, android, room, search, retrofit]
+        test_focus: [unit, ui, integration]
+        complexity: MEDIUM
+        
+      "3.2":
+        title: "Category and Cuisine Management"
+        description: "As a user, I want to categorize and organize recipes so that I can structure my cookbook"
+        acceptance_criteria:
+          - "User can create and manage recipe categories"
+          - "User can create and manage cuisine tags"
+          - "User can filter recipes by category and cuisine"
+          - "User can assign multiple categories to a single recipe"
+          - "System displays recipes in organized collections"
+          - "Categories and cuisines are persistent"
+          - "User can rename or delete categories"
+        dependencies: []
+        tech_stack: [kotlin, android, room, viewmodel, state]
+        test_focus: [unit, ui, integration]
+        complexity: MEDIUM
+        
+      "3.3":
+        title: "Sorting and Filtering"
+        description: "As a user, I want to sort and filter my recipes so that I can view them in the most useful order"
+        acceptance_criteria:
+          - "User can sort recipes by name, date created, date modified, or last prepared"
+          - "User can sort ascending or descending"
+          - "User can filter recipes by preparation status (prepared/unprepared)"
+          - "User can filter recipes by date range (last prepared)"
+          - "User can save favorite filters for quick access"
+          - "Filters are applied in combination"
+          - "Filter counts are displayed"
+        dependencies: ["3.1", "3.2"]
+        tech_stack: [kotlin, android, room, viewmodel, state, flow]
+        test_focus: [unit, ui, integration]
+        complexity: MEDIUM
+
+  # Epic 4: Export and Sharing
+  "4":
+    title: "Export and Sharing"
+    goal: "Enable users to export and share recipes across platforms"
+    priority: LOW
+    stories:
+      "4.1":
+        title: "JSON Export"
+        description: "As a user, I want to export recipes as JSON files so that I can import them into other applications"
+        acceptance_criteria:
+          - "User can select one or more recipes to export"
+          - "System exports recipes as valid JSON format"
+          - "JSON includes all recipe data (ingredients, instructions, metadata)"
+          - "User can choose export location"
+          - "System shows export progress and completion status"
+          - "Exported files are human-readable"
+          - "JSON can be re-imported into the system"
+        dependencies: []
+        tech_stack: [kotlin, android, json, file, storage]
+        test_focus: [unit, ui, integration]
+        complexity: MEDIUM
+        
+      "4.2":
+        title: "Gourmand XML Export"
+        description: "As a user, I want to export recipes in Gourmand XML format so that I can use them with Gourmet Recipe Manager"
+        acceptance_criteria:
+          - "User can select recipes to export to Gourmand format"
+          - "System validates recipes for Gourmand compatibility"
+          - "System warns about unsupported features"
+          - "Exported XML follows Gourmand schema"
+          - "User can export multiple recipes as a single archive"
+          - "XML files are properly formatted"
+          - "Export preserves all recipe information"
+        dependencies: ["4.1"]
+        tech_stack: [kotlin, android, xml, parser, validator]
+        test_focus: [unit, ui, integration]
+        complexity: MEDIUM
+        
+      "4.3":
+        title: "Share Functionality"
+        description: "As a user, I want to share recipes via other apps so that I can distribute them easily"
+        acceptance_criteria:
+          - "User can share individual recipes via Android share intent"
+          - "User can share recipe lists/collections"
+          - "Shared content includes recipe details and images"
+          - "User can choose sharing format (JSON, XML, or text)"
+          - "Shared content is properly formatted for external apps"
+          - "Sharing respects privacy settings"
+          - "Share history is maintained"
+        dependencies: ["4.1", "4.2"]
+        tech_stack: [kotlin, android, share, intent, retrofit]
+        test_focus: [ui, integration]
+        complexity: MEDIUM
+
+  # Epic 5: Settings and Preferences
+  "5":
+    title: "Settings and Preferences"
+    goal: "Allow users to customize the application behavior"
+    priority: LOW
+    stories:
+      "5.1":
+        title: "Markdown Toggle"
+        description: "As a user, I want to toggle Markdown support so that I can choose my preferred editing method"
+        acceptance_criteria:
+          - "User can enable or disable Markdown for instructions"
+          - "System shows proper formatting when Markdown is enabled"
+          - "System renders HTML when Markdown is disabled"
+          - "User preference is saved between sessions"
+          - "Preview mode adapts to Markdown setting"
+          - "Help text explains Markdown features"
+        dependencies: []
+        tech_stack: [kotlin, android, compose, markdown, shared_preferences]
+        test_focus: [unit, ui]
+        complexity: LOW
+        
+      "5.2":
+        title: "Unit System"
+        description: "As a user, I want to choose my preferred unit system so that measurements work in my local format"
+        acceptance_criteria:
+          - "User can select measurement units (metric, imperial, or both)"
+          - "System displays ingredient amounts in selected units"
+          - "System converts between units as needed"
+          - "User preference is saved locally"
+          - "Scaling respects unit preferences"
+          - "Recipe imports preserve unit preferences"
+        dependencies: []
+        tech_stack: [kotlin, android, shared_preferences, units]
+        test_focus: [unit, ui]
+        complexity: LOW
+        
+      "5.3":
+        title: "Display Preferences"
+        description: "As a user, I want to customize the display so that it looks and works the way I want"
+        acceptance_criteria:
+          - "User can choose theme (light/dark/system)"
+          - "User can configure screen timeout behavior"
+          - "User can adjust font sizes and scaling"
+          - "User can enable or disable haptic feedback"
+          - "All preferences are saved and applied consistently"
+          - "Preferences sync across devices when available"
+        dependencies: ["5.1", "5.2"]
+        tech_stack: [kotlin, android, compose, shared_preferences, theme]
+        test_focus: [ui, unit]
+        complexity: LOW
+
+  # Epic 6: Performance and Reliability
+  "6":
+    title: "Performance and Reliability"
+    goal: "Ensure the application is performant and reliable"
+    priority: HIGH
+    stories:
+      "6.1":
+        title: "Offline Support"
+        description: "As a user, I want to use the application without internet connectivity so that I can cook anytime"
+        acceptance_criteria:
+          - "All recipe data is stored locally on the device"
+          - "User can create, edit, and export recipes offline"
+          - "System syncs with cloud when internet is available"
+          - "Application works normally without internet connection"
+          - "Offline mode has all features available"
+          - "Automatic retry on connectivity restoration"
+        dependencies: []
+        tech_stack: [kotlin, android, room, network, sync]
+        test_focus: [integration, performance]
+        complexity: MEDIUM
+        
+      "6.2":
+        title: "Performance Optimization"
+        description: "As a user, I want the application to load quickly so that I can access recipes instantly"
+        acceptance_criteria:
+          - "Recipe loading should be under 1 second for most devices"
+          - "Database queries should be optimized"
+          - "Images should load efficiently with caching"
+          - "UI should be responsive during heavy operations"
+          - "System should use appropriate bitmap decoding"
+          - "Background tasks should not block UI"
+          - "Memory usage should be optimized"
+        dependencies: ["6.1"]
+        tech_stack: [kotlin, android, performance, caching, bitmap]
+        test_focus: [performance, integration]
+        complexity: MEDIUM
+        
+      "6.3":
+        title: "Error Handling"
+        description: "As a user, I want clear error messages when things go wrong so that I can understand and fix issues"
+        acceptance_criteria:
+          - "System provides clear error messages for all failure cases"
+          - "Errors are user-friendly and actionable"
+          - "System logs errors for debugging"
+          - "User can recover from errors when possible"
+          - "System offers suggestions for common errors"
+          - "Error reporting respects user privacy"
+          - "System can retry failed operations"
+        dependencies: []
+        tech_stack: [kotlin, android, error_handling, logging]
+        test_focus: [unit, integration]
+        complexity: MEDIUM
+
+# Story Prioritization
+prioritization:
+  high: ["1.1", "1.2", "1.3", "2.1", "2.2", "2.3", "3.1", "3.2", "3.3", "6.1", "6.2", "6.3"]
+  medium: ["4.1", "4.2", "4.3", "5.1", "5.2", "5.3"]
+  low: []
+
+# Implementation dependencies
+implementation_dependencies:
+  "1": []
+  "2": ["1"]
+  "3": []
+  "4": ["1", "2"]
+  "5": ["1"]
+  "6": []
+
+# Story implementations
+story_implementations:
+  "1.1":
+    status: "draft"
+    spec_file: "bmad-output/implementation/story-1-1-draft.md"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeEditingActivity.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeEditingViewModel.kt"
+      - "app/src/main/java/com/herohiman/tournant/data/Recipe.kt"
+      - "app/src/main/java/com/herohiman/tournant/data/Ingredient.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/adapter/IngredientEditingAdapter.kt"
+      
+  "1.2":
+    status: "draft"
+    spec_file: "bmad-output/implementation/story-1-2-draft.md"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeEditingActivity.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeEditingViewModel.kt"
+      - "app/src/main/java/com/herohiman/tournant/data/Recipe.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/adapter/IngredientEditingAdapter.kt"
+      
+  "1.3":
+    status: "draft"
+    spec_file: "bmad-output/implementation/story-1-3-draft.md"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/adapter/InstructionsTextAdapter.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/adapter/PreparationsAdapter.kt"
+      
+  "2.1":
+    status: "draft"
+    spec_file: "bmad-output/implementation/story-2-1-draft.md"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt"
+      - "app/src/main/java/com/herohiman/tournant/Extensions.kt"
+      
+  "2.2":
+    status: "draft"
+    spec_file: "bmad-output/implementation/story-2-2-draft.md"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt"
+      - "app/src/main/java/com/herohiman/tournant/data/Recipe.kt"
+      
+  "2.3":
+    status: "draft"
+    spec_file: "bmad-output/implementation/story-2-3-draft.md"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt"
+      - "app/src/main/java/com/herohiman/tournant/data/Recipe.kt"
+      
+  "3.1":
+    status: "draft"
+    spec_file: "bmad-output/implementation/story-3-1-draft.md"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/MainViewModel.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/MainActivity.kt"
+      - "app/src/main/java/com/herohiman/tournant/data/room/RecipeRepository.kt"
+      
+  "3.2":
+    status: "draft"
+    spec_file: "bmad-output/implementation/story-3-2-draft.md"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/MainViewModel.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/MainActivity.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/adapter/CategoriesCuisinesAdapter.kt"
+      
+  "3.3":
+    status: "draft"
+    spec_file: "bmad-output/implementation/story-3-3-draft.md"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/MainViewModel.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/MainActivity.kt"
+      
+  "4.1":
+    status: "draft"
+    spec_file: "bmad-output/implementation/story-4-1-draft.md"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/TournantApplication.kt"
+      - "app/src/main/java/com/herohiman/tournant/utils/Converter.kt"
+      
+  "4.2":
+    status: "draft"
+    spec_file: "bmad-output/implementation/story-4-2-draft.md"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/TournantApplication.kt"
+      - "app/src/main/java/com/herohiman/tournant/gourmand/GourmetXmlWriter.kt"
+      - "app/src/main/java/com/herohiman/tournant/gourmand/GourmetXmlParser.kt"
+      
+  "4.3":
+    status: "draft"
+    spec_file: "bmad-output/implementation/story-4-3-draft.md"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/TournantApplication.kt"
+      
+  "5.1":
+    status: "draft"
+    spec_file: "bmad-output/implementation/story-5-1-draft.md"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/SettingsActivity.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/Theme.kt"
+      
+  "5.2":
+    status: "draft"
+    spec_file: "bmad-output/implementation/story-5-2-draft.md"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/SettingsActivity.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/Theme.kt"
+      - "app/src/main/java/com/herohiman/tournant/Extensions.kt"
+      
+  "5.3":
+    status: "draft"
+    spec_file: "bmad-output/implementation/story-5-3-draft.md"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/SettingsActivity.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/Theme.kt"
+      
+  "6.1":
+    status: "draft"
+    spec_file: "bmad-output/implementation/story-6-1-draft.md"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/TournantApplication.kt"
+      - "app/src/main/java/com/herohiman/tournant/data/room/RecipeRepository.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt"
+      
+  "6.2":
+    status: "draft"
+    spec_file: "bmad-output/implementation/story-6-2-draft.md"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt"
+      
+  "6.3":
+    status: "draft"
+    spec_file: "bmad-output/implementation/story-6-3-draft.md"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt"
+
+# Implementation plan
+implementation_plan:
+  phase1:
+    epics: ["1"]
+    stories: ["1.1", "1.2", "1.3"]
+    estimated_weeks: 3
+    budget: MEDIUM
+  phase2:
+    epics: ["1", "2"]
+    stories: ["2.1", "2.2", "2.3"]
+    estimated_weeks: 3
+    budget: HIGH
+  phase3:
+    epics: ["3"]
+    stories: ["3.1", "3.2", "3.3"]
+    estimated_weeks: 2
+    budget: MEDIUM
+  phase4:
+    epics: ["4"]
+    stories: ["4.1", "4.2", "4.3"]
+    estimated_weeks: 2
+    budget: LOW
+  phase5:
+    epics: ["5"]
+    stories: ["5.1", "5.2", "5.3"]
+    estimated_weeks: 1
+    budget: LOW
+  phase6:
+    epics: ["6"]
+    stories: ["6.1", "6.2", "6.3"]
+    estimated_weeks: 2
+    budget: HIGH
+
+# Success metrics
+ success_metrics:
+  user_retention_30d: 70
+  avg_recipe_creation_time: 2
+  search_accuracy: 90
+  export_success_rate: 95
+  crash_rate_per_100_sessions: 1
+
+# Team notes
+team_notes:
+  communication_channels:
+    - "Slack: #tournant-dev"
+    - "GitHub: Pull requests"
+    - "Jira: Issue tracking"
+  sprint_planning:
+    - "Monday: Story planning and implementation"
+    - "Wednesday: Code review and testing"
+    - "Friday: Retrospective and planning"
+  code_review:
+    - "All code must pass peer review"
+    - "Code coverage minimum: 80%"
+    - "Performance requirements must be met"
+  deployment:
+    - "Continuous integration on merge"
+    - "Automated UI testing"
+    - "Manual testing before release"
+
+# Legal and compliance
+legal_compliance:
+  licenses:
+    - "Apache 2.0 for code"
+    - "MIT for third-party libraries"
+  privacy:
+    - "GDPR compliant"
+    - "User data is stored locally"
+    - "No analytics collection"
+  accessibility:
+    - "WCAG 2.1 AA compliant"
+    - "Screen reader support"
+    - "High contrast mode"
+
+# Technical debt management
+technical_debt:
+  monitoring:
+    - "Code quality metrics"
+    - "Performance benchmarks"
+    - "Bug tracking"
+  mitigation:
+    - "Code refactoring"
+    - "Architecture improvements"
+    - "Performance optimizations"
+  reporting:
+    - "Monthly technical debt report"
+    - "Quarterly architecture review"
+    - "Annual technical debt assessment"

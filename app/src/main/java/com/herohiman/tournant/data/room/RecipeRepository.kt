@@ -187,4 +187,15 @@ class RecipeRepository(private val dao: RecipeDao) {
 		}
 	}
 
+	suspend fun getPreparations(recipeId: Long): List<PreparationEntity> {
+		return dao.getPreparations(recipeId)
+	}
+
+	suspend fun getMostRecentPreparation(recipeId: Long): PreparationEntity? {
+		return dao.getMostRecentPreparation(recipeId)
+	}
+
+	suspend fun getPreparationsByDateRange(recipeId: Long, startDate: Date, endDate: Date): List<PreparationEntity> {
+		return dao.getPreparationsByDateRange(recipeId, startDate.time, endDate.time)
+	}
 }

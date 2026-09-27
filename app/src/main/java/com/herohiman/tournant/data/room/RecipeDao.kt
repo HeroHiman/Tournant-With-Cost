@@ -253,6 +253,15 @@ abstract class RecipeDao {
 	@Query("SELECT * FROM Preparation WHERE recipeId = :recipeId AND date = :date")
 	abstract suspend fun getPreparation(recipeId: Long, date: Long): PreparationEntity?
 
+	@Query("SELECT * FROM Preparation WHERE recipeId = :recipeId ORDER BY date DESC")
+	abstract suspend fun getPreparations(recipeId: Long): List<PreparationEntity>
+
+	@Query("SELECT * FROM Preparation WHERE recipeId = :recipeId ORDER BY date DESC LIMIT 1")
+	abstract suspend fun getMostRecentPreparation(recipeId: Long): PreparationEntity?
+
+	@Query("SELECT * FROM Preparation WHERE recipeId = :recipeId AND date BETWEEN :startDate AND :endDate ORDER BY date DESC")
+	abstract suspend fun getPreparationsByDateRange(recipeId: Long, startDate: Long, endDate: Long): List<PreparationEntity>
+
 
 	// Pins
 

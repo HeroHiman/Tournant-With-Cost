@@ -14,6 +14,7 @@ import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -72,12 +73,14 @@ import androidx.core.view.ViewGroupCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
+import androidx.core.widget.doAfterTextChanged
 import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import coil3.load
 import coil3.request.addLastModifiedToFileCacheKey
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputLayout
 import com.herohiman.tournant.R
 import com.herohiman.tournant.TournantApplication
@@ -90,6 +93,10 @@ import com.herohiman.tournant.getAppOrSystemLocale
 import com.herohiman.tournant.move
 import com.herohiman.tournant.safeInsets
 import com.herohiman.tournant.ui.adapter.IngredientEditingAdapter
+import com.herohiman.tournant.ui.preview.RecipePreviewHelper
+import io.noties.markwon.Markwon
+import io.noties.markwon.html.HtmlPlugin
+import io.noties.markwon.SoftBreakAddsNewLinePlugin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -105,7 +112,7 @@ class RecipeEditingActivity : AppCompatActivity(), IngredientEditingAdapter.Ingr
 		private const val TAG = "RecipeEditingActivity"
 	}
 
-	private lateinit var binding: ActivityRecipeEditingBinding
+private lateinit var binding: ActivityRecipeEditingBinding
 	private val viewModel: RecipeEditingViewModel by viewModels {
 		RecipeEditingViewModelFactory(
 			(application as TournantApplication).recipeRepository,
@@ -115,6 +122,8 @@ class RecipeEditingActivity : AppCompatActivity(), IngredientEditingAdapter.Ingr
 
 	private var imageChanged = false
 	private var imageRemoved = false
+	private var isPreviewMode = false
+	private lateinit var previewHelper: RecipePreviewHelper
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -149,6 +158,8 @@ class RecipeEditingActivity : AppCompatActivity(), IngredientEditingAdapter.Ingr
 		}
 
 		setContentView(binding.root)
+
+		previewHelper = RecipePreviewHelper(this)
 
 		supportActionBar?.apply {
 			setDisplayHomeAsUpEnabled(true)
@@ -208,9 +219,29 @@ class RecipeEditingActivity : AppCompatActivity(), IngredientEditingAdapter.Ingr
 			binding.editRating.rating = 0f
 		}
 
+		binding.editTitle.doAfterTextChanged {
+			if (!it.isNullOrBlank()) {
+				binding.editTitleLayout.error = null
+				binding.editTitleLayout.isErrorEnabled = false
+			}
+		}
+
 		binding.editYieldValue.apply {
 			keyListener = DigitsKeyListener.getInstance("0123456789" + DecimalFormatSymbols.getInstance().decimalSeparator)
+			doAfterTextChanged {
+				binding.editYieldValueLayout.error = null
+				binding.editYieldValueLayout.isErrorEnabled = false
+			}
 		}
+
+		onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+			override fun handleOnBackPressed() {
+				confirmDiscardChanges {
+					isEnabled = false
+					onBackPressedDispatcher.onBackPressed()
+				}
+			}
+		})
 
 		binding.editYieldUnit.hint = getString(R.string.optional, getString(R.string.unit))
 
@@ -538,6 +569,23 @@ class RecipeEditingActivity : AppCompatActivity(), IngredientEditingAdapter.Ingr
 	override fun onOptionsItemSelected(item: MenuItem): Boolean {
 		return when (item.itemId) {
 			R.id.save -> {
+				val validation = viewModel.validate()
+				if (validation is RecipeEditingViewModel.ValidationResult.Invalid) {
+					when (validation.errorType) {
+						RecipeEditingViewModel.ValidationError.EMPTY_TITLE -> {
+							binding.editTitleLayout.error = getString(R.string.error_title_empty)
+							binding.editTitleLayout.isErrorEnabled = true
+							binding.editTitle.requestFocus()
+						}
+						RecipeEditingViewModel.ValidationError.INVALID_YIELD -> {
+							binding.editYieldValueLayout.error = getString(R.string.error_yield_invalid)
+							binding.editYieldValueLayout.isErrorEnabled = true
+							binding.editYieldValue.requestFocus()
+						}
+					}
+					return true
+				}
+
 				if (viewModel.recipe.value.id != 0L) {
 					val imageFile = File(File(application.filesDir, "images"), "${viewModel.recipe.value.id}.jpg")
 					if (imageChanged) {
@@ -578,18 +626,137 @@ class RecipeEditingActivity : AppCompatActivity(), IngredientEditingAdapter.Ingr
 				true
 			}
 
-			android.R.id.home -> {
-				finish()
+			R.id.revert -> {
+				MaterialAlertDialogBuilder(this)
+					.setTitle(R.string.revert_changes)
+					.setMessage(R.string.revert_confirm_message)
+					.setPositiveButton(R.string.revert) { _, _ ->
+						performRevert()
+					}
+					.setNegativeButton(R.string.cancel, null)
+					.show()
 				true
 			}
 
+			android.R.id.home -> {
+				confirmDiscardChanges { finish() }
+				true
+			}
+			R.id.preview -> {
+				togglePreviewMode()
+				true
+			}
 			else -> super.onOptionsItemSelected(item)
 		}
 	}
 
 	override fun onCreateOptionsMenu(menu: Menu): Boolean {
 		menuInflater.inflate(R.menu.options_recipe_editing, menu)
+		
+		// Update preview icon based on mode
+		val previewItem = menu.findItem(R.id.preview)
+		previewItem?.let {
+			it.title = if (isPreviewMode) getString(R.string.edit) else getString(R.string.preview)
+			it.setIcon(if (isPreviewMode) R.drawable.ic_edit else R.drawable.ic_preview)
+		}
+		
 		return true
+	}
+
+	private fun togglePreviewMode() {
+		isPreviewMode = !isPreviewMode
+		supportActionBar?.let {
+			it.title = if (isPreviewMode) getString(R.string.preview) else getString(R.string.edit)
+		}
+		invalidateOptionsMenu()
+		
+		if (isPreviewMode) {
+			showPreview()
+		} else {
+			hidePreview()
+		}
+	}
+
+	private fun showPreview() {
+		val currentRecipe = viewModel.recipe.value
+		binding.editIngredients.visibility = View.GONE
+		binding.editInstructionsLayout.visibility = View.GONE
+		binding.editNotesLayout.visibility = View.GONE
+		
+		binding.editPreviewContainer.visibility = View.VISIBLE
+		binding.editPreviewTitle.text = currentRecipe.title
+		binding.editPreviewDescription.text = currentRecipe.description
+		binding.editPreviewInstructions.text = previewHelper.formatRecipeText(currentRecipe.instructions)
+		binding.editPreviewNotes.text = previewHelper.formatRecipeText(currentRecipe.notes)
+		binding.editPreviewIngredients.text = previewHelper.formatIngredientsForPreview(viewModel.ingredients.value)
+		
+		Toast.makeText(this, getString(R.string.preview_mode_enabled), Toast.LENGTH_SHORT).show()
+	}
+
+	private fun hidePreview() {
+		binding.editIngredients.visibility = View.VISIBLE
+		binding.editInstructionsLayout.visibility = View.VISIBLE
+		binding.editNotesLayout.visibility = View.VISIBLE
+		binding.editPreviewContainer.visibility = View.GONE
+		Toast.makeText(this, getString(R.string.edit_mode_enabled), Toast.LENGTH_SHORT).show()
+	}
+
+	private fun hasUnsavedChanges(): Boolean {
+		return imageChanged || imageRemoved || viewModel.hasUnsavedChanges()
+	}
+
+	private fun confirmDiscardChanges(onDiscard: () -> Unit) {
+		if (hasUnsavedChanges()) {
+			MaterialAlertDialogBuilder(this)
+				.setTitle(R.string.discard_changes)
+				.setMessage(R.string.discard_changes_message)
+				.setPositiveButton(R.string.discard) { _, _ ->
+					onDiscard()
+				}
+				.setNegativeButton(R.string.cancel, null)
+				.show()
+		} else {
+			onDiscard()
+		}
+	}
+
+	private fun performRevert() {
+		viewModel.revert()
+		val currentRecipe = viewModel.recipe.value
+		binding.recipe = currentRecipe
+		binding.executePendingBindings()
+
+		if (imageChanged) {
+			File(File(application.filesDir, "images"), "tmp.jpg").delete()
+		}
+		imageChanged = false
+		imageRemoved = false
+
+		if (currentRecipe.id != 0L) {
+			val imageFile = File(File(application.filesDir, "images"), "${currentRecipe.id}.jpg")
+			if (imageFile.exists()) {
+				binding.editImage.load(imageFile) {
+					addLastModifiedToFileCacheKey(true)
+				}
+				binding.editImageRemove.visibility = View.VISIBLE
+			} else currentRecipe.image?.let { image ->
+				binding.editImage.setImageBitmap(BitmapFactory.decodeByteArray(image, 0, image.size))
+				binding.editImageRemove.visibility = View.VISIBLE
+			} ?: run {
+				binding.editImage.setImageDrawable(null)
+				binding.editImageRemove.visibility = View.GONE
+			}
+		} else {
+			binding.editImage.setImageDrawable(null)
+			binding.editImageRemove.visibility = View.GONE
+		}
+
+		binding.editTitleLayout.error = null
+		binding.editTitleLayout.isErrorEnabled = false
+		binding.editYieldValueLayout.error = null
+		binding.editYieldValueLayout.isErrorEnabled = false
+
+		Toast.makeText(this, getString(R.string.revert_success), Toast.LENGTH_SHORT).show()
 	}
 
 	private val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.Callback() {

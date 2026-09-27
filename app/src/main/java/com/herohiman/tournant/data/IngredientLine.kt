@@ -14,4 +14,9 @@ sealed class IngredientLine {
 				}
 			}
 		}
+
+	fun deepCopy(): IngredientLine = when (this) {
+		is IngredientGroupTitle -> copy()
+		is IngredientItem -> copy(ingredient = ingredient.copy())
+	}
 }

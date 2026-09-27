@@ -179,12 +179,24 @@
 	<!-- Editing -->
 	<string name="edit">Edit</string>
 	<string name="save">Save</string>
+	<string name="preview">Preview</string>
 	<string name="add_photo">Add photo</string>
 	<string name="remove_photo">Remove photo</string>
 	<string name="unset_rating">Unset rating</string>
 	<string name="make_optional">Make optional</string>
 	<string name="make_mandatory">Make mandatory</string>
 	<string name="scale_to">Scale to</string>
+	<string name="preview_mode_enabled">Preview mode enabled</string>
+	<string name="edit_mode_enabled">Edit mode enabled</string>
+	<string name="revert">Revert</string>
+	<string name="revert_changes">Revert changes</string>
+	<string name="revert_confirm_message">Discard all changes and revert to the original recipe?</string>
+	<string name="revert_success">Changes reverted</string>
+	<string name="discard_changes">Discard changes?</string>
+	<string name="discard_changes_message">You have unsaved changes. Are you sure you want to discard them?</string>
+	<string name="discard">Discard</string>
+	<string name="error_title_empty">Title cannot be empty</string>
+	<string name="error_yield_invalid">Yield must be greater than zero</string>
 	<string name="app_language">App language</string>
 	<string name="supported_languages">Supported languages</string>
 	<string name="all_languages">All languages</string>

@@ -8,4 +8,16 @@
 		android:icon="@drawable/ic_save_recipe"
 		app:showAsAction="ifRoom"/>
 
+	<item
+		android:id="@+id/preview"
+		android:title="@string/preview"
+		android:icon="@drawable/ic_preview"
+		app:showAsAction="ifRoom"/>
+
+	<item
+		android:id="@+id/revert"
+		android:title="@string/revert"
+		android:icon="@drawable/ic_clear"
+		app:showAsAction="never"/>
+
 </menu>

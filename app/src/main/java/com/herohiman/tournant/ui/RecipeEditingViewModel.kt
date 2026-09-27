@@ -27,16 +27,89 @@ class RecipeEditingViewModel(private val recipeRepository: RecipeRepository, pri
 	val ingredientItemSuggestions = recipeRepository.getIngredientItems()
 	val ingredientUnitSuggestions = recipeRepository.getIngredientUnits()
 
+	private var originalRecipe: Recipe? = null
+	private var originalIngredients: List<IngredientLine>? = null
+
 	init {
-		if (recipeId != 0L)
+		if (recipeId != 0L) {
 			viewModelScope.launch {
 				withContext(Dispatchers.IO) {
-					recipeRepository.getRecipeById(recipeId).map { it.toRecipe() }.collectLatest {
-						recipe.emit(it)
-						ingredients.emit(it.ingredients.addGroupTitles())
+					recipeRepository.getRecipeById(recipeId).map { it.toRecipe() }.collectLatest { loadedRecipe ->
+						if (originalRecipe == null) {
+							originalRecipe = loadedRecipe.deepCopy()
+							originalIngredients = loadedRecipe.ingredients.addGroupTitles().map { it.deepCopy() }
+						}
+						recipe.emit(loadedRecipe)
+						ingredients.emit(loadedRecipe.ingredients.addGroupTitles())
 					}
 				}
 			}
+		} else {
+			val initialRecipe = Recipe(title = "")
+			originalRecipe = initialRecipe.deepCopy()
+			originalIngredients = emptyList()
+			recipe.value = initialRecipe
+			ingredients.value = mutableListOf()
+		}
+	}
+
+	fun canRevert(): Boolean = originalRecipe != null
+
+	fun revert(): Boolean {
+		val orig = originalRecipe ?: return false
+		val origIngr = originalIngredients ?: return false
+		recipe.value = orig.deepCopy()
+		ingredients.value = origIngr.map { it.deepCopy() }.toMutableList()
+		return true
+	}
+
+	fun hasUnsavedChanges(): Boolean {
+		val orig = originalRecipe ?: return false
+		val current = recipe.value
+		if (current.title != orig.title) return true
+		if (current.description != orig.description) return true
+		if (current.instructions != orig.instructions) return true
+		if (current.notes != orig.notes) return true
+		if (current.category != orig.category) return true
+		if (current.cuisine != orig.cuisine) return true
+		if (current.source != orig.source) return true
+		if (current.link != orig.link) return true
+		if (current.rating != orig.rating) return true
+		if (current.preptime != orig.preptime) return true
+		if (current.cooktime != orig.cooktime) return true
+		if (current.yieldValue != orig.yieldValue) return true
+		if (current.yieldUnit != orig.yieldUnit) return true
+		if (current.season != orig.season) return true
+		if (current.language != orig.language) return true
+		if (current.keywords != orig.keywords) return true
+
+		val origIngr = originalIngredients ?: emptyList()
+		if (ingredients.value != origIngr) return true
+
+		return false
+	}
+
+	sealed class ValidationResult {
+		object Valid : ValidationResult()
+		data class Invalid(val errorType: ValidationError) : ValidationResult()
+	}
+
+	enum class ValidationError {
+		EMPTY_TITLE,
+		INVALID_YIELD
+	}
+
+	fun validate(): ValidationResult {
+		val current = recipe.value
+		if (current.title.trim().isBlank()) {
+			return ValidationResult.Invalid(ValidationError.EMPTY_TITLE)
+		}
+		current.yieldValue?.let {
+			if (it <= 0.0 || it.isNaN() || it.isInfinite()) {
+				return ValidationResult.Invalid(ValidationError.INVALID_YIELD)
+			}
+		}
+		return ValidationResult.Valid
 	}
 
 	var savedWithId = MutableStateFlow(0L)

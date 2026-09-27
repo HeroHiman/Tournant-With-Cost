@@ -100,6 +100,7 @@
 						android:orientation="vertical">
 
 						<com.google.android.material.textfield.TextInputLayout
+							android:id="@+id/edit_title_layout"
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
 							app:hintAnimationEnabled="false"
@@ -423,6 +424,7 @@
 							android:baselineAligned="false">
 
 							<com.google.android.material.textfield.TextInputLayout
+								android:id="@+id/edit_yield_value_layout"
 								android:layout_width="0dp"
 								android:layout_height="wrap_content"
 								android:layout_weight="0.3"
@@ -516,6 +518,7 @@
 						android:layout_marginEnd="16dp"/>
 
 					<com.google.android.material.textfield.TextInputLayout
+						android:id="@+id/edit_instructions_layout"
 						android:layout_width="300dp"
 						android:layout_height="wrap_content"
 						app:layout_flexGrow="1"
@@ -535,9 +538,65 @@
 
 					</com.google.android.material.textfield.TextInputLayout>
 
+					<!-- Preview Container (hidden by default) -->
+					<LinearLayout
+						android:id="@+id/editPreviewContainer"
+						android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:orientation="vertical"
+							android:visibility="gone"
+							android:layout_marginHorizontal="16dp"
+							android:layout_marginTop="20dp">
+
+							<TextView
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:text="@string/preview"
+								android:textSize="20sp"
+								android:textStyle="bold"
+								android:layout_marginBottom="16dp"/>
+
+							<TextView
+								android:id="@+id/editPreviewTitle"
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:textSize="18sp"
+								android:textStyle="bold"
+								android:layout_marginBottom="8dp"/>
+
+							<TextView
+								android:id="@+id/editPreviewDescription"
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:textSize="14sp"
+								android:layout_marginBottom="16dp"/>
+
+							<TextView
+								android:id="@+id/editPreviewInstructions"
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:textSize="14sp"
+								android:layout_marginBottom="16dp"/>
+
+							<TextView
+								android:id="@+id/editPreviewNotes"
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:textSize="14sp"
+								android:layout_marginBottom="16dp"/>
+
+							<TextView
+								android:id="@+id/editPreviewIngredients"
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:textSize="14sp"/>
+
+					</LinearLayout>
+
 				</com.google.android.flexbox.FlexboxLayout>
 
 				<com.google.android.material.textfield.TextInputLayout
+					android:id="@+id/edit_notes_layout"
 					android:layout_width="match_parent"
 					android:layout_height="wrap_content"
 					android:layout_marginHorizontal="16dp"
