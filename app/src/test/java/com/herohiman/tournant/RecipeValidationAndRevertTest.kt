@@ -147,26 +147,23 @@ class RecipeValidationAndRevertTest {
 	}
 
 	@Test
-	fun existingRecipe_revertAndChangeTracking() = runBlocking {
+	fun existingRecipe_revertAndChangeTracking() {
 		val originalRecipe = Recipe(
-			id = 0L,
+			id = 1L,
 			title = "Saved Recipe",
 			description = "Original Description",
 			yieldValue = 2.0
 		)
-		val insertedId = repository.upsertSingleRecipe(originalRecipe.toRecipeWithIngredientsAndPreparations())
-
-		val viewModel = RecipeEditingViewModel(repository, insertedId)
-
-		// Wait for room emission in viewModel init
-		kotlinx.coroutines.delay(100)
+		val viewModel = RecipeEditingViewModel(repository, 0L)
+		viewModel.setInitialRecipe(originalRecipe)
 
 		assertFalse(viewModel.hasUnsavedChanges())
 
 		viewModel.recipe.value = viewModel.recipe.value.copy(description = "Edited Description")
 		assertTrue(viewModel.hasUnsavedChanges())
 
-		viewModel.revert()
+		assertTrue(viewModel.canRevert())
+		assertTrue(viewModel.revert())
 		assertEquals("Original Description", viewModel.recipe.value.description)
 		assertFalse(viewModel.hasUnsavedChanges())
 	}

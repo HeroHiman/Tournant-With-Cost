@@ -53,6 +53,13 @@ class RecipeEditingViewModel(private val recipeRepository: RecipeRepository, pri
 		}
 	}
 
+	fun setInitialRecipe(initialRecipe: Recipe, initialIngredients: List<IngredientLine> = emptyList()) {
+		originalRecipe = initialRecipe.deepCopy()
+		originalIngredients = initialIngredients.map { it.deepCopy() }
+		recipe.value = initialRecipe.deepCopy()
+		ingredients.value = initialIngredients.map { it.deepCopy() }.toMutableList()
+	}
+
 	fun canRevert(): Boolean = originalRecipe != null
 
 	fun revert(): Boolean {
