@@ -9,8 +9,7 @@ import com.herohiman.tournant.data.Recipe
 import com.herohiman.tournant.data.room.RecipeRepository
 import com.herohiman.tournant.data.room.RecipeRoomDatabase
 import com.herohiman.tournant.ui.RecipeEditingViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -21,7 +20,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 class RecipeValidationAndRevertTest {
 
@@ -149,7 +147,7 @@ class RecipeValidationAndRevertTest {
 	}
 
 	@Test
-	fun existingRecipe_revertAndChangeTracking() = runTest {
+	fun existingRecipe_revertAndChangeTracking() = runBlocking {
 		val originalRecipe = Recipe(
 			id = 0L,
 			title = "Saved Recipe",
