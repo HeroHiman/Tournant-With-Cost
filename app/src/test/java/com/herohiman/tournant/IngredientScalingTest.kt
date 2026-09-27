@@ -1,8 +1,3 @@
-"""
-Ingredient scaling unit tests for Story 2.1 (Ingredient Scaling) in Phase 2 of Epic 2.
-Tests for advanced ingredient scaling features.
-"""
-
 package com.herohiman.tournant
 
 import com.herohiman.tournant.data.Ingredient
