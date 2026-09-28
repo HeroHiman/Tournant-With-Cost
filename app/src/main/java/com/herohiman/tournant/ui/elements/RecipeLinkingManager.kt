@@ -12,7 +12,7 @@ import kotlin.Result
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class RecipeLinkingManager(
-    private val context: Context,
+    private val context: Context? = null,
     private val recipeRepository: RecipeRepository
 ) {
 
