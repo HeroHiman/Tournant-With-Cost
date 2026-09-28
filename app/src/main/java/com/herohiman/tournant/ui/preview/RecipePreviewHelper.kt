@@ -7,6 +7,9 @@ import io.noties.markwon.Markwon
 import io.noties.markwon.html.HtmlPlugin
 import io.noties.markwon.SoftBreakAddsNewLinePlugin
 
+import com.herohiman.tournant.roundToNDigits
+import com.herohiman.tournant.toStringForCooks
+
 /**
  * Helper class for rendering recipe content with Markdown support.
  * Provides consistent formatting for recipe instructions and notes.
@@ -37,31 +40,73 @@ class RecipePreviewHelper(private val context: Context) {
         }
     }
 
-    /**
-     * Formats ingredient list for preview display.
-     * Groups ingredients by their group headers.
-     */
-    fun formatIngredientsForPreview(ingredients: List<com.herohiman.tournant.data.IngredientLine>): String {
-        val builder = StringBuilder()
-
-        ingredients.forEach { ingredientLine ->
-            when (ingredientLine) {
-                is com.herohiman.tournant.data.IngredientLine.IngredientGroupTitle -> {
-                    ingredientLine.title?.let {
-                        builder.append("**$it**\n\n")
-                    }
-                }
-                is com.herohiman.tournant.data.IngredientLine.IngredientItem -> {
-                    val ingredient = ingredientLine.ingredient
-                    val amount = ingredient.amount?.toString() ?: ""
-                    val unit = ingredient.unit ?: ""
-                    val item = ingredient.item ?: ""
-
-                    builder.append("- $amount $unit $item\n")
-                }
+    companion object {
+        /**
+         * Formats yield value and unit for preview display with optional scaling.
+         * Safely handles null, zero, negative, or infinite values.
+         */
+        @JvmStatic
+        fun formatYieldForPreview(
+            yieldValue: Double?,
+            yieldUnit: String?,
+            scaleFactor: Double = 1.0
+        ): String {
+            if (yieldValue == null || yieldValue <= 0.0 || yieldValue.isNaN() || yieldValue.isInfinite()) {
+                return ""
+            }
+            val safeScale = if (scaleFactor > 0.0 && !scaleFactor.isNaN() && !scaleFactor.isInfinite()) scaleFactor else 1.0
+            val targetYield = if (safeScale != 1.0) {
+                val raw = yieldValue * safeScale
+                val roundedInt = kotlin.math.round(raw)
+                if (kotlin.math.abs(raw - roundedInt) < 0.001) roundedInt else raw.roundToNDigits(2)
+            } else {
+                yieldValue
+            }
+            val formattedYield = targetYield.toStringForCooks(thousands = false)
+            return if (!yieldUnit.isNullOrBlank()) {
+                "$formattedYield $yieldUnit"
+            } else {
+                formattedYield
             }
         }
 
-        return builder.toString()
+        /**
+         * Formats ingredient list for preview display.
+         * Groups ingredients by their group headers and applies scaling.
+         */
+        @JvmStatic
+        fun formatIngredientsForPreview(
+            ingredients: List<com.herohiman.tournant.data.IngredientLine>,
+            scaleFactor: Double = 1.0,
+            optionalWord: String = ""
+        ): String {
+            val builder = StringBuilder()
+            val safeScale = if (scaleFactor > 0.0 && !scaleFactor.isNaN() && !scaleFactor.isInfinite()) scaleFactor else 1.0
+
+            ingredients.forEach { ingredientLine ->
+                when (ingredientLine) {
+                    is com.herohiman.tournant.data.IngredientLine.IngredientGroupTitle -> {
+                        ingredientLine.title?.let {
+                            if (builder.isNotEmpty()) builder.append("\n")
+                            builder.append("**$it**\n\n")
+                        }
+                    }
+                    is com.herohiman.tournant.data.IngredientLine.IngredientItem -> {
+                        val baseIngredient = ingredientLine.ingredient
+                        val ingredient = if (safeScale != 1.0) {
+                            baseIngredient.withScaledAmount(safeScale)
+                        } else {
+                            baseIngredient
+                        }
+                        val formatted = ingredient.toStringForCooks(optionalWord).trim()
+                        if (formatted.isNotEmpty()) {
+                            builder.append("- $formatted\n")
+                        }
+                    }
+                }
+            }
+
+            return builder.toString()
+        }
     }
 }

@@ -242,6 +242,10 @@ private lateinit var binding: ActivityRecipeEditingBinding
 
 		onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
 			override fun handleOnBackPressed() {
+				if (isPreviewMode) {
+					togglePreviewMode()
+					return
+				}
 				confirmDiscardChanges {
 					isEnabled = false
 					onBackPressedDispatcher.onBackPressed()
@@ -646,7 +650,11 @@ private lateinit var binding: ActivityRecipeEditingBinding
 			}
 
 			android.R.id.home -> {
-				confirmDiscardChanges { finish() }
+				if (isPreviewMode) {
+					togglePreviewMode()
+				} else {
+					confirmDiscardChanges { finish() }
+				}
 				true
 			}
 			R.id.preview -> {
@@ -695,9 +703,18 @@ private lateinit var binding: ActivityRecipeEditingBinding
 		binding.editPreviewContainer.visibility = View.VISIBLE
 		binding.editPreviewTitle.text = currentRecipe.title
 		binding.editPreviewDescription.text = currentRecipe.description
+
+		val formattedYield = RecipePreviewHelper.formatYieldForPreview(currentRecipe.yieldValue, currentRecipe.yieldUnit)
+		if (formattedYield.isNotBlank()) {
+			binding.editPreviewYield.text = "${getString(R.string.yield)} $formattedYield"
+			binding.editPreviewYield.visibility = View.VISIBLE
+		} else {
+			binding.editPreviewYield.visibility = View.GONE
+		}
+
 		binding.editPreviewInstructions.text = previewHelper.formatRecipeText(currentRecipe.instructions)
 		binding.editPreviewNotes.text = previewHelper.formatRecipeText(currentRecipe.notes)
-		binding.editPreviewIngredients.text = previewHelper.formatIngredientsForPreview(viewModel.ingredients.value)
+		binding.editPreviewIngredients.text = RecipePreviewHelper.formatIngredientsForPreview(viewModel.ingredients.value)
 		
 		Toast.makeText(this, getString(R.string.preview_mode_enabled), Toast.LENGTH_SHORT).show()
 	}
@@ -731,6 +748,9 @@ private lateinit var binding: ActivityRecipeEditingBinding
 	}
 
 	private fun performRevert() {
+		if (isPreviewMode) {
+			togglePreviewMode()
+		}
 		viewModel.revert()
 		val currentRecipe = viewModel.recipe.value
 		binding.recipe = currentRecipe

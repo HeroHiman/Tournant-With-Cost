@@ -239,5 +239,16 @@ class RecipeValidationAndRevertTest {
 		assertFalse(viewModel.hasUnsavedChanges())
 	}
 
+	@Test
+	fun `formatYieldForPreview formats valid yield and handles edge cases safely`() {
+		assertEquals("4 portions", com.herohiman.tournant.ui.preview.RecipePreviewHelper.formatYieldForPreview(4.0, "portions"))
+		assertEquals("8 portions", com.herohiman.tournant.ui.preview.RecipePreviewHelper.formatYieldForPreview(4.0, "portions", scaleFactor = 2.0))
+		assertEquals("2", com.herohiman.tournant.ui.preview.RecipePreviewHelper.formatYieldForPreview(2.0, null))
+		assertEquals("", com.herohiman.tournant.ui.preview.RecipePreviewHelper.formatYieldForPreview(null, "portions"))
+		assertEquals("", com.herohiman.tournant.ui.preview.RecipePreviewHelper.formatYieldForPreview(0.0, "portions"))
+		assertEquals("", com.herohiman.tournant.ui.preview.RecipePreviewHelper.formatYieldForPreview(-1.0, "portions"))
+	}
+
 }
+
 
