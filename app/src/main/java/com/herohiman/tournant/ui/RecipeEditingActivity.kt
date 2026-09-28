@@ -705,8 +705,22 @@ private lateinit var binding: ActivityRecipeEditingBinding
 		binding.editPreviewDescription.text = currentRecipe.description
 
 		val formattedYield = RecipePreviewHelper.formatYieldForPreview(currentRecipe.yieldValue, currentRecipe.yieldUnit)
-		if (formattedYield.isNotBlank()) {
-			binding.editPreviewYield.text = "${getString(R.string.yield)} $formattedYield"
+		val recipeIngredients = viewModel.ingredients.value.filterIsInstance<com.herohiman.tournant.data.IngredientLine.IngredientItem>().map { it.ingredient }
+		val masterIngredients = (application as? TournantApplication)?.recipeRepository?.getAllActiveMasterIngredientsList() ?: emptyList()
+		val formattedCost = RecipePreviewHelper.formatCostForPreview(
+			ingredients = recipeIngredients,
+			masterIngredients = masterIngredients,
+			yieldValue = currentRecipe.yieldValue,
+			isPrivacyMode = com.herohiman.tournant.cost.CostPrivacyManager.isPrivacyModeEnabled(this)
+		)
+
+		val yieldAndCost = listOfNotNull(
+			if (formattedYield.isNotBlank()) "${getString(R.string.yield)} $formattedYield" else null,
+			if (formattedCost.isNotBlank()) formattedCost else null
+		).joinToString(" • ")
+
+		if (yieldAndCost.isNotBlank()) {
+			binding.editPreviewYield.text = yieldAndCost
 			binding.editPreviewYield.visibility = View.VISIBLE
 		} else {
 			binding.editPreviewYield.visibility = View.GONE

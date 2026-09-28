@@ -274,4 +274,42 @@ class LiveCostCalculatorTest {
 		assertEquals("••••", breakdown.formattedCostPerPortion())
 		assertEquals("---", breakdown.formattedTotalCost(mask = "---"))
 	}
+
+	@Test
+	fun `recipe preview helper formats live cost preview correctly`() {
+		val ingredients = listOf(
+			Ingredient(amount = 200.0, unit = "g", item = "Flour")
+		)
+		val masterIngredients = listOf(
+			MasterIngredientEntity(id = 1, name = "Flour", unitCost = 0.01, baseUnit = "g")
+		)
+
+		val preview = com.herohiman.tournant.ui.preview.RecipePreviewHelper.formatCostForPreview(
+			ingredients = ingredients,
+			masterIngredients = masterIngredients,
+			yieldValue = 2.0,
+			isPrivacyMode = false
+		)
+
+		assertEquals("Cost: $2.00 ($1.00 / serving)", preview)
+	}
+
+	@Test
+	fun `recipe preview helper masks cost preview in privacy mode`() {
+		val ingredients = listOf(
+			Ingredient(amount = 200.0, unit = "g", item = "Flour")
+		)
+		val masterIngredients = listOf(
+			MasterIngredientEntity(id = 1, name = "Flour", unitCost = 0.01, baseUnit = "g")
+		)
+
+		val preview = com.herohiman.tournant.ui.preview.RecipePreviewHelper.formatCostForPreview(
+			ingredients = ingredients,
+			masterIngredients = masterIngredients,
+			yieldValue = 2.0,
+			isPrivacyMode = true
+		)
+
+		assertEquals("Cost: •••• (•••• / serving)", preview)
+	}
 }

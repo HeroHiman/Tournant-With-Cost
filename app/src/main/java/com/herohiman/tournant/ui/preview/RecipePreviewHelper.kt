@@ -108,5 +108,36 @@ class RecipePreviewHelper(private val context: Context) {
 
             return builder.toString()
         }
+
+        /**
+         * Formats live recipe cost summary for preview display.
+         * Returns empty string if ingredients or prices are unavailable.
+         * Respects Privacy Mode masking.
+         */
+        @JvmStatic
+        fun formatCostForPreview(
+            ingredients: List<com.herohiman.tournant.data.Ingredient>,
+            masterIngredients: List<com.herohiman.tournant.data.room.MasterIngredientEntity>,
+            yieldValue: Double? = 1.0,
+            scaleFactor: Double = 1.0,
+            isPrivacyMode: Boolean = false,
+            symbol: String = "$"
+        ): String {
+            if (ingredients.isEmpty() || masterIngredients.isEmpty()) return ""
+            val breakdown = com.herohiman.tournant.cost.LiveCostCalculator.calculateRecipeCost(
+                ingredients = ingredients,
+                masterIngredients = masterIngredients,
+                yield = yieldValue ?: 1.0,
+                scaleFactor = scaleFactor,
+                isPrivacyMode = isPrivacyMode
+            )
+            return if (breakdown.totalCost <= 0.0 && !isPrivacyMode) {
+                ""
+            } else {
+                val totalStr = breakdown.formattedTotalCost(symbol = symbol)
+                val portionStr = breakdown.formattedCostPerPortion(symbol = symbol)
+                "Cost: $totalStr ($portionStr / serving)"
+            }
+        }
     }
 }
