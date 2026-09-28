@@ -144,7 +144,8 @@ object LiveCostCalculator {
 		scaleFactor: Double = 1.0,
 		includeOptional: Boolean = false,
 		isPrivacyMode: Boolean = false,
-		currency: String = "USD"
+		currency: String = "USD",
+		aliases: Map<String, MasterIngredientEntity> = emptyMap()
 	): RecipeCostBreakdown {
 		val scaledIngredients = if (scaleFactor > 0.0 && scaleFactor != 1.0) {
 			ingredients.map { it.withScaledAmount(scaleFactor) }
@@ -153,7 +154,7 @@ object LiveCostCalculator {
 		}
 
 		val items = scaledIngredients.map { ingredient ->
-			calculateLineCost(ingredient, masterIngredients, includeOptional)
+			calculateLineCost(ingredient, masterIngredients, includeOptional, aliases)
 		}
 
 		val totalCost = roundToTwoDecimals(items.sumOf { it.lineCost })
@@ -175,7 +176,8 @@ object LiveCostCalculator {
 	fun calculateLineCost(
 		ingredient: Ingredient,
 		masterIngredients: List<MasterIngredientEntity>,
-		includeOptional: Boolean = false
+		includeOptional: Boolean = false,
+		aliases: Map<String, MasterIngredientEntity> = emptyMap()
 	): IngredientCostItem {
 		if (ingredient.optional && !includeOptional) {
 			return IngredientCostItem(
@@ -200,8 +202,8 @@ object LiveCostCalculator {
 			)
 		}
 
-		// Find matching master ingredient by exact or fuzzy name
-		val candidate = findMatchingMasterIngredient(itemName, masterIngredients)
+		// Find matching master ingredient by alias, exact, or fuzzy name
+		val candidate = findMatchingMasterIngredient(itemName, masterIngredients, aliases)
 		if (candidate == null) {
 			return IngredientCostItem(
 				ingredient = ingredient,
@@ -291,11 +293,15 @@ object LiveCostCalculator {
 		return null
 	}
 
-	private fun findMatchingMasterIngredient(
+	fun findMatchingMasterIngredient(
 		itemName: String,
-		masterIngredients: List<MasterIngredientEntity>
+		masterIngredients: List<MasterIngredientEntity>,
+		aliases: Map<String, MasterIngredientEntity> = emptyMap()
 	): MasterIngredientEntity? {
 		val normalizedName = itemName.lowercase(Locale.ROOT).trim()
+
+		// 0. Direct alias dictionary match (from merged variations)
+		aliases[normalizedName]?.let { return it }
 
 		// 1. Exact match (case insensitive)
 		masterIngredients.firstOrNull { it.name.trim().equals(normalizedName, ignoreCase = true) }?.let {

@@ -25,6 +25,7 @@ class RecipeRepository(
 	suspend fun updateMasterIngredient(item: MasterIngredientEntity) { masterIngredientDao?.updateMasterIngredient(item) }
 	suspend fun softDeleteMasterIngredient(id: Long) { masterIngredientDao?.softDeleteMasterIngredient(id) }
 	suspend fun restoreMasterIngredient(id: Long) { masterIngredientDao?.restoreMasterIngredient(id) }
+	suspend fun hardDeleteMasterIngredient(id: Long) { masterIngredientDao?.hardDeleteMasterIngredient(id) }
 	suspend fun syncIngredientsFromRecipes(): Int = com.herohiman.tournant.cost.IngredientSyncManager.syncIngredientsFromRecipes(this)
 
 	// Unit Alias operations
@@ -63,6 +64,20 @@ class RecipeRepository(
 	suspend fun deleteIngredientAliasByRawName(rawName: String) { ingredientAliasDao?.deleteAliasByRawName(rawName) }
 	suspend fun deleteIngredientAliasesForMaster(masterIngredientId: Long) { ingredientAliasDao?.deleteAliasesForMaster(masterIngredientId) }
 	suspend fun getIngredientAliasCount(): Int = ingredientAliasDao?.getIngredientAliasCount() ?: 0
+
+	suspend fun buildIngredientAliasLookupMap(): Map<String, MasterIngredientEntity> {
+		val aliases = getAllIngredientAliasesList()
+		if (aliases.isEmpty()) return emptyMap()
+
+		val masterMap = getAllActiveMasterIngredientsList().associateBy { it.id }
+		val lookup = mutableMapOf<String, MasterIngredientEntity>()
+		for (alias in aliases) {
+			masterMap[alias.masterIngredientId]?.let { master ->
+				lookup[alias.rawName.trim().lowercase()] = master
+			}
+		}
+		return lookup
+	}
 
 
 	fun getRecipeById(id: Long) = dao.getRecipeById(id)
