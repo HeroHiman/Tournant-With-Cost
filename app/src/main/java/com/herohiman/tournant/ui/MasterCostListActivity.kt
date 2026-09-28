@@ -78,7 +78,8 @@ class MasterCostListActivity : AppCompatActivity() {
 			items = emptyList(),
 			isPrivacyMode = CostPrivacyManager.isPrivacyModeEnabled(this),
 			onEdit = { showAddEditDialog(it) },
-			onToggleActive = { toggleIngredientActive(it) }
+			onToggleActive = { toggleIngredientActive(it) },
+			onMerge = { showMergeDialog(it) }
 		)
 		recyclerView.layoutManager = LinearLayoutManager(this)
 		recyclerView.adapter = adapter
@@ -230,11 +231,58 @@ class MasterCostListActivity : AppCompatActivity() {
 			.show()
 	}
 
+	private fun showMergeDialog(source: MasterIngredientEntity) {
+		val candidates = ingredientsList.filter { it.id != source.id && it.isActive }
+		if (candidates.isEmpty()) {
+			Toast.makeText(this, R.string.no_other_ingredients_to_merge, Toast.LENGTH_SHORT).show()
+			return
+		}
+
+		val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_merge_ingredient, null)
+		val textDesc = dialogView.findViewById<TextView>(R.id.text_merge_description)
+		val autoTarget = dialogView.findViewById<androidx.appcompat.widget.AppCompatAutoCompleteTextView>(R.id.auto_target_ingredient)
+
+		textDesc.text = getString(R.string.merge_description, source.name)
+
+		val candidateNames = candidates.map { it.name }
+		val candidateMap = candidates.associateBy { it.name.trim().lowercase() }
+		val adapter = android.widget.ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, candidateNames)
+		autoTarget.setAdapter(adapter)
+
+		autoTarget.setOnClickListener { autoTarget.showDropDown() }
+		autoTarget.setOnFocusChangeListener { _, hasFocus -> if (hasFocus) autoTarget.showDropDown() }
+
+		MaterialAlertDialogBuilder(this)
+			.setTitle(R.string.merge_ingredient)
+			.setView(dialogView)
+			.setPositiveButton(R.string.merge) { _, _ ->
+				val selectedText = autoTarget.text.toString().trim()
+				val target = candidateMap[selectedText.lowercase()]
+				if (target == null) {
+					Toast.makeText(this, R.string.invalid_target_ingredient, Toast.LENGTH_SHORT).show()
+					return@setPositiveButton
+				}
+
+				lifecycleScope.launch {
+					val result = withContext(Dispatchers.IO) {
+						com.herohiman.tournant.cost.MergeIngredientUseCase(repository).merge(source.id, target.id)
+					}
+					Toast.makeText(this@MasterCostListActivity, result.message, Toast.LENGTH_SHORT).show()
+					if (result.success) {
+						loadMasterIngredients()
+					}
+				}
+			}
+			.setNegativeButton(R.string.cancel, null)
+			.show()
+	}
+
 	class MasterCostAdapter(
 		private var items: List<MasterIngredientEntity>,
 		private var isPrivacyMode: Boolean,
 		private val onEdit: (MasterIngredientEntity) -> Unit,
-		private val onToggleActive: (MasterIngredientEntity) -> Unit
+		private val onToggleActive: (MasterIngredientEntity) -> Unit,
+		private val onMerge: (MasterIngredientEntity) -> Unit
 	) : RecyclerView.Adapter<MasterCostAdapter.ViewHolder>() {
 
 		class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -242,6 +290,7 @@ class MasterCostListActivity : AppCompatActivity() {
 			val costText: TextView = view.findViewById(R.id.ingredient_cost)
 			val statusText: TextView = view.findViewById(R.id.ingredient_status)
 			val categoryText: TextView = view.findViewById(R.id.ingredient_category)
+			val mergeBtn: ImageButton = view.findViewById(R.id.btn_merge)
 			val editBtn: ImageButton = view.findViewById(R.id.btn_edit)
 			val deleteRestoreBtn: ImageButton = view.findViewById(R.id.btn_delete_restore)
 		}
@@ -285,6 +334,7 @@ class MasterCostListActivity : AppCompatActivity() {
 				holder.categoryText.visibility = View.GONE
 			}
 
+			holder.mergeBtn.setOnClickListener { onMerge(item) }
 			holder.editBtn.setOnClickListener { onEdit(item) }
 			holder.deleteRestoreBtn.setOnClickListener { onToggleActive(item) }
 		}

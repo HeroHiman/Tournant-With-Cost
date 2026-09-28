@@ -250,5 +250,11 @@
 	<string name="auto_fetch_from_recipes">Auto-Fetch from Recipes</string>
 	<string name="auto_fetch_summary">Imported %d new ingredients from recipes</string>
 	<string name="auto_fetch_no_new">All recipe ingredients are already in the master list</string>
+	<string name="merge_ingredient">Merge Ingredient</string>
+	<string name="merge_description">Merge \"%s\" into a core ingredient. Existing recipes using this name will point to the selected ingredient, and this duplicate will be removed.</string>
+	<string name="select_target_ingredient">Select Core Ingredient</string>
+	<string name="merge">Merge</string>
+	<string name="invalid_target_ingredient">Please select a valid core ingredient to merge into</string>
+	<string name="no_other_ingredients_to_merge">No other ingredients available to merge with</string>
 
 </resources>

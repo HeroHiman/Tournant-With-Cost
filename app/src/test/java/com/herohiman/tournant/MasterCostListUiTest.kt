@@ -3,6 +3,7 @@ package com.herohiman.tournant
 import com.herohiman.tournant.data.room.MasterIngredientEntity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -111,5 +112,37 @@ class MasterCostListUiTest {
 		assertEquals("Imported 5 new ingredients from recipes", formatFeedback(5, summaryFormat, noNewMessage))
 		assertEquals("Imported 1 new ingredients from recipes", formatFeedback(1, summaryFormat, noNewMessage))
 		assertEquals("All recipe ingredients are already in the master list", formatFeedback(0, summaryFormat, noNewMessage))
+	}
+
+	@Test
+	fun `merge candidates filter excludes current source ingredient and inactive items`() {
+		val source = MasterIngredientEntity(id = 1, name = "तेल (5 कटोरी)", unitCost = 0.0, baseUnit = "cup", isActive = true)
+		val candidateActive = MasterIngredientEntity(id = 2, name = "तेल", unitCost = 150.0, baseUnit = "liter", isActive = true)
+		val candidateInactive = MasterIngredientEntity(id = 3, name = "घी", unitCost = 500.0, baseUnit = "kg", isActive = false)
+
+		val allList = listOf(source, candidateActive, candidateInactive)
+		val candidates = allList.filter { it.id != source.id && it.isActive }
+
+		assertEquals(1, candidates.size)
+		assertEquals(2L, candidates[0].id)
+		assertEquals("तेल", candidates[0].name)
+	}
+
+	@Test
+	fun `merge candidate map resolves target ingredient case insensitively`() {
+		val candidate = MasterIngredientEntity(id = 2, name = "All-Purpose Flour", unitCost = 1.0, baseUnit = "kg", isActive = true)
+		val candidates = listOf(candidate)
+		val candidateMap = candidates.associateBy { it.name.trim().lowercase() }
+
+		val matchedExact = candidateMap["All-Purpose Flour".lowercase()]
+		assertNotNull(matchedExact)
+		assertEquals(2L, matchedExact?.id)
+
+		val matchedLower = candidateMap["all-purpose flour"]
+		assertNotNull(matchedLower)
+		assertEquals(2L, matchedLower?.id)
+
+		val matchedMissing = candidateMap["rice flour"]
+		assertNull(matchedMissing)
 	}
 }
