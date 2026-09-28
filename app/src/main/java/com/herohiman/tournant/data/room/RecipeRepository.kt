@@ -23,6 +23,7 @@ class RecipeRepository(
 	suspend fun updateMasterIngredient(item: MasterIngredientEntity) { masterIngredientDao?.updateMasterIngredient(item) }
 	suspend fun softDeleteMasterIngredient(id: Long) { masterIngredientDao?.softDeleteMasterIngredient(id) }
 	suspend fun restoreMasterIngredient(id: Long) { masterIngredientDao?.restoreMasterIngredient(id) }
+	suspend fun syncIngredientsFromRecipes(): Int = com.herohiman.tournant.cost.IngredientSyncManager.syncIngredientsFromRecipes(this)
 
 
 	fun getRecipeById(id: Long) = dao.getRecipeById(id)
