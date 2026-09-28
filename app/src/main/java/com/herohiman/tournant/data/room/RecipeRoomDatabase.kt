@@ -15,14 +15,15 @@ import com.herohiman.tournant.getAppOrSystemLocale
 import kotlin.reflect.full.declaredFunctions
 
 @Database(
-	entities = [RecipeEntity::class, IngredientEntity::class, KeywordEntity::class, PreparationEntity::class, RecipePinEntity::class, MasterIngredientEntity::class],
+	entities = [RecipeEntity::class, IngredientEntity::class, KeywordEntity::class, PreparationEntity::class, RecipePinEntity::class, MasterIngredientEntity::class, UnitAliasEntity::class],
 	exportSchema = true,
-	version = 9,
-	autoMigrations = [AutoMigration(1, 2), AutoMigration(2, 3), AutoMigration(4, 5), AutoMigration(6, 7), AutoMigration(7, 8), AutoMigration(8, 9)]
+	version = 10,
+	autoMigrations = [AutoMigration(1, 2), AutoMigration(2, 3), AutoMigration(4, 5), AutoMigration(6, 7), AutoMigration(7, 8), AutoMigration(8, 9), AutoMigration(9, 10)]
 )
 abstract class RecipeRoomDatabase : RoomDatabase() {
 	abstract fun recipeDao(): RecipeDao
 	abstract fun masterIngredientDao(): MasterIngredientDao
+	abstract fun unitAliasDao(): UnitAliasDao
 
 	companion object {
 		@Volatile
@@ -50,7 +51,7 @@ abstract class RecipeRoomDatabase : RoomDatabase() {
 					}, Executors.newSingleThreadExecutor()
 					)
 */
-					.addMigrations(MIGRATION_3_4, MIGRATION_5_6, MIGRATION_8_9)
+					.addMigrations(MIGRATION_3_4, MIGRATION_5_6, MIGRATION_8_9, MIGRATION_9_10)
 					.build()
 				INSTANCE = instance
 				return instance
@@ -95,6 +96,20 @@ abstract class RecipeRoomDatabase : RoomDatabase() {
 					)
 				""".trimIndent())
 				db.execSQL("CREATE INDEX IF NOT EXISTS `index_MasterIngredient_name` ON `MasterIngredient` (`name`)")
+			}
+		}
+
+		val MIGRATION_9_10 = object : Migration(9, 10) {
+			override fun migrate(db: SupportSQLiteDatabase) {
+				db.execSQL("""
+					CREATE TABLE IF NOT EXISTS `UnitAlias` (
+						`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+						`aliasName` TEXT NOT NULL,
+						`baseUnit` TEXT NOT NULL,
+						`conversionFactor` REAL NOT NULL
+					)
+				""".trimIndent())
+				db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_UnitAlias_aliasName` ON `UnitAlias` (`aliasName`)")
 			}
 		}
 	}

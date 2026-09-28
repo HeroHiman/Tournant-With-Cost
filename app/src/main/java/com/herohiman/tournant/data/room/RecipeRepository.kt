@@ -6,7 +6,8 @@ import java.util.Date
 
 class RecipeRepository(
 	private val dao: RecipeDao,
-	private val masterIngredientDao: MasterIngredientDao? = null
+	private val masterIngredientDao: MasterIngredientDao? = null,
+	private val unitAliasDao: UnitAliasDao? = null
 ) {
 
 	companion object { private const val TAG = "RecipeRepository" }
@@ -24,6 +25,29 @@ class RecipeRepository(
 	suspend fun softDeleteMasterIngredient(id: Long) { masterIngredientDao?.softDeleteMasterIngredient(id) }
 	suspend fun restoreMasterIngredient(id: Long) { masterIngredientDao?.restoreMasterIngredient(id) }
 	suspend fun syncIngredientsFromRecipes(): Int = com.herohiman.tournant.cost.IngredientSyncManager.syncIngredientsFromRecipes(this)
+
+	// Unit Alias operations
+	fun getAllUnitAliases() = unitAliasDao?.getAllUnitAliases()
+	fun getAllUnitAliasesList() = unitAliasDao?.getAllUnitAliasesList() ?: emptyList()
+	suspend fun getUnitAliasByName(name: String) = unitAliasDao?.getAliasByName(name)
+	suspend fun getUnitAliasById(id: Long) = unitAliasDao?.getAliasById(id)
+	suspend fun getUnitAliasesByBaseUnit(baseUnit: BaseUnitType) = unitAliasDao?.getAliasesByBaseUnit(baseUnit) ?: emptyList()
+	suspend fun insertUnitAlias(alias: UnitAliasEntity) = unitAliasDao?.insertAlias(alias) ?: -1L
+	suspend fun insertUnitAliases(aliases: List<UnitAliasEntity>) = unitAliasDao?.insertAliases(aliases) ?: emptyList()
+	suspend fun updateUnitAlias(alias: UnitAliasEntity) { unitAliasDao?.updateAlias(alias) }
+	suspend fun deleteUnitAlias(alias: UnitAliasEntity) { unitAliasDao?.deleteAlias(alias) }
+	suspend fun deleteUnitAliasById(id: Long) { unitAliasDao?.deleteAliasById(id) }
+	suspend fun getUnitAliasCount(): Int = unitAliasDao?.getUnitAliasCount() ?: 0
+
+	suspend fun seedDefaultUnitAliasesIfEmpty(): Int {
+		val count = getUnitAliasCount()
+		if (count == 0 && unitAliasDao != null) {
+			val defaults = UnitAliasDao.getDefaultAliases()
+			val inserted = unitAliasDao.insertAliases(defaults)
+			return inserted.size
+		}
+		return 0
+	}
 
 
 	fun getRecipeById(id: Long) = dao.getRecipeById(id)

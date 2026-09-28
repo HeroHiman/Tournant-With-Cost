@@ -42,7 +42,14 @@ class TournantApplication : Application() {
 	}
 
 	val recipeRepository: RecipeRepository by lazy {
-		RecipeRepository(database.recipeDao(), database.masterIngredientDao())
+		RecipeRepository(database.recipeDao(), database.masterIngredientDao(), database.unitAliasDao())
+	}
+
+	override fun onCreate() {
+		super.onCreate()
+		MainScope().launch(Dispatchers.IO) {
+			recipeRepository.seedDefaultUnitAliasesIfEmpty()
+		}
 	}
 
 	fun withGourmandIssueCheck(context: Context, recipeIds: Set<Long>, onSuccess: (Set<Long>) -> Unit) {
