@@ -121,7 +121,9 @@ class RecipePreviewHelper(private val context: Context) {
             yieldValue: Double? = 1.0,
             scaleFactor: Double = 1.0,
             isPrivacyMode: Boolean = false,
-            symbol: String = "$"
+            symbol: String = "$",
+            subRecipeResolver: com.herohiman.tournant.cost.SubRecipeResolver? = null,
+            currentRecipeId: Long? = null
         ): String {
             if (ingredients.isEmpty() || masterIngredients.isEmpty()) return ""
             val breakdown = com.herohiman.tournant.cost.LiveCostCalculator.calculateRecipeCost(
@@ -129,7 +131,9 @@ class RecipePreviewHelper(private val context: Context) {
                 masterIngredients = masterIngredients,
                 yield = yieldValue ?: 1.0,
                 scaleFactor = scaleFactor,
-                isPrivacyMode = isPrivacyMode
+                isPrivacyMode = isPrivacyMode,
+                subRecipeResolver = subRecipeResolver,
+                currentRecipeId = currentRecipeId
             )
             return if (breakdown.totalCost <= 0.0 && !isPrivacyMode) {
                 ""

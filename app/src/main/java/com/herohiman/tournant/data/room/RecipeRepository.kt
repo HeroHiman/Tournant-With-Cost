@@ -30,6 +30,23 @@ class RecipeRepository(
 	suspend fun hardDeleteMasterIngredient(id: Long) { masterIngredientDao?.hardDeleteMasterIngredient(id) }
 	suspend fun syncIngredientsFromRecipes(): Int = com.herohiman.tournant.cost.IngredientSyncManager.syncIngredientsFromRecipes(this)
 
+	fun getSubRecipeData(recipeId: Long): com.herohiman.tournant.cost.SubRecipeData? {
+		val recipeWithData = dao.getRecipesById(setOf(recipeId)).firstOrNull() ?: return null
+		val recipe = recipeWithData.toRecipe()
+		return com.herohiman.tournant.cost.SubRecipeData(
+			recipeId = recipe.id,
+			title = recipe.title ?: "",
+			ingredients = recipe.ingredients,
+			yieldValue = recipe.yieldValue ?: 1.0,
+			yieldUnit = recipe.yieldUnit
+		)
+	}
+
+	fun asSubRecipeResolver(): com.herohiman.tournant.cost.SubRecipeResolver =
+		com.herohiman.tournant.cost.SubRecipeResolver { recipeId ->
+			getSubRecipeData(recipeId)
+		}
+
 	// Unit Alias operations
 	fun getAllUnitAliases() = unitAliasDao?.getAllUnitAliases()
 	fun getAllUnitAliasesList() = unitAliasDao?.getAllUnitAliasesList() ?: emptyList()
