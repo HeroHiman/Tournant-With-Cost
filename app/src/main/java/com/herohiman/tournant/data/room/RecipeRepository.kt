@@ -45,6 +45,8 @@ class RecipeRepository(
 	fun getYieldUnits() = dao.getYieldUnits()
 	fun getIngredientItems() = dao.getIngredientItems()
 	fun getIngredientUnits() = dao.getIngredientUnits()
+	suspend fun getUniqueIngredientNames() = dao.getUniqueIngredientNames()
+	suspend fun getPreferredUnitForIngredient(item: String) = dao.getPreferredUnitForIngredient(item)
 	suspend fun deleteRecipesByIds(ids: Set<Long>) = dao.deleteRecipesByIds(ids)
 	suspend fun deleteAllRecipes() = dao.deleteAllRecipes()
 	suspend fun pinRecipe(recipePinEntity: RecipePinEntity) = dao.pinRecipe(recipePinEntity)

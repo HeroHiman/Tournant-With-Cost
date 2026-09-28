@@ -159,6 +159,8 @@ class RoomCostMigrationAndDaoTest {
 		override fun getYieldUnits(): Flow<List<String>> = flowOf(emptyList())
 		override fun getIngredientItems(): Flow<List<String>> = flowOf(emptyList())
 		override fun getIngredientUnits(): Flow<List<String>> = flowOf(emptyList())
+		override suspend fun getUniqueIngredientNames(): List<String> = emptyList()
+		override suspend fun getPreferredUnitForIngredient(item: String): String? = null
 
 		override suspend fun insertRecipe(recipe: RecipeEntity): Long = 1L
 		override suspend fun updateRecipe(recipe: RecipeEntity) {}

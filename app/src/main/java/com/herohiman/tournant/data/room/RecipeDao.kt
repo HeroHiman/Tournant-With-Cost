@@ -190,6 +190,12 @@ abstract class RecipeDao {
 	@Query("SELECT DISTINCT item FROM ingredient WHERE item IS NOT NULL ORDER BY item COLLATE LOCALIZED ASC")
 	abstract fun getIngredientItems(): Flow<List<String>>
 
+	@Query("SELECT DISTINCT item FROM ingredient WHERE item IS NOT NULL AND TRIM(item) != '' ORDER BY item COLLATE LOCALIZED ASC")
+	abstract suspend fun getUniqueIngredientNames(): List<String>
+
+	@Query("SELECT unit FROM ingredient WHERE item = :item AND unit IS NOT NULL AND TRIM(unit) != '' LIMIT 1")
+	abstract suspend fun getPreferredUnitForIngredient(item: String): String?
+
 	@Query("SELECT DISTINCT unit FROM ingredient WHERE unit IS NOT NULL ORDER BY unit COLLATE LOCALIZED ASC")
 	abstract fun getIngredientUnits(): Flow<List<String>>
 
