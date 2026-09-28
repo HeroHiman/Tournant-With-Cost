@@ -7,7 +7,8 @@ import java.util.Date
 class RecipeRepository(
 	private val dao: RecipeDao,
 	private val masterIngredientDao: MasterIngredientDao? = null,
-	private val unitAliasDao: UnitAliasDao? = null
+	private val unitAliasDao: UnitAliasDao? = null,
+	private val ingredientAliasDao: IngredientAliasDao? = null
 ) {
 
 	companion object { private const val TAG = "RecipeRepository" }
@@ -48,6 +49,20 @@ class RecipeRepository(
 		}
 		return 0
 	}
+
+	// Ingredient Alias operations
+	suspend fun getIngredientAliasByRawName(rawName: String) = ingredientAliasDao?.getAliasByRawName(rawName)
+	suspend fun getMasterIngredientForRawName(rawName: String) = ingredientAliasDao?.getMasterIngredientForRawName(rawName)
+	suspend fun getAliasesForMaster(masterIngredientId: Long) = ingredientAliasDao?.getAliasesForMaster(masterIngredientId) ?: emptyList()
+	fun getAllIngredientAliases() = ingredientAliasDao?.getAllAliases()
+	fun getAllIngredientAliasesList() = ingredientAliasDao?.getAllAliasesList() ?: emptyList()
+	suspend fun insertIngredientAlias(alias: IngredientAliasEntity) = ingredientAliasDao?.insertAlias(alias) ?: -1L
+	suspend fun insertIngredientAliases(aliases: List<IngredientAliasEntity>) = ingredientAliasDao?.insertAliases(aliases) ?: emptyList()
+	suspend fun deleteIngredientAlias(alias: IngredientAliasEntity) { ingredientAliasDao?.deleteAlias(alias) }
+	suspend fun deleteIngredientAliasById(id: Long) { ingredientAliasDao?.deleteAliasById(id) }
+	suspend fun deleteIngredientAliasByRawName(rawName: String) { ingredientAliasDao?.deleteAliasByRawName(rawName) }
+	suspend fun deleteIngredientAliasesForMaster(masterIngredientId: Long) { ingredientAliasDao?.deleteAliasesForMaster(masterIngredientId) }
+	suspend fun getIngredientAliasCount(): Int = ingredientAliasDao?.getIngredientAliasCount() ?: 0
 
 
 	fun getRecipeById(id: Long) = dao.getRecipeById(id)
