@@ -49,7 +49,7 @@ class MasterCostListActivity : AppCompatActivity() {
 
 		repository = (application as TournantApplication).recipeRepository
 
-		val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
+		val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
 		setSupportActionBar(toolbar)
 		supportActionBar?.setDisplayHomeAsUpEnabled(true)
 		supportActionBar?.setDisplayShowHomeEnabled(true)
