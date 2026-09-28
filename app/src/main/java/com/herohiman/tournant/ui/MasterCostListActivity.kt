@@ -1,0 +1,278 @@
+package com.herohiman.tournant.ui
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.ViewGroupCompat
+import androidx.core.view.updatePadding
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.herohiman.tournant.R
+import com.herohiman.tournant.TournantApplication
+import com.herohiman.tournant.cost.CostPrivacyManager
+import com.herohiman.tournant.data.room.MasterIngredientEntity
+import com.herohiman.tournant.data.room.RecipeRepository
+import com.herohiman.tournant.safeInsets
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.Locale
+
+class MasterCostListActivity : AppCompatActivity() {
+
+	private lateinit var repository: RecipeRepository
+	private lateinit var recyclerView: RecyclerView
+	private lateinit var emptyStateText: TextView
+	private lateinit var adapter: MasterCostAdapter
+	private var ingredientsList = listOf<MasterIngredientEntity>()
+
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		enableEdgeToEdge()
+		setContentView(R.layout.activity_master_cost_list)
+		ViewGroupCompat.installCompatInsetsDispatch(window.decorView.rootView)
+
+		repository = (application as TournantApplication).recipeRepository
+
+		val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
+		setSupportActionBar(toolbar)
+		supportActionBar?.setDisplayHomeAsUpEnabled(true)
+		supportActionBar?.setDisplayShowHomeEnabled(true)
+		toolbar.setNavigationOnClickListener { finish() }
+
+		ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.coordinator_layout)) { view, windowInsets ->
+			view.updatePadding(
+				top = windowInsets.safeInsets().top,
+				bottom = windowInsets.safeInsets().bottom,
+				left = windowInsets.safeInsets().left,
+				right = windowInsets.safeInsets().right
+			)
+			windowInsets
+		}
+
+		recyclerView = findViewById(R.id.recycler_master_costs)
+		emptyStateText = findViewById(R.id.empty_state_text)
+		val fab = findViewById<FloatingActionButton>(R.id.fab_add_master_ingredient)
+
+		adapter = MasterCostAdapter(
+			items = emptyList(),
+			isPrivacyMode = CostPrivacyManager.isPrivacyModeEnabled(this),
+			onEdit = { showAddEditDialog(it) },
+			onToggleActive = { toggleIngredientActive(it) }
+		)
+		recyclerView.layoutManager = LinearLayoutManager(this)
+		recyclerView.adapter = adapter
+
+		fab.setOnClickListener {
+			showAddEditDialog(null)
+		}
+
+		loadMasterIngredients()
+	}
+
+	override fun onCreateOptionsMenu(menu: Menu): Boolean {
+		menuInflater.inflate(R.menu.menu_master_cost, menu)
+		return true
+	}
+
+	override fun onOptionsItemSelected(item: MenuItem): Boolean {
+		return when (item.itemId) {
+			android.R.id.home -> {
+				finish()
+				true
+			}
+			R.id.action_toggle_privacy -> {
+				val newPrivacyMode = CostPrivacyManager.togglePrivacyMode(this)
+				adapter.setPrivacyMode(newPrivacyMode)
+				val message = if (newPrivacyMode) {
+					getString(R.string.privacy_mode_enabled)
+				} else {
+					getString(R.string.privacy_mode_disabled)
+				}
+				Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+				true
+			}
+			R.id.action_add_ingredient -> {
+				showAddEditDialog(null)
+				true
+			}
+			else -> super.onOptionsItemSelected(item)
+		}
+	}
+
+	private fun loadMasterIngredients() {
+		lifecycleScope.launch {
+			val items = withContext(Dispatchers.IO) {
+				repository.getAllMasterIngredientsList()
+			}
+			ingredientsList = items
+			adapter.updateItems(items)
+			emptyStateText.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+		}
+	}
+
+	private fun toggleIngredientActive(entity: MasterIngredientEntity) {
+		lifecycleScope.launch {
+			withContext(Dispatchers.IO) {
+				if (entity.isActive) {
+					repository.softDeleteMasterIngredient(entity.id)
+				} else {
+					repository.restoreMasterIngredient(entity.id)
+				}
+			}
+			val actionName = if (entity.isActive) getString(R.string.soft_delete) else getString(R.string.restore)
+			Toast.makeText(this@MasterCostListActivity, "$actionName: ${entity.name}", Toast.LENGTH_SHORT).show()
+			loadMasterIngredients()
+		}
+	}
+
+	private fun showAddEditDialog(existing: MasterIngredientEntity?) {
+		val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_master_ingredient, null)
+		val editName = dialogView.findViewById<EditText>(R.id.edit_name)
+		val editUnitCost = dialogView.findViewById<EditText>(R.id.edit_unit_cost)
+		val editBaseUnit = dialogView.findViewById<EditText>(R.id.edit_base_unit)
+		val editCategory = dialogView.findViewById<EditText>(R.id.edit_category)
+
+		if (existing != null) {
+			editName.setText(existing.name)
+			editUnitCost.setText(String.format(Locale.US, "%.4f", existing.unitCost).trimEnd('0').trimEnd('.'))
+			editBaseUnit.setText(existing.baseUnit)
+			editCategory.setText(existing.category ?: "")
+		}
+
+		val titleRes = if (existing == null) R.string.add_ingredient_cost else R.string.edit_ingredient_cost
+
+		MaterialAlertDialogBuilder(this)
+			.setTitle(titleRes)
+			.setView(dialogView)
+			.setPositiveButton(R.string.save) { _, _ ->
+				val name = editName.text.toString().trim()
+				val unitCostStr = editUnitCost.text.toString().trim()
+				val baseUnit = editBaseUnit.text.toString().trim()
+				val category = editCategory.text.toString().trim().ifBlank { null }
+
+				if (name.isBlank() || unitCostStr.isBlank() || baseUnit.isBlank()) {
+					Toast.makeText(this, "Name, unit cost, and base unit are required", Toast.LENGTH_SHORT).show()
+					return@setPositiveButton
+				}
+
+				val cost = unitCostStr.toDoubleOrNull() ?: 0.0
+
+				lifecycleScope.launch {
+					withContext(Dispatchers.IO) {
+						if (existing != null) {
+							val updated = existing.copy(
+								name = name,
+								unitCost = cost,
+								baseUnit = baseUnit,
+								category = category,
+								lastUpdated = System.currentTimeMillis()
+							)
+							repository.updateMasterIngredient(updated)
+						} else {
+							val newEntity = MasterIngredientEntity(
+								name = name,
+								unitCost = cost,
+								baseUnit = baseUnit,
+								category = category,
+								isActive = true,
+								lastUpdated = System.currentTimeMillis()
+							)
+							repository.insertMasterIngredient(newEntity)
+						}
+					}
+					Toast.makeText(this@MasterCostListActivity, R.string.cost_saved, Toast.LENGTH_SHORT).show()
+					loadMasterIngredients()
+				}
+			}
+			.setNegativeButton(R.string.cancel, null)
+			.show()
+	}
+
+	class MasterCostAdapter(
+		private var items: List<MasterIngredientEntity>,
+		private var isPrivacyMode: Boolean,
+		private val onEdit: (MasterIngredientEntity) -> Unit,
+		private val onToggleActive: (MasterIngredientEntity) -> Unit
+	) : RecyclerView.Adapter<MasterCostAdapter.ViewHolder>() {
+
+		class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+			val nameText: TextView = view.findViewById(R.id.ingredient_name)
+			val costText: TextView = view.findViewById(R.id.ingredient_cost)
+			val statusText: TextView = view.findViewById(R.id.ingredient_status)
+			val categoryText: TextView = view.findViewById(R.id.ingredient_category)
+			val editBtn: ImageButton = view.findViewById(R.id.btn_edit)
+			val deleteRestoreBtn: ImageButton = view.findViewById(R.id.btn_delete_restore)
+		}
+
+		override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+			val view = LayoutInflater.from(parent.context).inflate(R.layout.item_master_ingredient, parent, false)
+			return ViewHolder(view)
+		}
+
+		override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+			val item = items[position]
+			val context = holder.itemView.context
+
+			holder.nameText.text = item.name
+
+			val costFormatted = if (isPrivacyMode) {
+				"•••• / ${item.baseUnit}"
+			} else {
+				String.format(Locale.US, "$%.4f / %s", item.unitCost, item.baseUnit)
+			}
+			holder.costText.text = costFormatted
+
+			if (item.isActive) {
+				holder.statusText.text = context.getString(R.string.active)
+				holder.statusText.setTextColor(ContextCompat.getColor(context, R.color.blue_text))
+				holder.deleteRestoreBtn.setImageResource(R.drawable.ic_delete)
+				holder.deleteRestoreBtn.contentDescription = context.getString(R.string.soft_delete)
+				holder.itemView.alpha = 1.0f
+			} else {
+				holder.statusText.text = context.getString(R.string.inactive)
+				holder.statusText.setTextColor(ContextCompat.getColor(context, R.color.subtitle_color))
+				holder.deleteRestoreBtn.setImageResource(R.drawable.ic_checked)
+				holder.deleteRestoreBtn.contentDescription = context.getString(R.string.restore)
+				holder.itemView.alpha = 0.6f
+			}
+
+			if (!item.category.isNullOrBlank()) {
+				holder.categoryText.text = item.category
+				holder.categoryText.visibility = View.VISIBLE
+			} else {
+				holder.categoryText.visibility = View.GONE
+			}
+
+			holder.editBtn.setOnClickListener { onEdit(item) }
+			holder.deleteRestoreBtn.setOnClickListener { onToggleActive(item) }
+		}
+
+		override fun getItemCount(): Int = items.size
+
+		fun updateItems(newItems: List<MasterIngredientEntity>) {
+			items = newItems
+			notifyDataSetChanged()
+		}
+
+		fun setPrivacyMode(privacyMode: Boolean) {
+			isPrivacyMode = privacyMode
+			notifyDataSetChanged()
+		}
+	}
+}

@@ -3,8 +3,14 @@
 
 	<group>
 		<item
+			android:id="@+id/nav_all_recipes"
 			android:icon="@drawable/ic_restaurant"
 			android:title="@string/all_recipes"/>
+
+		<item
+			android:id="@+id/nav_master_cost_list"
+			android:icon="@drawable/ic_donate"
+			android:title="@string/master_cost_list"/>
 	</group>
 
 </menu>

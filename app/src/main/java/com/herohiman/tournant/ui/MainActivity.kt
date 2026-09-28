@@ -424,9 +424,18 @@ class MainActivity : AppCompatActivity(), RecipeListAdapter.RecipeListInterface 
 			if (BuildConfig.DEBUG) {
 				root.findViewById<TextView>(R.id.build_date).visibility = View.VISIBLE
 			}
-			navTop.setNavigationItemSelectedListener {
-				binding.root.closeDrawers()
-				true
+			navTop.setNavigationItemSelectedListener { item ->
+				when (item.itemId) {
+					R.id.nav_master_cost_list -> {
+						startActivity(Intent(this@MainActivity, MasterCostListActivity::class.java))
+						binding.root.closeDrawers()
+						true
+					}
+					else -> {
+						binding.root.closeDrawers()
+						true
+					}
+				}
 			}
 			navBottom.apply {
 				menu.findItem(R.id.show_about).title = getString(R.string.about_app_name, getString(R.string.tournant))
@@ -655,6 +664,10 @@ class MainActivity : AppCompatActivity(), RecipeListAdapter.RecipeListInterface 
 		when (item.itemId) {
 			R.id.new_recipe -> createNewRecipe()
 			R.id.import_recipes -> importRecipesFromFile()
+			R.id.master_cost_list -> {
+				startActivity(Intent(this, MasterCostListActivity::class.java))
+				true
+			}
 			R.id.refresh -> viewModel.syncWithFile(true)
 
 			R.id.export_all_json -> exportRecipes(getFilteredRecipesIds(), "json")

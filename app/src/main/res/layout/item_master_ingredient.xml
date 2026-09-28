@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:layout_marginHorizontal="12dp"
+	android:layout_marginVertical="6dp"
+	app:cardCornerRadius="12dp"
+	app:cardElevation="2dp">
+
+	<androidx.constraintlayout.widget.ConstraintLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:padding="16dp">
+
+		<TextView
+			android:id="@+id/ingredient_name"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:textAppearance="?attr/textAppearanceTitleMedium"
+			android:textStyle="bold"
+			android:textColor="?attr/colorOnSurface"
+			app:layout_constraintEnd_toStartOf="@+id/btn_edit"
+			app:layout_constraintStart_toStartOf="parent"
+			app:layout_constraintTop_toTopOf="parent"
+			tools:text="All-Purpose Flour" />
+
+		<TextView
+			android:id="@+id/ingredient_cost"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="6dp"
+			android:textAppearance="?attr/textAppearanceBodyMedium"
+			android:textColor="?attr/colorPrimary"
+			android:textStyle="bold"
+			app:layout_constraintEnd_toStartOf="@+id/btn_edit"
+			app:layout_constraintStart_toStartOf="parent"
+			app:layout_constraintTop_toBottomOf="@+id/ingredient_name"
+			tools:text="$0.002 / g" />
+
+		<TextView
+			android:id="@+id/ingredient_status"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="8dp"
+			android:paddingHorizontal="8dp"
+			android:paddingVertical="2dp"
+			android:textSize="12sp"
+			android:background="@drawable/badge_background"
+			android:textStyle="bold"
+			app:layout_constraintStart_toStartOf="parent"
+			app:layout_constraintTop_toBottomOf="@+id/ingredient_cost"
+			tools:text="Active" />
+
+		<TextView
+			android:id="@+id/ingredient_category"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginStart="8dp"
+			android:paddingHorizontal="8dp"
+			android:paddingVertical="2dp"
+			android:textSize="12sp"
+			android:background="@drawable/badge_background"
+			android:visibility="gone"
+			app:layout_constraintBottom_toBottomOf="@+id/ingredient_status"
+			app:layout_constraintStart_toEndOf="@+id/ingredient_status"
+			app:layout_constraintTop_toTopOf="@+id/ingredient_status"
+			tools:text="Pantry" />
+
+		<ImageButton
+			android:id="@+id/btn_edit"
+			android:layout_width="40dp"
+			android:layout_height="40dp"
+			android:background="?attr/selectableItemBackgroundBorderless"
+			android:contentDescription="@string/edit"
+			android:src="@drawable/ic_edit"
+			app:tint="?attr/colorOnSurfaceVariant"
+			app:layout_constraintBottom_toBottomOf="parent"
+			app:layout_constraintEnd_toStartOf="@+id/btn_delete_restore"
+			app:layout_constraintTop_toTopOf="parent" />
+
+		<ImageButton
+			android:id="@+id/btn_delete_restore"
+			android:layout_width="40dp"
+			android:layout_height="40dp"
+			android:background="?attr/selectableItemBackgroundBorderless"
+			android:contentDescription="@string/soft_delete"
+			android:src="@drawable/ic_delete"
+			app:tint="?attr/colorError"
+			app:layout_constraintBottom_toBottomOf="parent"
+			app:layout_constraintEnd_toEndOf="parent"
+			app:layout_constraintTop_toTopOf="parent" />
+
+	</androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

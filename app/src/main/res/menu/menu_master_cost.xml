@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto">
+
+	<item
+		android:id="@+id/action_toggle_privacy"
+		android:icon="@drawable/ic_preview"
+		android:title="@string/toggle_privacy_mode"
+		app:showAsAction="always" />
+
+	<item
+		android:id="@+id/action_add_ingredient"
+		android:icon="@drawable/ic_plus"
+		android:title="@string/add_ingredient_cost"
+		app:showAsAction="ifRoom" />
+
+</menu>

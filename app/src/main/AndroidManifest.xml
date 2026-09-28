@@ -16,6 +16,10 @@
 			android:name=".ui.AboutActivity"
 			android:exported="false"/>
 		<activity
+			android:name=".ui.MasterCostListActivity"
+			android:exported="false"
+			android:label="@string/master_cost_list"/>
+		<activity
 			android:name=".ui.SettingsActivity"
 			android:exported="false"/>
 		<activity

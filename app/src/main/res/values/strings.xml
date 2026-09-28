@@ -230,4 +230,22 @@
 	<string name="checked" tools:ignore="UnusedResources">checked</string>
 	<string name="database_id" tools:ignore="UnusedResources">Database ID</string>
 
+	<!-- Master Cost List -->
+	<string name="master_cost_list">Master Cost List</string>
+	<string name="add_ingredient_cost">Add Ingredient Cost</string>
+	<string name="edit_ingredient_cost">Edit Ingredient Cost</string>
+	<string name="ingredient_name">Ingredient Name</string>
+	<string name="unit_cost">Cost per Base Unit</string>
+	<string name="base_unit">Base Unit (e.g. g, kg, ml, unit)</string>
+	<string name="currency">Currency</string>
+	<string name="active">Active</string>
+	<string name="inactive">Inactive</string>
+	<string name="soft_delete">Deactivate</string>
+	<string name="restore">Restore</string>
+	<string name="no_master_ingredients">No ingredient costs in catalog. Tap + to add prices for live recipe costing.</string>
+	<string name="privacy_mode_enabled">Privacy Mode Enabled (Prices Masked)</string>
+	<string name="privacy_mode_disabled">Privacy Mode Disabled</string>
+	<string name="toggle_privacy_mode">Toggle Privacy Mode</string>
+	<string name="cost_saved">Ingredient cost saved</string>
+
 </resources>

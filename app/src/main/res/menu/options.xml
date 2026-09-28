@@ -10,6 +10,10 @@
 		android:title="@string/import_recipes"/>
 
 	<item
+		android:id="@+id/master_cost_list"
+		android:title="@string/master_cost_list"/>
+
+	<item
 		android:id="@+id/refresh"
 		android:title="@string/refresh"
 		android:visible="false"/>
