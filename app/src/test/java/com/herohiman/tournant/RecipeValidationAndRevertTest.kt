@@ -1,43 +1,86 @@
 package com.herohiman.tournant
 
-import android.content.Context
-import androidx.room.Room
-import androidx.test.core.app.ApplicationProvider
 import com.herohiman.tournant.data.Ingredient
 import com.herohiman.tournant.data.IngredientLine
 import com.herohiman.tournant.data.Recipe
+import com.herohiman.tournant.data.RecipeDescription
+import com.herohiman.tournant.data.RecipeTitleId
+import com.herohiman.tournant.data.room.RecipeDao
+import com.herohiman.tournant.data.room.IngredientEntity
+import com.herohiman.tournant.data.room.KeywordEntity
+import com.herohiman.tournant.data.room.PreparationEntity
+import com.herohiman.tournant.data.room.RecipeEntity
+import com.herohiman.tournant.data.room.RecipePinEntity
 import com.herohiman.tournant.data.room.RecipeRepository
-import com.herohiman.tournant.data.room.RecipeRoomDatabase
+import com.herohiman.tournant.data.room.RecipeWithIngredientsAndPreparations
+import com.herohiman.tournant.data.room.StringAndCount
 import com.herohiman.tournant.ui.RecipeEditingViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 
-@RunWith(RobolectricTestRunner::class)
 class RecipeValidationAndRevertTest {
 
-	private lateinit var database: RecipeRoomDatabase
 	private lateinit var repository: RecipeRepository
+
+	private class FakeRecipeDao : RecipeDao() {
+		override fun getRecipeById(id: Long): Flow<RecipeWithIngredientsAndPreparations> = emptyFlow()
+		override fun getRecipesById(ids: Set<Long>): List<RecipeWithIngredientsAndPreparations> = emptyList()
+		override fun getReferencedRecipes(recipeIds: Set<Long>): List<RecipeWithIngredientsAndPreparations> = emptyList()
+		override fun getRecipeTitlesWithIds(): Flow<List<RecipeTitleId>> = flowOf(emptyList())
+		override fun getRecipeTitleById(id: Long): String = ""
+		override fun getRecipeByGourmandId(gourmandId: Int): RecipeWithIngredientsAndPreparations? = null
+		override fun getRecipeIdByGourmandId(gourmandId: Long): Long? = null
+		override fun getDeprecatedRecipes(gourmandIds: List<Int>): List<RecipeWithIngredientsAndPreparations> = emptyList()
+		override fun getRecipeDescriptions(query: String, orderedBy: Int, offset: Int, limit: Int, month: Int): List<RecipeDescription> = emptyList()
+		override fun getKeywords(id: Long): List<String> = emptyList()
+		override fun getRecipeCount(): Flow<Int> = flowOf(0)
+		override fun getRecipeIds(query: String): List<Long> = emptyList()
+		override fun getDependentRecipeIds(recipeIds: Set<Long>): List<Long> = emptyList()
+		override fun getAllCategories(): Flow<List<String>> = flowOf(emptyList())
+		override fun getAllCuisines(): Flow<List<String>> = flowOf(emptyList())
+		override fun getAllKeywords(): Flow<List<String>> = flowOf(emptyList())
+		override fun getCategories(query: String): Flow<List<StringAndCount>> = flowOf(emptyList())
+		override fun getCuisines(query: String): Flow<List<StringAndCount>> = flowOf(emptyList())
+		override fun getKeywords(query: String): Flow<List<StringAndCount>> = flowOf(emptyList())
+		override fun getSources(): Flow<List<String>> = flowOf(emptyList())
+		override fun getYieldUnits(): Flow<List<String>> = flowOf(emptyList())
+		override fun getIngredientItems(): Flow<List<String>> = flowOf(emptyList())
+		override fun getIngredientUnits(): Flow<List<String>> = flowOf(emptyList())
+
+		override suspend fun insertRecipe(recipe: RecipeEntity): Long = 1L
+		override suspend fun updateRecipe(recipe: RecipeEntity) {}
+		override suspend fun deleteRecipe(recipe: RecipeEntity) {}
+		override suspend fun deleteRecipesByIds(recipeIds: Set<Long>) {}
+		override suspend fun deleteAllRecipes() {}
+		override suspend fun insertIngredient(ingredient: IngredientEntity) {}
+		override suspend fun updateIngredient(ingredient: IngredientEntity) {}
+		override suspend fun deleteIngredient(ingredient: IngredientEntity) {}
+		override suspend fun deleteIngredientsNotInList(recipeId: Long, positions: List<Int>) {}
+		override suspend fun insertKeyword(preparation: KeywordEntity): Long = 1L
+		override suspend fun deleteKeywordsNotInList(recipeId: Long, positions: List<Int>) {}
+		override suspend fun insertPreparationDate(preparation: PreparationEntity): Long = 1L
+		override suspend fun updatePreparationDate(preparation: PreparationEntity) {}
+		override suspend fun deletePreparationDate(preparation: PreparationEntity) {}
+		override suspend fun deletePreparationDatesNotInList(recipeId: Long, dates: List<Long>) {}
+		override suspend fun getPreparation(recipeId: Long, date: Long): PreparationEntity? = null
+		override suspend fun getPreparations(recipeId: Long): List<PreparationEntity> = emptyList()
+		override suspend fun getMostRecentPreparation(recipeId: Long): PreparationEntity? = null
+		override suspend fun getPreparationsByDateRange(recipeId: Long, startDate: Long, endDate: Long): List<PreparationEntity> = emptyList()
+		override suspend fun pinRecipe(recipePin: RecipePinEntity): Long = 1L
+		override suspend fun unpinRecipe(recipeId: Long) {}
+	}
 
 	@Before
 	fun setup() {
-		val context = ApplicationProvider.getApplicationContext<Context>()
-		database = Room.inMemoryDatabaseBuilder(context, RecipeRoomDatabase::class.java)
-			.allowMainThreadQueries()
-			.build()
-		repository = RecipeRepository(database.recipeDao())
-	}
-
-	@After
-	fun tearDown() {
-		database.close()
+		repository = RecipeRepository(FakeRecipeDao())
 	}
 
 	@Test
@@ -168,4 +211,33 @@ class RecipeValidationAndRevertTest {
 		assertFalse(viewModel.hasUnsavedChanges())
 	}
 
+	@Test
+	fun `instructions and rating change tracking and revert works properly`() {
+		val originalRecipe = Recipe(
+			id = 2L,
+			title = "Recipe with Instructions",
+			instructions = "1. Chop onions\n2. Sauté in oil",
+			rating = 4.5f
+		)
+		val viewModel = RecipeEditingViewModel(repository, 0L)
+		viewModel.setInitialRecipe(originalRecipe)
+
+		assertFalse(viewModel.hasUnsavedChanges())
+
+		// Modify instructions
+		viewModel.recipe.value = viewModel.recipe.value.copy(instructions = "1. Finely dice onions\n2. Fry until golden")
+		assertTrue(viewModel.hasUnsavedChanges())
+		assertTrue(viewModel.revert())
+		assertEquals("1. Chop onions\n2. Sauté in oil", viewModel.recipe.value.instructions)
+		assertFalse(viewModel.hasUnsavedChanges())
+
+		// Modify rating
+		viewModel.recipe.value = viewModel.recipe.value.copy(rating = 5.0f)
+		assertTrue(viewModel.hasUnsavedChanges())
+		assertTrue(viewModel.revert())
+		assertEquals(4.5f, viewModel.recipe.value.rating)
+		assertFalse(viewModel.hasUnsavedChanges())
+	}
+
 }
+

@@ -469,6 +469,7 @@
 							app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
 
 						<androidx.constraintlayout.widget.ConstraintLayout
+							android:id="@+id/edit_ingredients_actions"
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
 							android:orientation="vertical">

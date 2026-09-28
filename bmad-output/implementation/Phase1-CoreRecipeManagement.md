@@ -12,53 +12,39 @@
 
 ### Story 1.1: Create New Recipes
 
-**Status:** ⚠️ PARTIALLY IMPLEMENTED
+**Status:** ✅ COMPLETED
 
-#### What's Already Working:
+#### Implemented Features:
 - ✅ **RecipeEditingActivity.kt** - Main editing UI with comprehensive form fields
-  - Title field (editTitle)
-  - Description field (editDescription)
-  - Category selector (editCategory)
-  - Cuisine selector (editCuisine)
-  - Source field (editSource)
-  - Link field (editLink)
-  - Notes field (editNotes)
-  - Image handling (editImage)
-- ✅ **Ingredient management system** via IngredientEditingAdapter
+  - Title field (`editTitle`) with validation
+  - Description field (`editDescription`)
+  - Category selector (`editCategory`)
+  - Cuisine selector (`editCuisine`)
+  - Source field (`editSource`)
+  - Link field (`editLink`)
+  - Instructions field (`editInstructions`) with multi-line Markdown & HTML binding
+  - Notes field (`editNotes`)
+  - Rating bar (`editRating`) with `onRatingBarChangeListener` and reset support
+  - Image handling (`editImage`) with add/remove/rotate
+- ✅ **Ingredient management system** via `IngredientEditingAdapter`
   - Individual ingredient entries
   - Ingredient groups for organization
-  - Move/reorder functionality via ItemTouchHelper
+  - Move/reorder functionality via `ItemTouchHelper`
+  - Action buttons properly scoped (`edit_ingredients_actions`)
 - ✅ **Recipe metadata support**
-  - Season selection (editSeason)
-  - Yield input (editYieldValue)
-  - Language selection (editLanguage)
-  - Keywords input (editKeywords)
-- ✅ **Save functionality** in RecipeEditingViewModel
-  - saveRecipe() method
-  - Database persistence via recipeRepository
-
-#### Missing Core Features (Priority 1):
-- ❌ **Instructions input field** - Critical for recipe creation
-- ❌ **Rating field** - New feature that needs implementation
-- ❌ **Full validation and error handling**
-- ❌ **Recipe preview functionality**
-
-#### **IMMEDIATE IMPLEMENTATION NEEDED:**
-
-**1. Instructions Input Field:**
-- Add editInstructions TextInputLayout in activity_recipe_editing.xml
-- Bind to recipe.instructions with Markdown support
-- Connect to ViewModel for state management
-
-**2. Rating Field:**
-- RatingBar already implemented in XML layout
-- Need to connect onRatingBarChangeListener in RecipeEditingActivity
-- Implement rating save functionality
-
-**3. Complete Preview Mode:**
-- Add preview toggle in RecipeEditingActivity
-- Integrate RecipeActivity for preview display
-- Add preview section for metadata, ingredients, instructions
+  - Season selection (`editSeason`)
+  - Yield input (`editYieldValue`) and unit selector (`editYieldUnit`) with validation
+  - Language selection (`editLanguage`)
+  - Keywords input (`editKeywords`)
+- ✅ **Save functionality** in `RecipeEditingViewModel`
+  - `saveRecipe()` method with `executePendingBindings()`
+  - Form validation with error states (`ValidationError.EMPTY_TITLE`, `ValidationError.INVALID_YIELD`)
+  - Database persistence via `recipeRepository`
+- ✅ **Recipe preview integration** (Story 1.3 Foundation)
+  - Edit/preview mode toggling via options menu
+  - Markdown formatting via `RecipePreviewHelper` using Markwon
+  - Ingredient grouping display in preview
+  - View visibility management hiding edit controls & action buttons in preview mode
 
 ## Story 1.2: Edit Existing Recipes
 

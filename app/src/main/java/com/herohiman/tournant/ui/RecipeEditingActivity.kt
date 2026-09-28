@@ -219,6 +219,12 @@ private lateinit var binding: ActivityRecipeEditingBinding
 			binding.editRating.rating = 0f
 		}
 
+		binding.editRating.setOnRatingBarChangeListener { _, rating, fromUser ->
+			if (fromUser) {
+				viewModel.recipe.value.rating = if (rating > 0f) rating else null
+			}
+		}
+
 		binding.editTitle.doAfterTextChanged {
 			if (!it.isNullOrBlank()) {
 				binding.editTitleLayout.error = null
@@ -558,8 +564,8 @@ private lateinit var binding: ActivityRecipeEditingBinding
 		lifecycleScope.launch {
 			delay(1000)
 			runOnUiThread {
-				for (view in listOf(binding.editTitle, binding.editCategory, binding.editCuisine, binding.editSource, binding.editLink)) {
-					((view.parent as ViewGroup).parent as TextInputLayout).isHintAnimationEnabled = true
+				for (view in listOf(binding.editTitle, binding.editCategory, binding.editCuisine, binding.editSource, binding.editLink, binding.editInstructions, binding.editNotes)) {
+					((view.parent as ViewGroup).parent as? TextInputLayout)?.isHintAnimationEnabled = true
 				}
 			}
 		}
@@ -569,6 +575,7 @@ private lateinit var binding: ActivityRecipeEditingBinding
 	override fun onOptionsItemSelected(item: MenuItem): Boolean {
 		return when (item.itemId) {
 			R.id.save -> {
+				binding.executePendingBindings()
 				val validation = viewModel.validate()
 				if (validation is RecipeEditingViewModel.ValidationResult.Invalid) {
 					when (validation.errorType) {
@@ -678,8 +685,10 @@ private lateinit var binding: ActivityRecipeEditingBinding
 	}
 
 	private fun showPreview() {
+		binding.executePendingBindings()
 		val currentRecipe = viewModel.recipe.value
 		binding.editIngredients.visibility = View.GONE
+		binding.editIngredientsActions.visibility = View.GONE
 		binding.editInstructionsLayout.visibility = View.GONE
 		binding.editNotesLayout.visibility = View.GONE
 		
@@ -695,6 +704,7 @@ private lateinit var binding: ActivityRecipeEditingBinding
 
 	private fun hidePreview() {
 		binding.editIngredients.visibility = View.VISIBLE
+		binding.editIngredientsActions.visibility = View.VISIBLE
 		binding.editInstructionsLayout.visibility = View.VISIBLE
 		binding.editNotesLayout.visibility = View.VISIBLE
 		binding.editPreviewContainer.visibility = View.GONE
@@ -724,6 +734,7 @@ private lateinit var binding: ActivityRecipeEditingBinding
 		viewModel.revert()
 		val currentRecipe = viewModel.recipe.value
 		binding.recipe = currentRecipe
+		binding.editRating.rating = currentRecipe.rating ?: 0f
 		binding.executePendingBindings()
 
 		if (imageChanged) {
