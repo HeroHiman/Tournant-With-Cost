@@ -28,6 +28,12 @@ interface MasterIngredientDao {
 	@Query("SELECT * FROM MasterIngredient WHERE name = :name COLLATE NOCASE AND isActive = 1 LIMIT 1")
 	fun getMasterIngredientByName(name: String): MasterIngredientEntity?
 
+	@Query("SELECT * FROM MasterIngredient WHERE linkedRecipeId = :recipeId AND isActive = 1 LIMIT 1")
+	suspend fun getMasterIngredientByLinkedRecipeId(recipeId: Long): MasterIngredientEntity?
+
+	@Query("SELECT * FROM MasterIngredient WHERE linkedRecipeId IS NOT NULL AND isActive = 1")
+	suspend fun getMasterIngredientsWithLinkedRecipes(): List<MasterIngredientEntity>
+
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
 	suspend fun insertMasterIngredient(item: MasterIngredientEntity): Long
 

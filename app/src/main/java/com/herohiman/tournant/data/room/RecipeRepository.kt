@@ -20,6 +20,8 @@ class RecipeRepository(
 	fun getAllMasterIngredientsList() = masterIngredientDao?.getAllMasterIngredientsList() ?: emptyList()
 	fun getMasterIngredientById(id: Long) = masterIngredientDao?.getMasterIngredientById(id)
 	fun getMasterIngredientByName(name: String) = masterIngredientDao?.getMasterIngredientByName(name)
+	suspend fun getMasterIngredientByLinkedRecipeId(recipeId: Long) = masterIngredientDao?.getMasterIngredientByLinkedRecipeId(recipeId)
+	suspend fun getMasterIngredientsWithLinkedRecipes() = masterIngredientDao?.getMasterIngredientsWithLinkedRecipes() ?: emptyList()
 	suspend fun insertMasterIngredient(item: MasterIngredientEntity) = masterIngredientDao?.insertMasterIngredient(item) ?: -1L
 	suspend fun insertMasterIngredients(items: List<MasterIngredientEntity>) = masterIngredientDao?.insertMasterIngredients(items) ?: emptyList()
 	suspend fun updateMasterIngredient(item: MasterIngredientEntity) { masterIngredientDao?.updateMasterIngredient(item) }

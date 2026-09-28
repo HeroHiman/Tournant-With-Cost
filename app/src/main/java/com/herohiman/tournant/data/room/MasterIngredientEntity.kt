@@ -16,5 +16,8 @@ data class MasterIngredientEntity(
 	var isActive: Boolean = true,
 	var lastUpdated: Long = System.currentTimeMillis(),
 	var category: String? = null,
-	var notes: String? = null
+	var notes: String? = null,
+	@ColumnInfo(index = true)
+	var linkedRecipeId: Long? = null,
+	var yieldRatio: Double? = null
 )

@@ -17,8 +17,8 @@ import kotlin.reflect.full.declaredFunctions
 @Database(
 	entities = [RecipeEntity::class, IngredientEntity::class, KeywordEntity::class, PreparationEntity::class, RecipePinEntity::class, MasterIngredientEntity::class, UnitAliasEntity::class, IngredientAliasEntity::class],
 	exportSchema = true,
-	version = 11,
-	autoMigrations = [AutoMigration(1, 2), AutoMigration(2, 3), AutoMigration(4, 5), AutoMigration(6, 7), AutoMigration(7, 8), AutoMigration(8, 9), AutoMigration(9, 10), AutoMigration(10, 11)]
+	version = 12,
+	autoMigrations = [AutoMigration(1, 2), AutoMigration(2, 3), AutoMigration(4, 5), AutoMigration(6, 7), AutoMigration(7, 8), AutoMigration(8, 9), AutoMigration(9, 10), AutoMigration(10, 11), AutoMigration(11, 12)]
 )
 abstract class RecipeRoomDatabase : RoomDatabase() {
 	abstract fun recipeDao(): RecipeDao
@@ -52,7 +52,7 @@ abstract class RecipeRoomDatabase : RoomDatabase() {
 					}, Executors.newSingleThreadExecutor()
 					)
 */
-					.addMigrations(MIGRATION_3_4, MIGRATION_5_6, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11)
+					.addMigrations(MIGRATION_3_4, MIGRATION_5_6, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12)
 					.build()
 				INSTANCE = instance
 				return instance
@@ -126,6 +126,14 @@ abstract class RecipeRoomDatabase : RoomDatabase() {
 				""".trimIndent())
 				db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_IngredientAlias_rawName` ON `IngredientAlias` (`rawName`)")
 				db.execSQL("CREATE INDEX IF NOT EXISTS `index_IngredientAlias_masterIngredientId` ON `IngredientAlias` (`masterIngredientId`)")
+			}
+		}
+
+		val MIGRATION_11_12 = object : Migration(11, 12) {
+			override fun migrate(db: SupportSQLiteDatabase) {
+				db.execSQL("ALTER TABLE `MasterIngredient` ADD COLUMN `linkedRecipeId` INTEGER DEFAULT NULL")
+				db.execSQL("ALTER TABLE `MasterIngredient` ADD COLUMN `yieldRatio` REAL DEFAULT NULL")
+				db.execSQL("CREATE INDEX IF NOT EXISTS `index_MasterIngredient_linkedRecipeId` ON `MasterIngredient` (`linkedRecipeId`)")
 			}
 		}
 	}

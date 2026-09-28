@@ -249,6 +249,8 @@ class MergeIngredientUseCaseTest {
 		override suspend fun softDeleteMasterIngredient(id: Long) { map[id]?.let { map[id] = it.copy(isActive = false) } }
 		override suspend fun restoreMasterIngredient(id: Long) { map[id]?.let { map[id] = it.copy(isActive = true) } }
 		override suspend fun hardDeleteMasterIngredient(id: Long) { map.remove(id) }
+		override suspend fun getMasterIngredientByLinkedRecipeId(recipeId: Long): MasterIngredientEntity? = map.values.firstOrNull { it.linkedRecipeId == recipeId && it.isActive }
+		override suspend fun getMasterIngredientsWithLinkedRecipes(): List<MasterIngredientEntity> = map.values.filter { it.linkedRecipeId != null && it.isActive }
 	}
 
 	private class FakeAliasDao : IngredientAliasDao {

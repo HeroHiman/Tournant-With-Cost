@@ -243,5 +243,13 @@ class RoomCostMigrationAndDaoTest {
 		override suspend fun hardDeleteMasterIngredient(id: Long) {
 			map.remove(id)
 		}
+
+		override suspend fun getMasterIngredientByLinkedRecipeId(recipeId: Long): MasterIngredientEntity? {
+			return map.values.firstOrNull { it.linkedRecipeId == recipeId && it.isActive }
+		}
+
+		override suspend fun getMasterIngredientsWithLinkedRecipes(): List<MasterIngredientEntity> {
+			return map.values.filter { it.linkedRecipeId != null && it.isActive }
+		}
 	}
 }
