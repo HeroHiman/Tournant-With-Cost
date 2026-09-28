@@ -3,6 +3,12 @@
 	xmlns:app="http://schemas.android.com/apk/res-auto">
 
 	<item
+		android:id="@+id/action_sync_ingredients"
+		android:icon="@drawable/ic_restaurant"
+		android:title="@string/auto_fetch_from_recipes"
+		app:showAsAction="ifRoom" />
+
+	<item
 		android:id="@+id/action_toggle_privacy"
 		android:icon="@drawable/ic_preview"
 		android:title="@string/toggle_privacy_mode"

@@ -36,18 +36,37 @@
 			android:paddingBottom="88dp"
 			tools:listitem="@layout/item_master_ingredient" />
 
-		<TextView
-			android:id="@+id/empty_state_text"
+		<LinearLayout
+			android:id="@+id/empty_state_container"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:layout_gravity="center"
-			android:layout_margin="32dp"
 			android:gravity="center"
-			android:text="@string/no_master_ingredients"
-			style="@style/TextAppearance.AppCompat.Medium"
-			android:textColor="@color/subtitle_color"
+			android:orientation="vertical"
+			android:padding="32dp"
 			android:visibility="gone"
-			tools:visibility="visible" />
+			tools:visibility="visible">
+
+			<TextView
+				android:id="@+id/empty_state_text"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:gravity="center"
+				android:text="@string/no_master_ingredients"
+				style="@style/TextAppearance.AppCompat.Medium"
+				android:textColor="@color/subtitle_color" />
+
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/btn_auto_fetch"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="16dp"
+				android:text="@string/auto_fetch_from_recipes"
+				app:icon="@drawable/ic_restaurant"
+				app:backgroundTint="@color/blue"
+				android:textColor="@color/white" />
+
+		</LinearLayout>
 
 	</FrameLayout>
 

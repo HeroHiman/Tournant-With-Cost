@@ -37,7 +37,7 @@ class MasterCostListActivity : AppCompatActivity() {
 
 	private lateinit var repository: RecipeRepository
 	private lateinit var recyclerView: RecyclerView
-	private lateinit var emptyStateText: TextView
+	private lateinit var emptyStateContainer: View
 	private lateinit var adapter: MasterCostAdapter
 	private var ingredientsList = listOf<MasterIngredientEntity>()
 
@@ -66,8 +66,13 @@ class MasterCostListActivity : AppCompatActivity() {
 		}
 
 		recyclerView = findViewById(R.id.recycler_master_costs)
-		emptyStateText = findViewById(R.id.empty_state_text)
+		emptyStateContainer = findViewById(R.id.empty_state_container)
+		val btnAutoFetch = findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_auto_fetch)
 		val fab = findViewById<FloatingActionButton>(R.id.fab_add_master_ingredient)
+
+		btnAutoFetch.setOnClickListener {
+			autoFetchIngredientsFromRecipes()
+		}
 
 		adapter = MasterCostAdapter(
 			items = emptyList(),
@@ -96,6 +101,10 @@ class MasterCostListActivity : AppCompatActivity() {
 				finish()
 				true
 			}
+			R.id.action_sync_ingredients -> {
+				autoFetchIngredientsFromRecipes()
+				true
+			}
 			R.id.action_toggle_privacy -> {
 				val newPrivacyMode = CostPrivacyManager.togglePrivacyMode(this)
 				adapter.setPrivacyMode(newPrivacyMode)
@@ -115,6 +124,23 @@ class MasterCostListActivity : AppCompatActivity() {
 		}
 	}
 
+	private fun autoFetchIngredientsFromRecipes() {
+		lifecycleScope.launch {
+			val count = withContext(Dispatchers.IO) {
+				repository.syncIngredientsFromRecipes()
+			}
+			val message = if (count > 0) {
+				getString(R.string.auto_fetch_summary, count)
+			} else {
+				getString(R.string.auto_fetch_no_new)
+			}
+			Toast.makeText(this@MasterCostListActivity, message, Toast.LENGTH_SHORT).show()
+			if (count > 0) {
+				loadMasterIngredients()
+			}
+		}
+	}
+
 	private fun loadMasterIngredients() {
 		lifecycleScope.launch {
 			val items = withContext(Dispatchers.IO) {
@@ -122,7 +148,7 @@ class MasterCostListActivity : AppCompatActivity() {
 			}
 			ingredientsList = items
 			adapter.updateItems(items)
-			emptyStateText.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+			emptyStateContainer.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
 		}
 	}
 

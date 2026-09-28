@@ -247,5 +247,8 @@
 	<string name="privacy_mode_disabled">Privacy Mode Disabled</string>
 	<string name="toggle_privacy_mode">Toggle Privacy Mode</string>
 	<string name="cost_saved">Ingredient cost saved</string>
+	<string name="auto_fetch_from_recipes">Auto-Fetch from Recipes</string>
+	<string name="auto_fetch_summary">Imported %d new ingredients from recipes</string>
+	<string name="auto_fetch_no_new">All recipe ingredients are already in the master list</string>
 
 </resources>

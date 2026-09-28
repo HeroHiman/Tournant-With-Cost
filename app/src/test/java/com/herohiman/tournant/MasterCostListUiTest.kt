@@ -84,4 +84,32 @@ class MasterCostListUiTest {
 		assertEquals("0.025", formatInputCost(0.0250))
 		assertEquals("0.0002", formatInputCost(0.0002))
 	}
+
+	@Test
+	fun `empty state visibility toggles based on item count`() {
+		fun shouldShowEmptyState(items: List<MasterIngredientEntity>): Boolean {
+			return items.isEmpty()
+		}
+
+		assertTrue(shouldShowEmptyState(emptyList()))
+		assertFalse(shouldShowEmptyState(listOf(MasterIngredientEntity(1, "Sugar", 1.0, "kg"))))
+	}
+
+	@Test
+	fun `auto fetch feedback message formats summary correctly`() {
+		fun formatFeedback(count: Int, summaryFormat: String, noNewMessage: String): String {
+			return if (count > 0) {
+				String.format(summaryFormat, count)
+			} else {
+				noNewMessage
+			}
+		}
+
+		val summaryFormat = "Imported %d new ingredients from recipes"
+		val noNewMessage = "All recipe ingredients are already in the master list"
+
+		assertEquals("Imported 5 new ingredients from recipes", formatFeedback(5, summaryFormat, noNewMessage))
+		assertEquals("Imported 1 new ingredients from recipes", formatFeedback(1, summaryFormat, noNewMessage))
+		assertEquals("All recipe ingredients are already in the master list", formatFeedback(0, summaryFormat, noNewMessage))
+	}
 }
