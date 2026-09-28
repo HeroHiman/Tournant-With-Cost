@@ -155,7 +155,7 @@ abstract class RecipeDao {
 		SELECT category AS string, COUNT(DISTINCT recipe.id) AS count
 		FROM recipe
 		LEFT JOIN keyword ON recipeId = recipe.id
-		WHERE (title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%' OR category LIKE '%' || :query || '%' OR cuisine LIKE '%' || :query || '%' OR keyword LIKE '%' || :query || '%')
+		WHERE (title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%' OR category LIKE '%' || :query || '%' OR cuisine LIKE '%' || :query || '%' OR keyword LIKE '%' || :query || '%' OR instructions LIKE '%' || :query || '%')
 			AND category IS NOT NULL
 		GROUP BY category ORDER BY category COLLATE LOCALIZED ASC
 	""")
@@ -165,7 +165,7 @@ abstract class RecipeDao {
 		SELECT cuisine AS string, COUNT(DISTINCT recipe.id) AS count
 		FROM recipe
 		LEFT JOIN keyword ON recipeId = recipe.id
-		WHERE (title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%'  OR category LIKE '%' || :query || '%' OR cuisine LIKE '%' || :query || '%' OR keyword LIKE '%' || :query || '%')
+		WHERE (title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%' OR category LIKE '%' || :query || '%' OR cuisine LIKE '%' || :query || '%' OR keyword LIKE '%' || :query || '%' OR instructions LIKE '%' || :query || '%')
 			AND cuisine IS NOT NULL
 		GROUP BY cuisine ORDER BY cuisine COLLATE LOCALIZED ASC
 	""")
@@ -175,7 +175,7 @@ abstract class RecipeDao {
 		SELECT keyword AS string, COUNT(DISTINCT recipe.id) AS count
 		FROM recipe
 		LEFT JOIN keyword ON recipeId = recipe.id
-		WHERE (title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%'  OR category LIKE '%' || :query || '%' OR cuisine LIKE '%' || :query || '%' OR keyword LIKE '%' || :query || '%')
+		WHERE (title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%' OR category LIKE '%' || :query || '%' OR cuisine LIKE '%' || :query || '%' OR keyword LIKE '%' || :query || '%' OR instructions LIKE '%' || :query || '%')
 			AND keyword IS NOT NULL
 		GROUP BY keyword ORDER BY keyword COLLATE LOCALIZED ASC
 	""")
