@@ -15,6 +15,10 @@ class Constants {
 		const val PREF_FILE_LAST_MODIFIED = "FILE_LAST_MODIFIED"
 		const val PREF_SORT = "SORT"
 		const val PREF_SEARCH_QUERY = "SEARCH_QUERY"
+		const val PREF_UNIT_SYSTEM = "UNIT_SYSTEM"
+		const val UNIT_SYSTEM_DEFAULT = 0
+		const val UNIT_SYSTEM_METRIC = 1
+		const val UNIT_SYSTEM_IMPERIAL = 2
 		const val SORTED_BY_TITLE = 0
 		const val SORTED_BY_RATING = 1
 		const val SORTED_BY_PREPTIME = 2
