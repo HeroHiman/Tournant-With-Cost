@@ -15,13 +15,14 @@ import com.herohiman.tournant.getAppOrSystemLocale
 import kotlin.reflect.full.declaredFunctions
 
 @Database(
-	entities = [RecipeEntity::class, IngredientEntity::class, KeywordEntity::class, PreparationEntity::class, RecipePinEntity::class],
+	entities = [RecipeEntity::class, IngredientEntity::class, KeywordEntity::class, PreparationEntity::class, RecipePinEntity::class, MasterIngredientEntity::class],
 	exportSchema = true,
-	version = 8,
-	autoMigrations = [AutoMigration(1, 2), AutoMigration(2, 3), AutoMigration(4, 5), AutoMigration(6, 7), AutoMigration(7, 8)]
+	version = 9,
+	autoMigrations = [AutoMigration(1, 2), AutoMigration(2, 3), AutoMigration(4, 5), AutoMigration(6, 7), AutoMigration(7, 8), AutoMigration(8, 9)]
 )
 abstract class RecipeRoomDatabase : RoomDatabase() {
 	abstract fun recipeDao(): RecipeDao
+	abstract fun masterIngredientDao(): MasterIngredientDao
 
 	companion object {
 		@Volatile
@@ -49,7 +50,7 @@ abstract class RecipeRoomDatabase : RoomDatabase() {
 					}, Executors.newSingleThreadExecutor()
 					)
 */
-					.addMigrations(MIGRATION_3_4, MIGRATION_5_6)
+					.addMigrations(MIGRATION_3_4, MIGRATION_5_6, MIGRATION_8_9)
 					.build()
 				INSTANCE = instance
 				return instance
@@ -75,6 +76,25 @@ abstract class RecipeRoomDatabase : RoomDatabase() {
 			override fun migrate(db: SupportSQLiteDatabase) {
 				val languageTag = getAppOrSystemLocale().toLanguageTag()
 				db.execSQL("ALTER TABLE Recipe ADD COLUMN language TEXT NOT NULL DEFAULT `$languageTag`")
+			}
+		}
+
+		val MIGRATION_8_9 = object : Migration(8, 9) {
+			override fun migrate(db: SupportSQLiteDatabase) {
+				db.execSQL("""
+					CREATE TABLE IF NOT EXISTS `MasterIngredient` (
+						`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+						`name` TEXT NOT NULL,
+						`unitCost` REAL NOT NULL,
+						`baseUnit` TEXT NOT NULL,
+						`currency` TEXT NOT NULL DEFAULT 'USD',
+						`isActive` INTEGER NOT NULL DEFAULT 1,
+						`lastUpdated` INTEGER NOT NULL,
+						`category` TEXT,
+						`notes` TEXT
+					)
+				""".trimIndent())
+				db.execSQL("CREATE INDEX IF NOT EXISTS `index_MasterIngredient_name` ON `MasterIngredient` (`name`)")
 			}
 		}
 	}

@@ -42,7 +42,7 @@ class TournantApplication : Application() {
 	}
 
 	val recipeRepository: RecipeRepository by lazy {
-		RecipeRepository(database.recipeDao())
+		RecipeRepository(database.recipeDao(), database.masterIngredientDao())
 	}
 
 	fun withGourmandIssueCheck(context: Context, recipeIds: Set<Long>, onSuccess: (Set<Long>) -> Unit) {

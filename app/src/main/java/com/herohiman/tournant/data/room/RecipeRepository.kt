@@ -4,9 +4,26 @@ import android.util.Log
 import androidx.room.Transaction
 import java.util.Date
 
-class RecipeRepository(private val dao: RecipeDao) {
+class RecipeRepository(
+	private val dao: RecipeDao,
+	private val masterIngredientDao: MasterIngredientDao? = null
+) {
 
 	companion object { private const val TAG = "RecipeRepository" }
+
+	// Master Ingredient operations
+	fun getAllActiveMasterIngredients() = masterIngredientDao?.getAllActiveMasterIngredients()
+	fun getAllActiveMasterIngredientsList() = masterIngredientDao?.getAllActiveMasterIngredientsList() ?: emptyList()
+	fun getAllMasterIngredients() = masterIngredientDao?.getAllMasterIngredients()
+	fun getAllMasterIngredientsList() = masterIngredientDao?.getAllMasterIngredientsList() ?: emptyList()
+	fun getMasterIngredientById(id: Long) = masterIngredientDao?.getMasterIngredientById(id)
+	fun getMasterIngredientByName(name: String) = masterIngredientDao?.getMasterIngredientByName(name)
+	suspend fun insertMasterIngredient(item: MasterIngredientEntity) = masterIngredientDao?.insertMasterIngredient(item) ?: -1L
+	suspend fun insertMasterIngredients(items: List<MasterIngredientEntity>) = masterIngredientDao?.insertMasterIngredients(items) ?: emptyList()
+	suspend fun updateMasterIngredient(item: MasterIngredientEntity) { masterIngredientDao?.updateMasterIngredient(item) }
+	suspend fun softDeleteMasterIngredient(id: Long) { masterIngredientDao?.softDeleteMasterIngredient(id) }
+	suspend fun restoreMasterIngredient(id: Long) { masterIngredientDao?.restoreMasterIngredient(id) }
+
 
 	fun getRecipeById(id: Long) = dao.getRecipeById(id)
 	fun getRecipesById(ids: Set<Long>) = dao.getRecipesById(ids)

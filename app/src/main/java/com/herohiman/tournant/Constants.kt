@@ -16,6 +16,7 @@ class Constants {
 		const val PREF_SORT = "SORT"
 		const val PREF_SEARCH_QUERY = "SEARCH_QUERY"
 		const val PREF_UNIT_SYSTEM = "UNIT_SYSTEM"
+		const val PREF_PRIVACY_MODE = "PRIVACY_MODE"
 		const val UNIT_SYSTEM_DEFAULT = 0
 		const val UNIT_SYSTEM_METRIC = 1
 		const val UNIT_SYSTEM_IMPERIAL = 2
