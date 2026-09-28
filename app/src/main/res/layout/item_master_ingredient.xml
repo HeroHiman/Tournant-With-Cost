@@ -68,6 +68,23 @@
 			app:layout_constraintTop_toTopOf="@+id/ingredient_status"
 			tools:text="Pantry" />
 
+		<TextView
+			android:id="@+id/ingredient_sub_recipe_badge"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginStart="8dp"
+			android:paddingHorizontal="8dp"
+			android:paddingVertical="2dp"
+			android:textSize="12sp"
+			android:background="@drawable/badge_background"
+			android:textColor="@color/amber_dark"
+			android:textStyle="bold"
+			android:visibility="gone"
+			app:layout_constraintBottom_toBottomOf="@+id/ingredient_status"
+			app:layout_constraintStart_toEndOf="@+id/ingredient_category"
+			app:layout_constraintTop_toTopOf="@+id/ingredient_status"
+			tools:text="Sub-Recipe" />
+
 		<ImageButton
 			android:id="@+id/btn_merge"
 			android:layout_width="40dp"

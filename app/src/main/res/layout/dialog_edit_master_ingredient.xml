@@ -1,72 +1,128 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	android:layout_width="match_parent"
-	android:layout_height="wrap_content"
-	android:orientation="vertical"
-	android:padding="20dp">
+	android:layout_height="wrap_content">
 
-	<com.google.android.material.textfield.TextInputLayout
-		android:id="@+id/layout_name"
+	<LinearLayout
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:hint="@string/ingredient_name"
-		style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+		android:orientation="vertical"
+		android:padding="20dp">
 
-		<com.google.android.material.textfield.TextInputEditText
-			android:id="@+id/edit_name"
+		<com.google.android.material.textfield.TextInputLayout
+			android:id="@+id/layout_name"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:inputType="textCapWords" />
+			android:hint="@string/ingredient_name"
+			style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-	</com.google.android.material.textfield.TextInputLayout>
+			<com.google.android.material.textfield.TextInputEditText
+				android:id="@+id/edit_name"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:inputType="textCapWords" />
 
-	<com.google.android.material.textfield.TextInputLayout
-		android:id="@+id/layout_unit_cost"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:layout_marginTop="12dp"
-		android:hint="@string/unit_cost"
-		style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+		</com.google.android.material.textfield.TextInputLayout>
 
-		<com.google.android.material.textfield.TextInputEditText
-			android:id="@+id/edit_unit_cost"
+		<com.google.android.material.textfield.TextInputLayout
+			android:id="@+id/layout_base_unit"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:inputType="numberDecimal" />
+			android:layout_marginTop="12dp"
+			android:hint="@string/base_unit"
+			style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-	</com.google.android.material.textfield.TextInputLayout>
+			<com.google.android.material.textfield.TextInputEditText
+				android:id="@+id/edit_base_unit"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:inputType="text" />
 
-	<com.google.android.material.textfield.TextInputLayout
-		android:id="@+id/layout_base_unit"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:layout_marginTop="12dp"
-		android:hint="@string/base_unit"
-		style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+		</com.google.android.material.textfield.TextInputLayout>
 
-		<com.google.android.material.textfield.TextInputEditText
-			android:id="@+id/edit_base_unit"
+		<com.google.android.material.textfield.TextInputLayout
+			android:id="@+id/layout_category"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:inputType="text" />
+			android:layout_marginTop="12dp"
+			android:hint="@string/category"
+			style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-	</com.google.android.material.textfield.TextInputLayout>
+			<com.google.android.material.textfield.TextInputEditText
+				android:id="@+id/edit_category"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:inputType="textCapWords" />
 
-	<com.google.android.material.textfield.TextInputLayout
-		android:id="@+id/layout_category"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:layout_marginTop="12dp"
-		android:hint="@string/category"
-		style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+		</com.google.android.material.textfield.TextInputLayout>
 
-		<com.google.android.material.textfield.TextInputEditText
-			android:id="@+id/edit_category"
+		<com.google.android.material.materialswitch.MaterialSwitch
+			android:id="@+id/switch_sub_recipe"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:inputType="textCapWords" />
+			android:layout_marginTop="16dp"
+			android:text="@string/prepared_item_toggle"
+			android:textAppearance="@style/TextAppearance.AppCompat.Subhead" />
 
-	</com.google.android.material.textfield.TextInputLayout>
+		<LinearLayout
+			android:id="@+id/layout_sub_recipe_container"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="vertical"
+			android:visibility="gone">
 
-</LinearLayout>
+			<com.google.android.material.textfield.TextInputLayout
+				android:id="@+id/layout_linked_recipe"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="12dp"
+				android:hint="@string/linked_sub_recipe"
+				style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+				<androidx.appcompat.widget.AppCompatAutoCompleteTextView
+					android:id="@+id/auto_linked_recipe"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:inputType="none" />
+
+			</com.google.android.material.textfield.TextInputLayout>
+
+			<com.google.android.material.textfield.TextInputLayout
+				android:id="@+id/layout_yield_ratio"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="12dp"
+				android:hint="@string/yield_ratio"
+				app:helperText="@string/yield_ratio_helper"
+				style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+				<com.google.android.material.textfield.TextInputEditText
+					android:id="@+id/edit_yield_ratio"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:inputType="numberDecimal" />
+
+			</com.google.android.material.textfield.TextInputLayout>
+
+		</LinearLayout>
+
+		<com.google.android.material.textfield.TextInputLayout
+			android:id="@+id/layout_unit_cost"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="12dp"
+			android:hint="@string/unit_cost"
+			style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+			<com.google.android.material.textfield.TextInputEditText
+				android:id="@+id/edit_unit_cost"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:inputType="numberDecimal" />
+
+		</com.google.android.material.textfield.TextInputLayout>
+
+	</LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

@@ -29,6 +29,7 @@ import com.herohiman.tournant.data.room.MasterIngredientEntity
 import com.herohiman.tournant.data.room.RecipeRepository
 import com.herohiman.tournant.safeInsets
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
@@ -169,17 +170,73 @@ class MasterCostListActivity : AppCompatActivity() {
 	}
 
 	private fun showAddEditDialog(existing: MasterIngredientEntity?) {
+		lifecycleScope.launch {
+			val titlesWithIds = withContext(Dispatchers.IO) {
+				try {
+					repository.getRecipeTitlesWithIds().first()
+				} catch (e: Exception) {
+					emptyList()
+				}
+			}
+			showAddEditDialogInternal(existing, titlesWithIds)
+		}
+	}
+
+	private fun showAddEditDialogInternal(existing: MasterIngredientEntity?, titlesWithIds: List<com.herohiman.tournant.data.RecipeTitleId>) {
 		val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_master_ingredient, null)
 		val editName = dialogView.findViewById<EditText>(R.id.edit_name)
-		val editUnitCost = dialogView.findViewById<EditText>(R.id.edit_unit_cost)
 		val editBaseUnit = dialogView.findViewById<EditText>(R.id.edit_base_unit)
 		val editCategory = dialogView.findViewById<EditText>(R.id.edit_category)
+		val layoutUnitCost = dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.layout_unit_cost)
+		val editUnitCost = dialogView.findViewById<EditText>(R.id.edit_unit_cost)
+		val switchSubRecipe = dialogView.findViewById<com.google.android.material.materialswitch.MaterialSwitch>(R.id.switch_sub_recipe)
+		val layoutSubRecipeContainer = dialogView.findViewById<View>(R.id.layout_sub_recipe_container)
+		val autoLinkedRecipe = dialogView.findViewById<androidx.appcompat.widget.AppCompatAutoCompleteTextView>(R.id.auto_linked_recipe)
+		val editYieldRatio = dialogView.findViewById<EditText>(R.id.edit_yield_ratio)
+
+		val recipeTitles = titlesWithIds.map { it.title }
+		val recipeMap = titlesWithIds.associateBy { it.title.trim().lowercase(Locale.ROOT) }
+		val recipeAdapter = android.widget.ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, recipeTitles)
+		autoLinkedRecipe.setAdapter(recipeAdapter)
+		autoLinkedRecipe.setOnClickListener { autoLinkedRecipe.showDropDown() }
+		autoLinkedRecipe.setOnFocusChangeListener { _, hasFocus -> if (hasFocus) autoLinkedRecipe.showDropDown() }
+
+		var selectedRecipeId: Long? = existing?.linkedRecipeId
+
+		autoLinkedRecipe.setOnItemClickListener { _, _, position, _ ->
+			val selectedTitle = recipeAdapter.getItem(position)
+			selectedRecipeId = titlesWithIds.firstOrNull { it.title == selectedTitle }?.id
+		}
 
 		if (existing != null) {
 			editName.setText(existing.name)
-			editUnitCost.setText(String.format(Locale.US, "%.4f", existing.unitCost).trimEnd('0').trimEnd('.'))
+			if (existing.unitCost > 0.0) {
+				editUnitCost.setText(String.format(Locale.US, "%.4f", existing.unitCost).trimEnd('0').trimEnd('.'))
+			}
 			editBaseUnit.setText(existing.baseUnit)
 			editCategory.setText(existing.category ?: "")
+
+			if (existing.linkedRecipeId != null) {
+				switchSubRecipe.isChecked = true
+				layoutSubRecipeContainer.visibility = View.VISIBLE
+				val matchedTitle = titlesWithIds.firstOrNull { it.id == existing.linkedRecipeId }?.title
+				if (!matchedTitle.isNullOrBlank()) {
+					autoLinkedRecipe.setText(matchedTitle, false)
+				}
+				if (existing.yieldRatio != null) {
+					editYieldRatio.setText(String.format(Locale.US, "%.4f", existing.yieldRatio!!).trimEnd('0').trimEnd('.'))
+				}
+				layoutUnitCost.hint = getString(R.string.unit_cost_optional_fallback)
+			} else {
+				switchSubRecipe.isChecked = false
+				layoutSubRecipeContainer.visibility = View.GONE
+				layoutUnitCost.hint = getString(R.string.unit_cost)
+			}
+		}
+
+		switchSubRecipe.setOnCheckedChangeListener { _, isChecked ->
+			layoutSubRecipeContainer.visibility = if (isChecked) View.VISIBLE else View.GONE
+			layoutUnitCost.hint = if (isChecked) getString(R.string.unit_cost_optional_fallback) else getString(R.string.unit_cost)
 		}
 
 		val titleRes = if (existing == null) R.string.add_ingredient_cost else R.string.edit_ingredient_cost
@@ -189,15 +246,32 @@ class MasterCostListActivity : AppCompatActivity() {
 			.setView(dialogView)
 			.setPositiveButton(R.string.save) { _, _ ->
 				val name = editName.text.toString().trim()
-				val unitCostStr = editUnitCost.text.toString().trim()
 				val baseUnit = editBaseUnit.text.toString().trim()
 				val category = editCategory.text.toString().trim().ifBlank { null }
+				val isSubRecipe = switchSubRecipe.isChecked
+				val unitCostStr = editUnitCost.text.toString().trim()
+				val yieldRatioStr = editYieldRatio.text.toString().trim()
 
-				if (name.isBlank() || unitCostStr.isBlank() || baseUnit.isBlank()) {
-					Toast.makeText(this, "Name, unit cost, and base unit are required", Toast.LENGTH_SHORT).show()
+				if (name.isBlank() || baseUnit.isBlank()) {
+					Toast.makeText(this, "Name and base unit are required", Toast.LENGTH_SHORT).show()
 					return@setPositiveButton
 				}
 
+				if (!isSubRecipe && unitCostStr.isBlank()) {
+					Toast.makeText(this, "Unit cost is required for manual ingredients", Toast.LENGTH_SHORT).show()
+					return@setPositiveButton
+				}
+
+				val linkedRecipe = if (isSubRecipe) {
+					selectedRecipeId ?: recipeMap[autoLinkedRecipe.text.toString().trim().lowercase(Locale.ROOT)]?.id
+				} else null
+
+				if (isSubRecipe && linkedRecipe == null) {
+					Toast.makeText(this, R.string.select_sub_recipe_error, Toast.LENGTH_SHORT).show()
+					return@setPositiveButton
+				}
+
+				val yieldRatio = if (isSubRecipe) yieldRatioStr.toDoubleOrNull() else null
 				val cost = unitCostStr.toDoubleOrNull() ?: 0.0
 
 				lifecycleScope.launch {
@@ -208,6 +282,8 @@ class MasterCostListActivity : AppCompatActivity() {
 								unitCost = cost,
 								baseUnit = baseUnit,
 								category = category,
+								linkedRecipeId = linkedRecipe,
+								yieldRatio = yieldRatio,
 								lastUpdated = System.currentTimeMillis()
 							)
 							repository.updateMasterIngredient(updated)
@@ -217,6 +293,8 @@ class MasterCostListActivity : AppCompatActivity() {
 								unitCost = cost,
 								baseUnit = baseUnit,
 								category = category,
+								linkedRecipeId = linkedRecipe,
+								yieldRatio = yieldRatio,
 								isActive = true,
 								lastUpdated = System.currentTimeMillis()
 							)
@@ -290,6 +368,7 @@ class MasterCostListActivity : AppCompatActivity() {
 			val costText: TextView = view.findViewById(R.id.ingredient_cost)
 			val statusText: TextView = view.findViewById(R.id.ingredient_status)
 			val categoryText: TextView = view.findViewById(R.id.ingredient_category)
+			val subRecipeBadge: TextView = view.findViewById(R.id.ingredient_sub_recipe_badge)
 			val mergeBtn: ImageButton = view.findViewById(R.id.btn_merge)
 			val editBtn: ImageButton = view.findViewById(R.id.btn_edit)
 			val deleteRestoreBtn: ImageButton = view.findViewById(R.id.btn_delete_restore)
@@ -306,8 +385,22 @@ class MasterCostListActivity : AppCompatActivity() {
 
 			holder.nameText.text = item.name
 
+			val isDerived = item.linkedRecipeId != null
+			if (isDerived) {
+				holder.subRecipeBadge.visibility = View.VISIBLE
+				holder.subRecipeBadge.text = context.getString(R.string.sub_recipe_badge)
+			} else {
+				holder.subRecipeBadge.visibility = View.GONE
+			}
+
 			val costFormatted = if (isPrivacyMode) {
 				"•••• / ${item.baseUnit}"
+			} else if (isDerived) {
+				if (item.unitCost > 0.0) {
+					String.format(Locale.US, "$%.4f / %s (Derived)", item.unitCost, item.baseUnit)
+				} else {
+					String.format(Locale.US, "%s (Derived)", item.baseUnit)
+				}
 			} else {
 				String.format(Locale.US, "$%.4f / %s", item.unitCost, item.baseUnit)
 			}

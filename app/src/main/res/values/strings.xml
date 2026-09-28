@@ -257,4 +257,14 @@
 	<string name="invalid_target_ingredient">Please select a valid core ingredient to merge into</string>
 	<string name="no_other_ingredients_to_merge">No other ingredients available to merge with</string>
 
+	<!-- Sub-Recipe & Yield -->
+	<string name="prepared_item_toggle">Prepared Item / Sub-Recipe</string>
+	<string name="linked_sub_recipe">Linked Sub-Recipe</string>
+	<string name="yield_ratio">Standard Yield Ratio (e.g. 0.20)</string>
+	<string name="yield_ratio_helper">Divides recipe cost by this ratio (e.g. 0.20 for 20% yield)</string>
+	<string name="sub_recipe_badge">Sub-Recipe</string>
+	<string name="derived_cost_indicator">%1$s / %2$s (Derived)</string>
+	<string name="unit_cost_optional_fallback">Manual Fallback Cost (Optional)</string>
+	<string name="select_sub_recipe_error">Please select a valid sub-recipe</string>
+
 </resources>
