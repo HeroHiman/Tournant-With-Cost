@@ -23,6 +23,7 @@ import com.herohiman.tournant.Constants.Companion.PREF_FILE
 import com.herohiman.tournant.Constants.Companion.PREF_FILE_LAST_MODIFIED
 import com.herohiman.tournant.Constants.Companion.PREF_MODE
 import com.herohiman.tournant.Constants.Companion.PREF_SORT
+import com.herohiman.tournant.Constants.Companion.PREF_SEARCH_QUERY
 import com.herohiman.tournant.R
 import com.herohiman.tournant.TournantApplication
 import com.herohiman.tournant.data.ChipData
@@ -66,11 +67,22 @@ class MainViewModel(private val application: TournantApplication) : AndroidViewM
 
 
 	// SEARCH
-	val searchQuery = MutableStateFlow<String?>(null)
+	val searchQuery = MutableStateFlow<String?>(
+		application.getSharedPreferences(application.packageName + "_preferences", Context.MODE_PRIVATE)
+			.getString(PREF_SEARCH_QUERY, null)
+	)
 	fun search(query: String?) {
 		viewModelScope.launch {
 			searchQuery.emit(query)
 		}
+		application.getSharedPreferences(application.packageName + "_preferences", Context.MODE_PRIVATE)
+			.edit {
+				if (query.isNullOrEmpty()) {
+					remove(PREF_SEARCH_QUERY)
+				} else {
+					putString(PREF_SEARCH_QUERY, query)
+				}
+			}
 	}
 
 

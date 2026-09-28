@@ -80,7 +80,7 @@ abstract class RecipeDao {
 		FROM recipe
 		LEFT JOIN Keyword ON Keyword.recipeId = recipe.id
 		LEFT JOIN RecipePin ON RecipePin.recipeId = recipe.id
-		WHERE title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%' OR category LIKE '%' || :query || '%' OR cuisine LIKE '%' || :query || '%' OR keyword LIKE '%' || :query || '%'
+		WHERE title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%' OR category LIKE '%' || :query || '%' OR cuisine LIKE '%' || :query || '%' OR keyword LIKE '%' || :query || '%' OR instructions LIKE '%' || :query || '%'
 		GROUP BY recipe.id
 		ORDER BY
 			RecipePin.recipeId IS NOT NULL DESC,
@@ -129,7 +129,7 @@ abstract class RecipeDao {
 	@Query("SELECT COUNT(*) FROM recipe")
 	abstract fun getRecipeCount(): Flow<Int>
 
-	@Query("SELECT id FROM recipe left join keyword on recipeId = recipe.id WHERE title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%' OR category LIKE '%' || :query || '%' OR cuisine LIKE '%' || :query || '%' OR keyword LIKE '%' || :query || '%'")
+	@Query("SELECT id FROM recipe left join keyword on recipeId = recipe.id WHERE title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%' OR category LIKE '%' || :query || '%' OR cuisine LIKE '%' || :query || '%' OR keyword LIKE '%' || :query || '%' OR instructions LIKE '%' || :query || '%'")
 	abstract fun getRecipeIds(query: String): List<Long>
 
 	@Query("""

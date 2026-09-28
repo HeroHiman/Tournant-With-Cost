@@ -14,6 +14,7 @@ class Constants {
 		const val PREF_DECIMAL_SEPARATOR_COMMA = "DECIMAL_SEPARATOR_COMMA"
 		const val PREF_FILE_LAST_MODIFIED = "FILE_LAST_MODIFIED"
 		const val PREF_SORT = "SORT"
+		const val PREF_SEARCH_QUERY = "SEARCH_QUERY"
 		const val SORTED_BY_TITLE = 0
 		const val SORTED_BY_RATING = 1
 		const val SORTED_BY_PREPTIME = 2
