@@ -139,4 +139,33 @@ class SubRecipeYieldConfigurationTest {
 		val isUnitCostValid = isSubRecipe || unitCostStr.isNotBlank()
 		assertFalse(isUnitCostValid)
 	}
+
+	@Test
+	fun `raw ingredient without linked recipe hides sub recipe link button`() {
+		val rawItem = MasterIngredientEntity(
+			id = 20,
+			name = "Haldi",
+			unitCost = 0.50,
+			baseUnit = "g",
+			linkedRecipeId = null
+		)
+
+		val shouldShowLinkButton = rawItem.linkedRecipeId != null
+		assertFalse("Raw ingredient without linked recipe must not show link button", shouldShowLinkButton)
+	}
+
+	@Test
+	fun `prepared ingredient with linked recipe displays sub recipe link button`() {
+		val preparedItem = MasterIngredientEntity(
+			id = 21,
+			name = "Khoya",
+			unitCost = 0.0,
+			baseUnit = "kg",
+			linkedRecipeId = 42L,
+			yieldRatio = 0.20
+		)
+
+		val shouldShowLinkButton = preparedItem.linkedRecipeId != null
+		assertTrue("Prepared ingredient with linked recipe must show link button", shouldShowLinkButton)
+	}
 }

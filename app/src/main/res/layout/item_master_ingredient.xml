@@ -21,7 +21,7 @@
 			style="@style/TextAppearance.AppCompat.Subhead"
 			android:textStyle="bold"
 			android:textColor="@color/normal_text_color"
-			app:layout_constraintEnd_toStartOf="@+id/btn_merge"
+			app:layout_constraintEnd_toStartOf="@+id/barrier_actions"
 			app:layout_constraintStart_toStartOf="parent"
 			app:layout_constraintTop_toTopOf="parent"
 			tools:text="All-Purpose Flour" />
@@ -34,7 +34,7 @@
 			style="@style/TextAppearance.AppCompat.Body1"
 			android:textColor="@color/blue_text"
 			android:textStyle="bold"
-			app:layout_constraintEnd_toStartOf="@+id/btn_merge"
+			app:layout_constraintEnd_toStartOf="@+id/barrier_actions"
 			app:layout_constraintStart_toStartOf="parent"
 			app:layout_constraintTop_toBottomOf="@+id/ingredient_name"
 			tools:text="$0.002 / g" />
@@ -85,14 +85,35 @@
 			app:layout_constraintTop_toTopOf="@+id/ingredient_status"
 			tools:text="Sub-Recipe" />
 
+		<androidx.constraintlayout.widget.Barrier
+			android:id="@+id/barrier_actions"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			app:barrierDirection="start"
+			app:constraint_referenced_ids="btn_sub_recipe,btn_merge" />
+
+		<ImageButton
+			android:id="@+id/btn_sub_recipe"
+			android:layout_width="40dp"
+			android:layout_height="40dp"
+			android:background="?attr/selectableItemBackgroundBorderless"
+			android:contentDescription="@string/linked_sub_recipe"
+			android:src="@drawable/ic_link"
+			app:tint="@color/blue_text"
+			android:visibility="gone"
+			app:layout_constraintBottom_toBottomOf="parent"
+			app:layout_constraintEnd_toStartOf="@+id/btn_merge"
+			app:layout_constraintTop_toTopOf="parent"
+			tools:visibility="visible" />
+
 		<ImageButton
 			android:id="@+id/btn_merge"
 			android:layout_width="40dp"
 			android:layout_height="40dp"
 			android:background="?attr/selectableItemBackgroundBorderless"
 			android:contentDescription="@string/merge_ingredient"
-			android:src="@drawable/ic_link"
-			app:tint="@color/blue_text"
+			android:src="@drawable/ic_merge"
+			app:tint="@color/subtitle_color"
 			app:layout_constraintBottom_toBottomOf="parent"
 			app:layout_constraintEnd_toStartOf="@+id/btn_edit"
 			app:layout_constraintTop_toTopOf="parent" />

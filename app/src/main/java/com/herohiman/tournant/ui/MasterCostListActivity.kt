@@ -80,7 +80,8 @@ class MasterCostListActivity : AppCompatActivity() {
 			isPrivacyMode = CostPrivacyManager.isPrivacyModeEnabled(this),
 			onEdit = { showAddEditDialog(it) },
 			onToggleActive = { toggleIngredientActive(it) },
-			onMerge = { showMergeDialog(it) }
+			onMerge = { showMergeDialog(it) },
+			onViewSubRecipe = { openSubRecipe(it) }
 		)
 		recyclerView.layoutManager = LinearLayoutManager(this)
 		recyclerView.adapter = adapter
@@ -167,6 +168,14 @@ class MasterCostListActivity : AppCompatActivity() {
 			Toast.makeText(this@MasterCostListActivity, "$actionName: ${entity.name}", Toast.LENGTH_SHORT).show()
 			loadMasterIngredients()
 		}
+	}
+
+	private fun openSubRecipe(entity: MasterIngredientEntity) {
+		val recipeId = entity.linkedRecipeId ?: return
+		val intent = android.content.Intent(this, RecipeActivity::class.java).apply {
+			putExtra("RECIPE_ID", recipeId)
+		}
+		startActivity(intent)
 	}
 
 	private fun showAddEditDialog(existing: MasterIngredientEntity?) {
@@ -360,7 +369,8 @@ class MasterCostListActivity : AppCompatActivity() {
 		private var isPrivacyMode: Boolean,
 		private val onEdit: (MasterIngredientEntity) -> Unit,
 		private val onToggleActive: (MasterIngredientEntity) -> Unit,
-		private val onMerge: (MasterIngredientEntity) -> Unit
+		private val onMerge: (MasterIngredientEntity) -> Unit,
+		private val onViewSubRecipe: (MasterIngredientEntity) -> Unit
 	) : RecyclerView.Adapter<MasterCostAdapter.ViewHolder>() {
 
 		class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -369,6 +379,7 @@ class MasterCostListActivity : AppCompatActivity() {
 			val statusText: TextView = view.findViewById(R.id.ingredient_status)
 			val categoryText: TextView = view.findViewById(R.id.ingredient_category)
 			val subRecipeBadge: TextView = view.findViewById(R.id.ingredient_sub_recipe_badge)
+			val subRecipeBtn: ImageButton = view.findViewById(R.id.btn_sub_recipe)
 			val mergeBtn: ImageButton = view.findViewById(R.id.btn_merge)
 			val editBtn: ImageButton = view.findViewById(R.id.btn_edit)
 			val deleteRestoreBtn: ImageButton = view.findViewById(R.id.btn_delete_restore)
@@ -389,8 +400,11 @@ class MasterCostListActivity : AppCompatActivity() {
 			if (isDerived) {
 				holder.subRecipeBadge.visibility = View.VISIBLE
 				holder.subRecipeBadge.text = context.getString(R.string.sub_recipe_badge)
+				holder.subRecipeBtn.visibility = View.VISIBLE
+				holder.subRecipeBtn.setOnClickListener { onViewSubRecipe(item) }
 			} else {
 				holder.subRecipeBadge.visibility = View.GONE
+				holder.subRecipeBtn.visibility = View.GONE
 			}
 
 			val costFormatted = if (isPrivacyMode) {
