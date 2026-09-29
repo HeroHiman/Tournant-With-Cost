@@ -185,6 +185,11 @@
 	<string name="unset_rating">Unset rating</string>
 	<string name="make_optional">Make optional</string>
 	<string name="make_mandatory">Make mandatory</string>
+	<string name="link_as_substitute">Link as substitute (OR)</string>
+	<string name="unlink_substitute">Unlink substitute</string>
+	<string name="set_active_substitute">Set as active substitute</string>
+	<string name="substitute_or">OR</string>
+	<string name="cannot_link_first_ingredient">Cannot link first ingredient as substitute</string>
 	<string name="scale_to">Scale to</string>
 	<string name="preview_mode_enabled">Preview mode enabled</string>
 	<string name="edit_mode_enabled">Edit mode enabled</string>

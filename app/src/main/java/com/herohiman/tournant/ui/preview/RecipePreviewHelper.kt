@@ -100,7 +100,15 @@ class RecipePreviewHelper(private val context: Context) {
                         }
                         val formatted = ingredient.toStringForCooks(optionalWord).trim()
                         if (formatted.isNotEmpty()) {
-                            builder.append("- $formatted\n")
+                            if (!ingredient.substituteGroupId.isNullOrBlank()) {
+                                if (ingredient.isActiveSubstitute) {
+                                    builder.append("- $formatted *(Active)*\n")
+                                } else {
+                                    builder.append("  *OR* $formatted\n")
+                                }
+                            } else {
+                                builder.append("- $formatted\n")
+                            }
                         }
                     }
                 }

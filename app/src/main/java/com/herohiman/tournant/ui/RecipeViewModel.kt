@@ -20,9 +20,13 @@ import com.herohiman.tournant.moreYield
 import com.herohiman.tournant.parseLocalFormattedDoubleOrNull
 import com.herohiman.tournant.separator
 import com.herohiman.tournant.toStringForCooks
+import com.herohiman.tournant.cost.LiveCostCalculator
+import com.herohiman.tournant.cost.RecipeCostBreakdown
+import com.herohiman.tournant.data.room.MasterIngredientEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -77,8 +81,50 @@ class RecipeViewModel(application: TournantApplication, private val recipeId: Lo
 	val ingredientWeight = ingredientsScaled.map { ingredientLines ->
 		ingredientLines
 			.filterIsInstance<IngredientItem>()
-			.filter { it.isSelected }
+			.filter { it.isSelected && (it.ingredient.substituteGroupId == null || it.ingredient.isActiveSubstitute) }
 			.sumOf { it.ingredient.getMass() ?: 0.0 }
+	}
+
+	private val _masterIngredients: Flow<List<MasterIngredientEntity>> =
+		recipeRepository.getAllActiveMasterIngredients() ?: kotlinx.coroutines.flow.flowOf(emptyList())
+
+	val recipeCostBreakdown: Flow<RecipeCostBreakdown?> = combine(
+		_ingredients,
+		_recipeYieldValue,
+		_scaleRatio,
+		_masterIngredients
+	) { ingredients: List<IngredientLine>, yield: Double?, scale: Double, masters: List<MasterIngredientEntity> ->
+		val rawIngredients = ingredients.filterIsInstance<IngredientItem>().map { it.ingredient }
+		if (rawIngredients.isEmpty() || masters.isEmpty()) {
+			null
+		} else {
+			LiveCostCalculator.calculateRecipeCost(
+				ingredients = rawIngredients,
+				masterIngredients = masters,
+				yield = yield ?: 1.0,
+				scaleFactor = scale
+			)
+		}
+	}
+
+	fun selectActiveSubstitute(targetIngredient: com.herohiman.tournant.data.Ingredient) {
+		val groupId = targetIngredient.substituteGroupId ?: return
+		_ingredients.update { currentLines ->
+			currentLines.map { line ->
+				if (line is IngredientItem) {
+					if (line.ingredient.substituteGroupId == groupId) {
+						val isTarget = line.ingredient.item == targetIngredient.item &&
+								line.ingredient.amount == targetIngredient.amount &&
+								line.ingredient.unit == targetIngredient.unit
+						line.copy(ingredient = line.ingredient.copy(isActiveSubstitute = isTarget))
+					} else {
+						line
+					}
+				} else {
+					line
+				}
+			}
+		}
 	}
 
 	val recipe = recipeRepository.getRecipeById(recipeId)

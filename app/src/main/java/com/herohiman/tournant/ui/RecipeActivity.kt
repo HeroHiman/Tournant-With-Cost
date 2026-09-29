@@ -46,6 +46,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -64,6 +65,8 @@ import androidx.compose.material.LocalRippleConfiguration
 import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.RadioButton
+import androidx.compose.material.RadioButtonDefaults
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
@@ -107,6 +110,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -601,6 +605,13 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 							),
 						style = italicTextStyle
 					)
+					val costBreakdown by viewModel.recipeCostBreakdown.collectAsState(null)
+					if (costBreakdown != null && costBreakdown!!.totalCost > 0.0) {
+						Text(
+							text = " • Cost: ${costBreakdown!!.formattedTotalCost()}",
+							style = italicTextStyle
+						)
+					}
 				}
 				Row {
 					val items by viewModel.ingredientsScaled.collectAsState(listOf())
@@ -677,12 +688,32 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 							item.title?.let { viewModel.toggleChecked(it) }
 						},
 					)
-					is IngredientItem -> IngredientDisplay(
-						item = item,
-						id = i,
-						amountMaxWidth = amountMaxWidth ?: 0.dp,
-						weighMode
-					)
+					is IngredientItem -> {
+						val prevItem = items.getOrNull(i - 1) as? IngredientItem
+						val isConsecutiveSubstitute = !item.ingredient.substituteGroupId.isNullOrBlank() &&
+								prevItem != null &&
+								prevItem.ingredient.substituteGroupId == item.ingredient.substituteGroupId
+
+						if (isConsecutiveSubstitute) {
+							Row(
+								verticalAlignment = Alignment.CenterVertically,
+								modifier = Modifier.padding(start = (amountMaxWidth ?: 0.dp) + 8.dp, top = 2.dp, bottom = 2.dp)
+							) {
+								Text(
+									text = "— OR —",
+									style = MaterialTheme.typography.caption.copy(fontWeight = FontWeight.Bold),
+									color = MaterialTheme.colors.primary.copy(alpha = 0.85f)
+								)
+							}
+						}
+
+						IngredientDisplay(
+							item = item,
+							id = i,
+							amountMaxWidth = amountMaxWidth ?: 0.dp,
+							weighMode = weighMode
+						)
+					}
 				}
 			}
 		}
@@ -701,6 +732,9 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 		var dialogVisible by remember { mutableStateOf(false) }
 		var value by remember { mutableStateOf(TextFieldValue("")) }
 
+		val isSubstitute = !item.ingredient.substituteGroupId.isNullOrBlank()
+		val isInactiveSub = isSubstitute && !item.ingredient.isActiveSubstitute
+
 		val amountText = if (item.originalIngredient != null && item.originalIngredient.amount != item.ingredient.amount) {
 			buildAnnotatedString {
 				append(item.ingredient.amountToStringForCooks(appendSpace = false))
@@ -715,10 +749,16 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 
 		Row(
 			Modifier
-				.alpha(if (weighMode && item.isSelected || !weighMode && item.isChecked) ContentAlpha.disabled else 1f)
+				.alpha(if (weighMode && item.isSelected || !weighMode && item.isChecked) ContentAlpha.disabled else if (isInactiveSub) 0.55f else 1f)
 				.padding(vertical = 2.dp)
 				.combinedClickable(
-					onClick = { viewModel.toggleChecked(id) },
+					onClick = {
+						if (isSubstitute && !item.ingredient.isActiveSubstitute) {
+							viewModel.selectActiveSubstitute(item.ingredient)
+						} else {
+							viewModel.toggleChecked(id)
+						}
+					},
 					onLongClick = {
 						if (item.ingredient.amount != null) {
 							value = TextFieldValue(item.ingredient.amount.toStringForCooks(thousands = false))
@@ -729,6 +769,16 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 					interactionSource = interactionSource
 				)
 		) {
+			if (isSubstitute) {
+				RadioButton(
+					selected = item.ingredient.isActiveSubstitute,
+					onClick = { viewModel.selectActiveSubstitute(item.ingredient) },
+					modifier = Modifier.size(20.dp).align(Alignment.CenterVertically),
+					colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colors.primary)
+				)
+				Spacer(Modifier.width(4.dp))
+			}
+
 			Text(
 				text = amountText,
 				modifier = Modifier.width(amountMaxWidth),
@@ -752,6 +802,11 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 					append(stringResource(R.string.optional, baseItemString))
 				} else {
 					append(baseItemString)
+				}
+				if (isSubstitute && !item.ingredient.isActiveSubstitute) {
+					withStyle(SpanStyle(fontSize = 11.sp, fontStyle = FontStyle.Italic, color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f))) {
+						append(" (OR)")
+					}
 				}
 				if (!weighMode && item.isChecked) {
 					withStyle(SpanStyle(fontSize = 14.sp, baselineShift = BaselineShift(0.1f))) {

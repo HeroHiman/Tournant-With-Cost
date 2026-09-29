@@ -152,6 +152,19 @@ class IngredientEditingAdapter(
 			}
 
 
+			val isSubstitute = !ingredient.substituteGroupId.isNullOrBlank()
+			if (isSubstitute) {
+				binding.textSubstituteBadge.visibility = View.VISIBLE
+				binding.textSubstituteBadge.text = if (ingredient.isActiveSubstitute) {
+					"${binding.textSubstituteBadge.context.getString(R.string.substitute_or)} ✓"
+				} else {
+					binding.textSubstituteBadge.context.getString(R.string.substitute_or)
+				}
+				binding.textSubstituteBadge.alpha = if (ingredient.isActiveSubstitute) 1.0f else 0.6f
+			} else {
+				binding.textSubstituteBadge.visibility = View.GONE
+			}
+
 			binding.editPosition.setOnTouchListener { _, event ->
 				if (event.action == MotionEvent.ACTION_DOWN) {
 					ingredientEditingInterface.startDrag(holder)
@@ -164,17 +177,89 @@ class IngredientEditingAdapter(
 					inflate(R.menu.options_ingredient)
 					if (ingredient.optional)
 						menu.findItem(R.id.toggle_optional).title = view.context.getString(R.string.make_mandatory)
+
+					val toggleSubItem = menu.findItem(R.id.toggle_substitute)
+					val setActiveSubItem = menu.findItem(R.id.set_active_substitute)
+
+					val isItemSubstitute = !ingredient.substituteGroupId.isNullOrBlank()
+					if (isItemSubstitute) {
+						toggleSubItem.title = view.context.getString(R.string.unlink_substitute)
+						setActiveSubItem.isVisible = !ingredient.isActiveSubstitute
+					} else {
+						toggleSubItem.title = view.context.getString(R.string.link_as_substitute)
+						setActiveSubItem.isVisible = false
+					}
+
 					setOnMenuItemClickListener { item ->
 						when (item.itemId) {
 							R.id.remove_ingredient -> {
-								ingredientLines.removeAt(holder.bindingAdapterPosition)
-								notifyItemRemoved(holder.bindingAdapterPosition)
+								val pos = holder.bindingAdapterPosition
+								val removedIng = (ingredientLines.getOrNull(pos) as? IngredientItem)?.ingredient
+								ingredientLines.removeAt(pos)
+								notifyItemRemoved(pos)
+
+								val subGroupId = removedIng?.substituteGroupId
+								if (!subGroupId.isNullOrBlank()) {
+									val remaining = ingredientLines.filterIsInstance<IngredientItem>()
+										.filter { it.ingredient.substituteGroupId == subGroupId }
+									if (remaining.size == 1) {
+										remaining.first().ingredient.substituteGroupId = null
+										remaining.first().ingredient.isActiveSubstitute = true
+										notifyDataSetChanged()
+									} else if (remaining.isNotEmpty() && remaining.none { it.ingredient.isActiveSubstitute }) {
+										remaining.first().ingredient.isActiveSubstitute = true
+										notifyDataSetChanged()
+									}
+								}
 								true
 							}
 
 							R.id.toggle_optional -> {
 								ingredient.optional = !ingredient.optional
 								notifyItemChanged(holder.bindingAdapterPosition)
+								true
+							}
+
+							R.id.toggle_substitute -> {
+								val pos = holder.bindingAdapterPosition
+								if (isItemSubstitute) {
+									val oldGroupId = ingredient.substituteGroupId
+									ingredient.substituteGroupId = null
+									ingredient.isActiveSubstitute = true
+
+									val remaining = ingredientLines.filterIsInstance<IngredientItem>()
+										.filter { it.ingredient.substituteGroupId == oldGroupId }
+									if (remaining.size == 1) {
+										remaining.first().ingredient.substituteGroupId = null
+										remaining.first().ingredient.isActiveSubstitute = true
+									} else if (remaining.isNotEmpty() && remaining.none { it.ingredient.isActiveSubstitute }) {
+										remaining.first().ingredient.isActiveSubstitute = true
+									}
+									notifyDataSetChanged()
+								} else {
+									val prevItem = ingredientLines.take(pos).filterIsInstance<IngredientItem>().lastOrNull()
+									if (prevItem == null) {
+										android.widget.Toast.makeText(view.context, R.string.cannot_link_first_ingredient, android.widget.Toast.LENGTH_SHORT).show()
+									} else {
+										val groupId = prevItem.ingredient.substituteGroupId ?: "sub_${System.currentTimeMillis()}"
+										prevItem.ingredient.substituteGroupId = groupId
+										prevItem.ingredient.isActiveSubstitute = true
+										ingredient.substituteGroupId = groupId
+										ingredient.isActiveSubstitute = false
+										notifyDataSetChanged()
+									}
+								}
+								true
+							}
+
+							R.id.set_active_substitute -> {
+								val groupId = ingredient.substituteGroupId
+								if (!groupId.isNullOrBlank()) {
+									ingredientLines.filterIsInstance<IngredientItem>()
+										.filter { it.ingredient.substituteGroupId == groupId }
+										.forEach { it.ingredient.isActiveSubstitute = (it.ingredient == ingredient) }
+									notifyDataSetChanged()
+								}
 								true
 							}
 

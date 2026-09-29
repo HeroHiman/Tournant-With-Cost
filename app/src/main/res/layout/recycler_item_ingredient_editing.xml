@@ -87,6 +87,20 @@
 
 		</com.google.android.material.textfield.TextInputLayout>
 
+		<TextView
+			android:id="@+id/text_substitute_badge"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginHorizontal="2dp"
+			android:paddingHorizontal="5dp"
+			android:paddingVertical="3dp"
+			android:background="@drawable/badge_background"
+			android:text="@string/substitute_or"
+			android:textColor="@color/blue_text"
+			android:textSize="10sp"
+			android:textStyle="bold"
+			android:visibility="gone" />
+
 		<ImageButton
 			android:id="@+id/edit_options"
 			android:layout_width="42dp"

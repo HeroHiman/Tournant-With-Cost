@@ -7,4 +7,10 @@
 	<item android:id="@+id/toggle_optional"
 		android:title="@string/make_optional"/>
 
+	<item android:id="@+id/toggle_substitute"
+		android:title="@string/link_as_substitute"/>
+
+	<item android:id="@+id/set_active_substitute"
+		android:title="@string/set_active_substitute"/>
+
 </menu>
