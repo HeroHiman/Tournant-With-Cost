@@ -312,4 +312,141 @@ class LiveCostCalculatorTest {
 
 		assertEquals("Cost: •••• (•••• / serving)", preview)
 	}
+
+	@Test
+	fun `calculate line cost for inactive substitute returns zero cost and SUBSTITUTE_INACTIVE status`() {
+		val inactiveSugar = Ingredient(
+			amount = 750.0,
+			unit = "g",
+			item = "Sugar",
+			substituteGroupId = "sweetener_group",
+			isActiveSubstitute = false
+		)
+		val masterIngredients = listOf(
+			MasterIngredientEntity(id = 1, name = "Sugar", unitCost = 0.04, baseUnit = "g")
+		)
+
+		val result = LiveCostCalculator.calculateLineCost(inactiveSugar, masterIngredients)
+
+		assertEquals(CostStatus.SUBSTITUTE_INACTIVE, result.status)
+		assertEquals(0.0, result.lineCost, 0.001)
+		assertNotNull(result.masterIngredient)
+		assertEquals("Sugar", result.masterIngredient?.name)
+	}
+
+	@Test
+	fun `recipe cost calculation includes active substitute and excludes inactive substitute without double counting`() {
+		// Base: 500g Gud (at $0.10/g = $50) OR 750g Sugar (at $0.04/g = $30), plus 1000g Flour (at $0.002/g = $2)
+		val masterIngredients = listOf(
+			MasterIngredientEntity(id = 1, name = "Gud (Jaggery)", unitCost = 0.10, baseUnit = "g"),
+			MasterIngredientEntity(id = 2, name = "Sugar", unitCost = 0.04, baseUnit = "g"),
+			MasterIngredientEntity(id = 3, name = "Flour", unitCost = 0.002, baseUnit = "g")
+		)
+
+		// State A: Gud is active ($50), Sugar is inactive ($0), Flour ($2) -> Total = $52
+		val ingredientsStateA = listOf(
+			Ingredient(amount = 1000.0, unit = "g", item = "Flour"),
+			Ingredient(amount = 500.0, unit = "g", item = "Gud (Jaggery)", substituteGroupId = "sweetener_1", isActiveSubstitute = true),
+			Ingredient(amount = 750.0, unit = "g", item = "Sugar", substituteGroupId = "sweetener_1", isActiveSubstitute = false)
+		)
+
+		val breakdownA = LiveCostCalculator.calculateRecipeCost(ingredientsStateA, masterIngredients, yield = 1.0)
+		assertEquals(52.00, breakdownA.totalCost, 0.01)
+		assertEquals(52.00, breakdownA.costPerPortion, 0.01)
+		assertEquals(0, breakdownA.unpricedItemCount)
+
+		val gudItem = breakdownA.items.first { it.ingredient.item == "Gud (Jaggery)" }
+		assertEquals(CostStatus.MATCHED, gudItem.status)
+		assertEquals(50.00, gudItem.lineCost, 0.01)
+
+		val sugarItem = breakdownA.items.first { it.ingredient.item == "Sugar" }
+		assertEquals(CostStatus.SUBSTITUTE_INACTIVE, sugarItem.status)
+		assertEquals(0.0, sugarItem.lineCost, 0.01)
+
+		// State B: User toggles to Sugar: Sugar is active ($30), Gud is inactive ($0), Flour ($2) -> Total = $32
+		val ingredientsStateB = listOf(
+			Ingredient(amount = 1000.0, unit = "g", item = "Flour"),
+			Ingredient(amount = 500.0, unit = "g", item = "Gud (Jaggery)", substituteGroupId = "sweetener_1", isActiveSubstitute = false),
+			Ingredient(amount = 750.0, unit = "g", item = "Sugar", substituteGroupId = "sweetener_1", isActiveSubstitute = true)
+		)
+
+		val breakdownB = LiveCostCalculator.calculateRecipeCost(ingredientsStateB, masterIngredients, yield = 1.0)
+		assertEquals(32.00, breakdownB.totalCost, 0.01)
+		assertEquals(32.00, breakdownB.costPerPortion, 0.01)
+		assertEquals(0, breakdownB.unpricedItemCount)
+	}
+
+	@Test
+	fun `recipe cost calculation enforces Rule of One when multiple substitutes in a group are marked true`() {
+		val masterIngredients = listOf(
+			MasterIngredientEntity(id = 1, name = "Gud", unitCost = 0.10, baseUnit = "g"),
+			MasterIngredientEntity(id = 2, name = "Sugar Syrup", unitCost = 0.04, baseUnit = "g"),
+			MasterIngredientEntity(id = 3, name = "Honey", unitCost = 0.30, baseUnit = "g")
+		)
+
+		// Erroneously both Gud and Honey marked active in same group
+		val ingredients = listOf(
+			Ingredient(amount = 500.0, unit = "g", item = "Gud", substituteGroupId = "sweetener_n", isActiveSubstitute = true),
+			Ingredient(amount = 750.0, unit = "g", item = "Sugar Syrup", substituteGroupId = "sweetener_n", isActiveSubstitute = false),
+			Ingredient(amount = 400.0, unit = "g", item = "Honey", substituteGroupId = "sweetener_n", isActiveSubstitute = true)
+		)
+
+		val breakdown = LiveCostCalculator.calculateRecipeCost(ingredients, masterIngredients, yield = 1.0)
+
+		// Rule of One: only first active (Gud, 500g * 0.10 = $50) should be included; Honey ($120) normalized to inactive
+		assertEquals(50.00, breakdown.totalCost, 0.01)
+		val honeyItem = breakdown.items.first { it.ingredient.item == "Honey" }
+		assertEquals(CostStatus.SUBSTITUTE_INACTIVE, honeyItem.status)
+		assertEquals(0.0, honeyItem.lineCost, 0.01)
+	}
+
+	@Test
+	fun `recipe cost calculation handles multiple distinct substitute groups independently`() {
+		val masterIngredients = listOf(
+			// Sweeteners
+			MasterIngredientEntity(id = 1, name = "Gud", unitCost = 0.10, baseUnit = "g"),
+			MasterIngredientEntity(id = 2, name = "Sugar", unitCost = 0.04, baseUnit = "g"),
+			// Fats
+			MasterIngredientEntity(id = 3, name = "Butter", unitCost = 0.05, baseUnit = "g"),
+			MasterIngredientEntity(id = 4, name = "Margarine", unitCost = 0.02, baseUnit = "g"),
+			// Base
+			MasterIngredientEntity(id = 5, name = "Flour", unitCost = 0.002, baseUnit = "g")
+		)
+
+		// Group 1: Sweetener (Sugar active: 750g * 0.04 = $30)
+		// Group 2: Fat (Butter active: 200g * 0.05 = $10)
+		// Base: Flour (1000g * 0.002 = $2)
+		// Total expected = $42.00
+		val ingredients = listOf(
+			Ingredient(amount = 1000.0, unit = "g", item = "Flour"),
+			Ingredient(amount = 500.0, unit = "g", item = "Gud", substituteGroupId = "group_sweet", isActiveSubstitute = false),
+			Ingredient(amount = 750.0, unit = "g", item = "Sugar", substituteGroupId = "group_sweet", isActiveSubstitute = true),
+			Ingredient(amount = 200.0, unit = "g", item = "Butter", substituteGroupId = "group_fat", isActiveSubstitute = true),
+			Ingredient(amount = 200.0, unit = "g", item = "Margarine", substituteGroupId = "group_fat", isActiveSubstitute = false)
+		)
+
+		val breakdown = LiveCostCalculator.calculateRecipeCost(ingredients, masterIngredients, yield = 2.0)
+
+		assertEquals(42.00, breakdown.totalCost, 0.01)
+		assertEquals(21.00, breakdown.costPerPortion, 0.01)
+	}
+
+	@Test
+	fun `filterActiveIngredients and calculateActiveBatchMassGrams only count active ingredients`() {
+		val ingredients = listOf(
+			Ingredient(amount = 1000.0, unit = "g", item = "Flour"),
+			Ingredient(amount = 500.0, unit = "g", item = "Gud", substituteGroupId = "sweet_grp", isActiveSubstitute = true),
+			Ingredient(amount = 750.0, unit = "g", item = "Sugar", substituteGroupId = "sweet_grp", isActiveSubstitute = false)
+		)
+
+		val activeList = LiveCostCalculator.filterActiveIngredients(ingredients)
+		assertEquals(2, activeList.size)
+		assertTrue(activeList.any { it.item == "Flour" })
+		assertTrue(activeList.any { it.item == "Gud" })
+		assertFalse(activeList.any { it.item == "Sugar" })
+
+		val totalGrams = LiveCostCalculator.calculateActiveBatchMassGrams(ingredients)
+		// 1000g Flour + 500g Gud = 1500g (Sugar's 750g excluded)
+		assertEquals(1500.0, totalGrams, 0.001)
+	}
 }

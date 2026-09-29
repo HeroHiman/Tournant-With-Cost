@@ -11,7 +11,8 @@ enum class CostStatus {
 	INACTIVE_PRICE,
 	INCOMPATIBLE_UNITS,
 	OPTIONAL_EXCLUDED,
-	RECURSION_CYCLE_DETECTED
+	RECURSION_CYCLE_DETECTED,
+	SUBSTITUTE_INACTIVE
 }
 
 data class SubRecipeData(
@@ -174,7 +175,10 @@ object LiveCostCalculator {
 			ingredients
 		}
 
-		val items = scaledIngredients.map { ingredient ->
+		// Enforce "Rule of One" for substitute groups: at most one substitute per group remains active
+		val normalizedIngredients = normalizeSubstituteStates(scaledIngredients)
+
+		val items = normalizedIngredients.map { ingredient ->
 			calculateLineCost(
 				ingredient = ingredient,
 				masterIngredients = masterIngredients,
@@ -206,6 +210,55 @@ object LiveCostCalculator {
 		)
 	}
 
+	/**
+	 * Filters ingredients to include standard ingredients (without substitute group)
+	 * and only the single active substitute per substitution group, enforcing the Rule of One.
+	 */
+	fun filterActiveIngredients(ingredients: List<Ingredient>): List<Ingredient> {
+		val seenGroups = mutableSetOf<String>()
+		return ingredients.filter { ing ->
+			val groupId = ing.substituteGroupId
+			if (groupId.isNullOrBlank()) {
+				true
+			} else if (ing.isActiveSubstitute) {
+				seenGroups.add(groupId)
+			} else {
+				false
+			}
+		}
+	}
+
+	/**
+	 * Normalizes a list of ingredients so that at most one substitute per group has isActiveSubstitute = true.
+	 * If multiple items in the same group are marked active, only the first encountered remains active.
+	 */
+	fun normalizeSubstituteStates(ingredients: List<Ingredient>): List<Ingredient> {
+		val seenActiveGroups = mutableSetOf<String>()
+		return ingredients.map { ing ->
+			val groupId = ing.substituteGroupId
+			if (!groupId.isNullOrBlank()) {
+				if (ing.isActiveSubstitute) {
+					if (seenActiveGroups.add(groupId)) {
+						ing
+					} else {
+						ing.copy(isActiveSubstitute = false)
+					}
+				} else {
+					ing
+				}
+			} else {
+				ing
+			}
+		}
+	}
+
+	/**
+	 * Calculates the total batch mass in grams for all active ingredients with known mass.
+	 */
+	fun calculateActiveBatchMassGrams(ingredients: List<Ingredient>): Double {
+		return filterActiveIngredients(ingredients).mapNotNull { it.getMass() }.sum()
+	}
+
 	fun calculateLineCost(
 		ingredient: Ingredient,
 		masterIngredients: List<MasterIngredientEntity>,
@@ -228,6 +281,24 @@ object LiveCostCalculator {
 
 		val itemName = ingredient.item?.trim()
 		val refId = ingredient.refId
+
+		// Inactive substitutes are excluded from the total cost ($0.00) without generating unpriced errors
+		if (!ingredient.substituteGroupId.isNullOrBlank() && !ingredient.isActiveSubstitute) {
+			val candidate = if (!itemName.isNullOrBlank()) {
+				findMatchingMasterIngredient(itemName, masterIngredients, aliases)
+			} else if (refId != null) {
+				masterIngredients.firstOrNull { it.linkedRecipeId == refId && it.isActive }
+			} else null
+
+			return IngredientCostItem(
+				ingredient = ingredient,
+				masterIngredient = candidate,
+				matchedUnit = ingredient.unit,
+				effectiveAmount = ingredient.amount,
+				lineCost = 0.0,
+				status = CostStatus.SUBSTITUTE_INACTIVE
+			)
+		}
 		if (itemName.isNullOrBlank() && refId == null) {
 			return IngredientCostItem(
 				ingredient = ingredient,

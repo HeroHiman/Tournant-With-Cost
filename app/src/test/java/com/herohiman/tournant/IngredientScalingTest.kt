@@ -224,4 +224,35 @@ class IngredientScalingTest {
         assertEquals(0.0, scaled.amount)
         assertEquals("g", scaled.unit)
     }
+
+    @Test
+    fun `test scaling preserves substituteGroupId and isActiveSubstitute`() {
+        val gud = Ingredient(
+            amount = 500.0,
+            unit = "g",
+            item = "Gud (Jaggery)",
+            substituteGroupId = "sweetener_group_1",
+            isActiveSubstitute = true
+        )
+        val scaledGud = gud.withScaledAmount(2.0)
+
+        assertEquals(1000.0, scaledGud.amount)
+        assertEquals("g", scaledGud.unit)
+        assertEquals("sweetener_group_1", scaledGud.substituteGroupId)
+        assertEquals(true, scaledGud.isActiveSubstitute)
+
+        val sugar = Ingredient(
+            amount = 750.0,
+            unit = "g",
+            item = "Sugar",
+            substituteGroupId = "sweetener_group_1",
+            isActiveSubstitute = false
+        )
+        val scaledSugar = sugar.withScaledAmount(2.0)
+
+        assertEquals(1500.0, scaledSugar.amount)
+        assertEquals("g", scaledSugar.unit)
+        assertEquals("sweetener_group_1", scaledSugar.substituteGroupId)
+        assertEquals(false, scaledSugar.isActiveSubstitute)
+    }
 }
