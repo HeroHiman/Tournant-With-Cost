@@ -149,6 +149,7 @@ class IngredientAliasMigrationAndDaoTest {
 		override fun getReferencedRecipes(recipeIds: Set<Long>) = emptyList<com.herohiman.tournant.data.room.RecipeWithIngredientsAndPreparations>()
 		override fun getRecipeTitlesWithIds() = kotlinx.coroutines.flow.flowOf(emptyList<com.herohiman.tournant.data.RecipeTitleId>())
 		override fun getRecipeTitleById(id: Long) = ""
+		override suspend fun getRecipesUsingMasterIngredient(masterIngredientId: Long, ingredientName: String) = emptyList<com.herohiman.tournant.data.RecipeTitleId>()
 		override fun getRecipeByGourmandId(gourmandId: Int) = null
 		override fun getRecipeIdByGourmandId(gourmandId: Long) = null
 		override fun getDeprecatedRecipes(gourmandIds: List<Int>) = emptyList<com.herohiman.tournant.data.room.RecipeWithIngredientsAndPreparations>()

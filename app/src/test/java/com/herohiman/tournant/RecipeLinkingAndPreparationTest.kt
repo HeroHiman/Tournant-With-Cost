@@ -61,6 +61,7 @@ class RecipeLinkingAndPreparationTest {
 		}
 
 		override fun getRecipeTitleById(id: Long): String = recipes[id]?.title ?: ""
+		override suspend fun getRecipesUsingMasterIngredient(masterIngredientId: Long, ingredientName: String): List<RecipeTitleId> = emptyList()
 
 		override fun getRecipeByGourmandId(gourmandId: Int): RecipeWithIngredientsAndPreparations? = null
 		override fun getRecipeIdByGourmandId(gourmandId: Long): Long? = null

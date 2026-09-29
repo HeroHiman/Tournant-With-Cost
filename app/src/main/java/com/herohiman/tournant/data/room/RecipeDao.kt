@@ -109,10 +109,10 @@ abstract class RecipeDao {
 		)
 		ORDER BY r.title COLLATE LOCALIZED ASC
 	""")
-	open suspend fun getRecipesUsingMasterIngredient(
+	abstract suspend fun getRecipesUsingMasterIngredient(
 		masterIngredientId: Long,
-		ingredientName: String = ""
-	): List<RecipeTitleId> = emptyList()
+		ingredientName: String
+	): List<RecipeTitleId>
 
 	@Transaction
 	@Query("SELECT * FROM recipe WHERE gourmandId = :gourmandId")

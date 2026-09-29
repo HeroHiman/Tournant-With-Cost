@@ -44,6 +44,7 @@ class RecipeOrganizationAndSortingTest {
 		override fun getReferencedRecipes(recipeIds: Set<Long>): List<RecipeWithIngredientsAndPreparations> = emptyList()
 		override fun getRecipeTitlesWithIds(): Flow<List<RecipeTitleId>> = flowOf(emptyList())
 		override fun getRecipeTitleById(id: Long): String = ""
+		override suspend fun getRecipesUsingMasterIngredient(masterIngredientId: Long, ingredientName: String): List<RecipeTitleId> = emptyList()
 		override fun getRecipeByGourmandId(gourmandId: Int): RecipeWithIngredientsAndPreparations? = null
 		override fun getRecipeIdByGourmandId(gourmandId: Long): Long? = null
 		override fun getDeprecatedRecipes(gourmandIds: List<Int>): List<RecipeWithIngredientsAndPreparations> = emptyList()
