@@ -299,20 +299,26 @@ class MasterCostListActivity : AppCompatActivity() {
 					emptyList()
 				}
 			}
-			showAddEditDialogInternal(existing, titlesWithIds)
+			try {
+				showAddEditDialogInternal(existing, titlesWithIds)
+			} catch (e: Exception) {
+				android.util.Log.e("MasterCostList", "Error opening edit dialog", e)
+				Toast.makeText(this@MasterCostListActivity, "Unable to open dialog: ${e.message}", Toast.LENGTH_SHORT).show()
+			}
 		}
 	}
 
 	private fun showAddEditDialogInternal(existing: MasterIngredientEntity?, titlesWithIds: List<com.herohiman.tournant.data.RecipeTitleId>) {
-		val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_master_ingredient, null)
+		val dialogBuilder = MaterialAlertDialogBuilder(this)
+		val dialogView = LayoutInflater.from(dialogBuilder.context).inflate(R.layout.dialog_edit_master_ingredient, null)
 		val editName = dialogView.findViewById<EditText>(R.id.edit_name)
 		val editBaseUnit = dialogView.findViewById<EditText>(R.id.edit_base_unit)
 		val editCategory = dialogView.findViewById<EditText>(R.id.edit_category)
 		val layoutUnitCost = dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.layout_unit_cost)
 		val editUnitCost = dialogView.findViewById<EditText>(R.id.edit_unit_cost)
-		val switchSubRecipe = dialogView.findViewById<com.google.android.material.materialswitch.MaterialSwitch>(R.id.switch_sub_recipe)
+		val switchSubRecipe = dialogView.findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switch_sub_recipe)
 		val layoutSubRecipeContainer = dialogView.findViewById<View>(R.id.layout_sub_recipe_container)
-		val autoLinkedRecipe = dialogView.findViewById<androidx.appcompat.widget.AppCompatAutoCompleteTextView>(R.id.auto_linked_recipe)
+		val autoLinkedRecipe = dialogView.findViewById<com.google.android.material.textfield.MaterialAutoCompleteTextView>(R.id.auto_linked_recipe)
 		val editYieldRatio = dialogView.findViewById<EditText>(R.id.edit_yield_ratio)
 
 		val recipeTitles = titlesWithIds.map { it.title }
@@ -362,7 +368,7 @@ class MasterCostListActivity : AppCompatActivity() {
 
 		val titleRes = if (existing == null) R.string.add_ingredient_cost else R.string.edit_ingredient_cost
 
-		MaterialAlertDialogBuilder(this)
+		dialogBuilder
 			.setTitle(titleRes)
 			.setView(dialogView)
 			.setPositiveButton(R.string.save) { _, _ ->
