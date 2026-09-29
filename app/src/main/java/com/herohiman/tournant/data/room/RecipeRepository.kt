@@ -33,6 +33,8 @@ class RecipeRepository(
 	suspend fun restoreMasterIngredient(id: Long) { masterIngredientDao?.restoreMasterIngredient(id) }
 	suspend fun hardDeleteMasterIngredient(id: Long) { masterIngredientDao?.hardDeleteMasterIngredient(id) }
 	suspend fun syncIngredientsFromRecipes(): Int = com.herohiman.tournant.cost.IngredientSyncManager.syncIngredientsFromRecipes(this)
+	suspend fun getRecipesUsingMasterIngredient(masterIngredientId: Long): List<com.herohiman.tournant.data.RecipeTitleId> =
+		dao.getRecipesUsingMasterIngredient(masterIngredientId)
 
 	fun getSubRecipeData(recipeId: Long): com.herohiman.tournant.cost.SubRecipeData? {
 		val recipeWithData = dao.getRecipesById(setOf(recipeId)).firstOrNull() ?: return null

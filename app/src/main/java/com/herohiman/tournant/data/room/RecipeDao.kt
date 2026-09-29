@@ -53,6 +53,30 @@ abstract class RecipeDao {
 	@Query("SELECT title FROM recipe WHERE id = :id")
 	abstract fun getRecipeTitleById(id: Long): String
 
+	@Query("""
+		SELECT DISTINCT r.id, r.title
+		FROM Recipe r
+		INNER JOIN Ingredient i ON r.id = i.recipeId
+		WHERE (
+			EXISTS (
+				SELECT 1 FROM MasterIngredient m
+				WHERE m.id = :masterIngredientId
+				  AND (
+				      (i.item IS NOT NULL AND LOWER(TRIM(i.item)) = LOWER(TRIM(m.name)))
+				      OR (m.linkedRecipeId IS NOT NULL AND i.refId = m.linkedRecipeId)
+				  )
+			)
+			OR EXISTS (
+				SELECT 1 FROM IngredientAlias a
+				WHERE a.masterIngredientId = :masterIngredientId
+				  AND i.item IS NOT NULL
+				  AND LOWER(TRIM(i.item)) = LOWER(TRIM(a.rawName))
+			)
+		)
+		ORDER BY r.title COLLATE LOCALIZED ASC
+	""")
+	open suspend fun getRecipesUsingMasterIngredient(masterIngredientId: Long): List<RecipeTitleId> = emptyList()
+
 	@Transaction
 	@Query("SELECT * FROM recipe WHERE gourmandId = :gourmandId")
 	abstract fun getRecipeByGourmandId(gourmandId: Int): RecipeWithIngredientsAndPreparations?
