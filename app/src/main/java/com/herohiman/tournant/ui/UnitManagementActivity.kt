@@ -23,6 +23,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.ViewGroupCompat
 import androidx.core.view.updatePadding
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -47,6 +48,7 @@ import java.util.Locale
 class UnitManagementActivity : AppCompatActivity() {
 
 	private lateinit var repository: RecipeRepository
+	private lateinit var viewModel: UnitManagementViewModel
 	private lateinit var recyclerView: RecyclerView
 	private lateinit var emptyStateContainer: View
 	private lateinit var chipGroupFilters: ChipGroup
@@ -73,6 +75,8 @@ class UnitManagementActivity : AppCompatActivity() {
 		setContentView(R.layout.activity_unit_management)
 
 		repository = (application as TournantApplication).recipeRepository
+		val factory = UnitManagementViewModelFactory(repository)
+		viewModel = ViewModelProvider(this, factory)[UnitManagementViewModel::class.java]
 
 		enableEdgeToEdge()
 		ViewGroupCompat.installCompatInsetsDispatch(window.decorView.rootView)
@@ -127,10 +131,22 @@ class UnitManagementActivity : AppCompatActivity() {
 				checkedIds.contains(R.id.chip_count) -> BaseUnitType.COUNT
 				else -> null
 			}
-			applyFilters()
+			viewModel.onCategoryFilterChanged(selectedCategoryFilter)
 		}
 
-		loadUnitAliases()
+		lifecycleScope.launch {
+			viewModel.unitAliases.collect { filtered ->
+				allAliases = filtered
+				adapter.updateData(filtered)
+				if (filtered.isEmpty()) {
+					emptyStateContainer.visibility = View.VISIBLE
+					recyclerView.visibility = View.GONE
+				} else {
+					emptyStateContainer.visibility = View.GONE
+					recyclerView.visibility = View.VISIBLE
+				}
+			}
+		}
 	}
 
 	override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -143,7 +159,7 @@ class UnitManagementActivity : AppCompatActivity() {
 			override fun onQueryTextSubmit(query: String?): Boolean = false
 			override fun onQueryTextChange(newText: String?): Boolean {
 				currentSearchQuery = newText?.trim() ?: ""
-				applyFilters()
+				viewModel.onSearchQueryChanged(currentSearchQuery)
 				return true
 			}
 		})
@@ -254,12 +270,8 @@ class UnitManagementActivity : AppCompatActivity() {
 
 	private fun restoreDefaultUnits() {
 		lifecycleScope.launch {
-			withContext(Dispatchers.IO) {
-				val defaults = UnitAliasDao.getDefaultAliases()
-				repository.insertUnitAliases(defaults)
-			}
+			viewModel.restoreDefaultUnits()
 			Toast.makeText(this@UnitManagementActivity, R.string.units_restored, Toast.LENGTH_SHORT).show()
-			loadUnitAliases()
 		}
 	}
 
@@ -269,11 +281,8 @@ class UnitManagementActivity : AppCompatActivity() {
 			.setMessage(getString(R.string.delete_unit_alias_confirm, entity.aliasName))
 			.setPositiveButton(R.string.delete) { _, _ ->
 				lifecycleScope.launch {
-					withContext(Dispatchers.IO) {
-						repository.deleteUnitAlias(entity)
-					}
+					viewModel.deleteUnitAlias(entity)
 					Toast.makeText(this@UnitManagementActivity, R.string.unit_alias_deleted, Toast.LENGTH_SHORT).show()
-					loadUnitAliases()
 				}
 			}
 			.setNegativeButton(R.string.cancel, null)
@@ -353,27 +362,24 @@ class UnitManagementActivity : AppCompatActivity() {
 				}
 
 				lifecycleScope.launch {
-					withContext(Dispatchers.IO) {
-						if (existing == null) {
-							repository.insertUnitAlias(
-								UnitAliasEntity(
-									aliasName = aliasName,
-									baseUnit = selectedCategory,
-									conversionFactor = factor
-								)
+					if (existing == null) {
+						viewModel.insertOrUpdateUnitAlias(
+							UnitAliasEntity(
+								aliasName = aliasName,
+								baseUnit = selectedCategory,
+								conversionFactor = factor
 							)
-						} else {
-							repository.updateUnitAlias(
-								existing.copy(
-									aliasName = aliasName,
-									baseUnit = selectedCategory,
-									conversionFactor = factor
-								)
+						)
+					} else {
+						viewModel.insertOrUpdateUnitAlias(
+							existing.copy(
+								aliasName = aliasName,
+								baseUnit = selectedCategory,
+								conversionFactor = factor
 							)
-						}
+						)
 					}
 					Toast.makeText(this@UnitManagementActivity, R.string.unit_alias_saved, Toast.LENGTH_SHORT).show()
-					loadUnitAliases()
 				}
 			}
 			.setNegativeButton(R.string.cancel, null)

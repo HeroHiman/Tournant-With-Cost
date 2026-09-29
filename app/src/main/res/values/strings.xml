@@ -312,6 +312,7 @@
 	<string name="units_restored">Default units restored</string>
 	<string name="no_unit_aliases">No unit aliases found. Tap + to add custom units.</string>
 	<string name="search_units">Search units…</string>
+	<string name="search_ingredients">Search ingredients…</string>
 	<string name="filter_all">All</string>
 	<string name="delete">Delete</string>
 	<string name="export_unit_aliases">Export Units</string>

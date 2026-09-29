@@ -3,6 +3,13 @@
 	xmlns:app="http://schemas.android.com/apk/res-auto">
 
 	<item
+		android:id="@+id/action_search_master_cost"
+		android:icon="@drawable/ic_search"
+		android:title="@string/search_ingredients"
+		app:actionViewClass="androidx.appcompat.widget.SearchView"
+		app:showAsAction="always|collapseActionView" />
+
+	<item
 		android:id="@+id/action_sync_ingredients"
 		android:icon="@drawable/ic_restaurant"
 		android:title="@string/auto_fetch_from_recipes"

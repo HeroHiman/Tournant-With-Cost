@@ -19,6 +19,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.ViewGroupCompat
 import androidx.core.view.updatePadding
+import androidx.appcompat.widget.SearchView
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -42,6 +44,7 @@ import java.util.Locale
 class MasterCostListActivity : AppCompatActivity() {
 
 	private lateinit var repository: RecipeRepository
+	private lateinit var viewModel: MasterCostListViewModel
 	private lateinit var recyclerView: RecyclerView
 	private lateinit var emptyStateContainer: View
 	private lateinit var adapter: MasterCostAdapter
@@ -66,6 +69,8 @@ class MasterCostListActivity : AppCompatActivity() {
 		ViewGroupCompat.installCompatInsetsDispatch(window.decorView.rootView)
 
 		repository = (application as TournantApplication).recipeRepository
+		val factory = MasterCostListViewModelFactory(repository)
+		viewModel = ViewModelProvider(this, factory)[MasterCostListViewModel::class.java]
 
 		val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
 		setSupportActionBar(toolbar)
@@ -108,11 +113,29 @@ class MasterCostListActivity : AppCompatActivity() {
 			showAddEditDialog(null)
 		}
 
-		loadMasterIngredients()
+		lifecycleScope.launch {
+			viewModel.ingredients.collect { items ->
+				ingredientsList = items
+				adapter.updateItems(items)
+				emptyStateContainer.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+			}
+		}
 	}
 
 	override fun onCreateOptionsMenu(menu: Menu): Boolean {
 		menuInflater.inflate(R.menu.menu_master_cost, menu)
+
+		val searchItem = menu.findItem(R.id.action_search_master_cost)
+		val searchView = searchItem?.actionView as? SearchView
+		searchView?.queryHint = getString(R.string.search_ingredients)
+		searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+			override fun onQueryTextSubmit(query: String?): Boolean = false
+			override fun onQueryTextChange(newText: String?): Boolean {
+				viewModel.onSearchQueryChanged(newText.orEmpty())
+				return true
+			}
+		})
+
 		return true
 	}
 
@@ -228,18 +251,9 @@ class MasterCostListActivity : AppCompatActivity() {
 	}
 
 	private fun toggleIngredientActive(entity: MasterIngredientEntity) {
-		lifecycleScope.launch {
-			withContext(Dispatchers.IO) {
-				if (entity.isActive) {
-					repository.softDeleteMasterIngredient(entity.id)
-				} else {
-					repository.restoreMasterIngredient(entity.id)
-				}
-			}
-			val actionName = if (entity.isActive) getString(R.string.soft_delete) else getString(R.string.restore)
-			Toast.makeText(this@MasterCostListActivity, "$actionName: ${entity.name}", Toast.LENGTH_SHORT).show()
-			loadMasterIngredients()
-		}
+		viewModel.toggleIngredientActive(entity)
+		val actionName = if (entity.isActive) getString(R.string.soft_delete) else getString(R.string.restore)
+		Toast.makeText(this@MasterCostListActivity, "$actionName: ${entity.name}", Toast.LENGTH_SHORT).show()
 	}
 
 	private fun openSubRecipe(entity: MasterIngredientEntity) {
