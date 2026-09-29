@@ -23,9 +23,14 @@ class ReverseLookupRecipeDaoTest {
 	private class FakeReverseLookupRecipeDao : RecipeDao() {
 		var recipesUsingIngredient = mutableListOf<RecipeTitleId>()
 		var lastQueriedMasterId: Long? = null
+		var lastQueriedName: String? = null
 
-		override suspend fun getRecipesUsingMasterIngredient(masterIngredientId: Long): List<RecipeTitleId> {
+		override suspend fun getRecipesUsingMasterIngredient(
+			masterIngredientId: Long,
+			ingredientName: String
+		): List<RecipeTitleId> {
 			lastQueriedMasterId = masterIngredientId
+			lastQueriedName = ingredientName
 			return recipesUsingIngredient
 		}
 
@@ -105,6 +110,24 @@ class ReverseLookupRecipeDaoTest {
 		val results = repository.getRecipesUsingMasterIngredient(999L)
 
 		assertEquals(999L, fakeDao.lastQueriedMasterId)
+		assertEquals("", fakeDao.lastQueriedName)
 		assertTrue(results.isEmpty())
+	}
+
+	@Test
+	fun testRepositoryDelegatesWithIngredientName() = runBlocking {
+		val fakeDao = FakeReverseLookupRecipeDao()
+		val repository = RecipeRepository(dao = fakeDao)
+
+		fakeDao.recipesUsingIngredient = mutableListOf(
+			RecipeTitleId(id = 5L, title = "Samosa")
+		)
+
+		val results = repository.getRecipesUsingMasterIngredient(12L, "अजवाइन (1 ढक्कन)")
+
+		assertEquals(12L, fakeDao.lastQueriedMasterId)
+		assertEquals("अजवाइन (1 ढक्कन)", fakeDao.lastQueriedName)
+		assertEquals(1, results.size)
+		assertEquals("Samosa", results[0].title)
 	}
 }

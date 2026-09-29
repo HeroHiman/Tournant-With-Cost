@@ -251,7 +251,7 @@ class MasterCostListActivity : AppCompatActivity() {
 	private fun showUsageBottomSheet(entity: MasterIngredientEntity) {
 		lifecycleScope.launch {
 			val recipes = withContext(Dispatchers.IO) {
-				repository.getRecipesUsingMasterIngredient(entity.id)
+				repository.getRecipesUsingMasterIngredient(entity.id, entity.name)
 			}
 			val bottomSheetDialog = com.google.android.material.bottomsheet.BottomSheetDialog(this@MasterCostListActivity)
 			val sheetView = layoutInflater.inflate(R.layout.bottom_sheet_ingredient_usage, null)

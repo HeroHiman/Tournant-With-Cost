@@ -57,25 +57,62 @@ abstract class RecipeDao {
 		SELECT DISTINCT r.id, r.title
 		FROM Recipe r
 		INNER JOIN Ingredient i ON r.id = i.recipeId
-		WHERE (
-			EXISTS (
+		WHERE i.item IS NOT NULL AND TRIM(i.item) != '' AND (
+			(:ingredientName != '' AND (
+				LOWER(TRIM(i.item)) = LOWER(TRIM(:ingredientName))
+				OR i.item LIKE '%' || TRIM(:ingredientName) || '%'
+				OR TRIM(:ingredientName) LIKE '%' || TRIM(i.item) || '%'
+				OR (
+					INSTR(:ingredientName, '(') > 1
+					AND LENGTH(TRIM(SUBSTR(:ingredientName, 1, INSTR(:ingredientName, '(') - 1))) >= 2
+					AND i.item LIKE '%' || TRIM(SUBSTR(:ingredientName, 1, INSTR(:ingredientName, '(') - 1)) || '%'
+				)
+			))
+			OR EXISTS (
 				SELECT 1 FROM MasterIngredient m
-				WHERE m.id = :masterIngredientId
+				WHERE (m.id = :masterIngredientId OR (:ingredientName != '' AND LOWER(TRIM(m.name)) = LOWER(TRIM(:ingredientName))))
 				  AND (
-				      (i.item IS NOT NULL AND LOWER(TRIM(i.item)) = LOWER(TRIM(m.name)))
-				      OR (m.linkedRecipeId IS NOT NULL AND i.refId = m.linkedRecipeId)
+				      (m.linkedRecipeId IS NOT NULL AND i.refId = m.linkedRecipeId)
+				      OR LOWER(TRIM(i.item)) = LOWER(TRIM(m.name))
+				      OR i.item LIKE '%' || TRIM(m.name) || '%'
+				      OR TRIM(m.name) LIKE '%' || TRIM(i.item) || '%'
+				      OR (
+				          INSTR(m.name, '(') > 1
+				          AND LENGTH(TRIM(SUBSTR(m.name, 1, INSTR(m.name, '(') - 1))) >= 2
+				          AND i.item LIKE '%' || TRIM(SUBSTR(m.name, 1, INSTR(m.name, '(') - 1)) || '%'
+				      )
+				      OR (
+				          INSTR(i.item, '(') > 1
+				          AND LENGTH(TRIM(SUBSTR(i.item, 1, INSTR(i.item, '(') - 1))) >= 2
+				          AND m.name LIKE '%' || TRIM(SUBSTR(i.item, 1, INSTR(i.item, '(') - 1)) || '%'
+				      )
 				  )
 			)
 			OR EXISTS (
 				SELECT 1 FROM IngredientAlias a
-				WHERE a.masterIngredientId = :masterIngredientId
-				  AND i.item IS NOT NULL
-				  AND LOWER(TRIM(i.item)) = LOWER(TRIM(a.rawName))
+				WHERE (a.masterIngredientId = :masterIngredientId OR (
+					:ingredientName != '' AND a.masterIngredientId IN (
+						SELECT id FROM MasterIngredient WHERE LOWER(TRIM(name)) = LOWER(TRIM(:ingredientName))
+					)
+				))
+				  AND (
+				      LOWER(TRIM(i.item)) = LOWER(TRIM(a.rawName))
+				      OR i.item LIKE '%' || TRIM(a.rawName) || '%'
+				      OR TRIM(a.rawName) LIKE '%' || TRIM(i.item) || '%'
+				      OR (
+				          INSTR(a.rawName, '(') > 1
+				          AND LENGTH(TRIM(SUBSTR(a.rawName, 1, INSTR(a.rawName, '(') - 1))) >= 2
+				          AND i.item LIKE '%' || TRIM(SUBSTR(a.rawName, 1, INSTR(a.rawName, '(') - 1)) || '%'
+				      )
+				  )
 			)
 		)
 		ORDER BY r.title COLLATE LOCALIZED ASC
 	""")
-	open suspend fun getRecipesUsingMasterIngredient(masterIngredientId: Long): List<RecipeTitleId> = emptyList()
+	open suspend fun getRecipesUsingMasterIngredient(
+		masterIngredientId: Long,
+		ingredientName: String = ""
+	): List<RecipeTitleId> = emptyList()
 
 	@Transaction
 	@Query("SELECT * FROM recipe WHERE gourmandId = :gourmandId")
