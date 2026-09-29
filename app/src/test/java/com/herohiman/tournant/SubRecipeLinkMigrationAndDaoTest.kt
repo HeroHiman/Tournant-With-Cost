@@ -203,5 +203,10 @@ class SubRecipeLinkMigrationAndDaoTest {
 		override suspend fun softDeleteMasterIngredient(id: Long) { map[id]?.let { map[id] = it.copy(isActive = false) } }
 		override suspend fun restoreMasterIngredient(id: Long) { map[id]?.let { map[id] = it.copy(isActive = true) } }
 		override suspend fun hardDeleteMasterIngredient(id: Long) { map.remove(id) }
+		override fun searchMasterIngredients(query: String): Flow<List<MasterIngredientEntity>> = flowOf(searchMasterIngredientsList(query))
+		override fun searchActiveMasterIngredients(query: String): Flow<List<MasterIngredientEntity>> =
+			flowOf(map.values.filter { it.isActive && (it.name.contains(query, ignoreCase = true) || it.category?.contains(query, ignoreCase = true) == true) }.sortedBy { it.name })
+		override fun searchMasterIngredientsList(query: String) =
+			map.values.filter { it.name.contains(query, ignoreCase = true) || it.category?.contains(query, ignoreCase = true) == true }.sortedBy { it.name }
 	}
 }

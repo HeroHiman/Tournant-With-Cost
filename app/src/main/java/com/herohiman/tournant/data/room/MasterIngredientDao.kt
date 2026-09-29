@@ -22,6 +22,15 @@ interface MasterIngredientDao {
 	@Query("SELECT * FROM MasterIngredient ORDER BY name COLLATE LOCALIZED ASC")
 	fun getAllMasterIngredientsList(): List<MasterIngredientEntity>
 
+	@Query("SELECT * FROM MasterIngredient WHERE name LIKE '%' || :query || '%' OR (category IS NOT NULL AND category LIKE '%' || :query || '%') ORDER BY name COLLATE LOCALIZED ASC")
+	fun searchMasterIngredients(query: String): Flow<List<MasterIngredientEntity>>
+
+	@Query("SELECT * FROM MasterIngredient WHERE isActive = 1 AND (name LIKE '%' || :query || '%' OR (category IS NOT NULL AND category LIKE '%' || :query || '%')) ORDER BY name COLLATE LOCALIZED ASC")
+	fun searchActiveMasterIngredients(query: String): Flow<List<MasterIngredientEntity>>
+
+	@Query("SELECT * FROM MasterIngredient WHERE name LIKE '%' || :query || '%' OR (category IS NOT NULL AND category LIKE '%' || :query || '%') ORDER BY name COLLATE LOCALIZED ASC")
+	fun searchMasterIngredientsList(query: String): List<MasterIngredientEntity>
+
 	@Query("SELECT * FROM MasterIngredient WHERE id = :id")
 	fun getMasterIngredientById(id: Long): MasterIngredientEntity?
 

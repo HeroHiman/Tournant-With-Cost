@@ -252,5 +252,17 @@ class RoomCostMigrationAndDaoTest {
 		override suspend fun getMasterIngredientsWithLinkedRecipes(): List<MasterIngredientEntity> {
 			return map.values.filter { it.linkedRecipeId != null && it.isActive }
 		}
+
+		override fun searchMasterIngredients(query: String): Flow<List<MasterIngredientEntity>> {
+			return flowOf(searchMasterIngredientsList(query))
+		}
+
+		override fun searchActiveMasterIngredients(query: String): Flow<List<MasterIngredientEntity>> {
+			return flowOf(map.values.filter { it.isActive && (it.name.contains(query, ignoreCase = true) || it.category?.contains(query, ignoreCase = true) == true) }.sortedBy { it.name })
+		}
+
+		override fun searchMasterIngredientsList(query: String): List<MasterIngredientEntity> {
+			return map.values.filter { it.name.contains(query, ignoreCase = true) || it.category?.contains(query, ignoreCase = true) == true }.sortedBy { it.name }
+		}
 	}
 }

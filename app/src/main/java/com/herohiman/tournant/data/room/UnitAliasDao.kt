@@ -17,6 +17,18 @@ interface UnitAliasDao {
 	@Query("SELECT * FROM UnitAlias ORDER BY aliasName COLLATE LOCALIZED ASC")
 	fun getAllUnitAliasesList(): List<UnitAliasEntity>
 
+	@Query("SELECT * FROM UnitAlias WHERE aliasName LIKE '%' || :query || '%' ORDER BY aliasName COLLATE LOCALIZED ASC")
+	fun searchUnitAliases(query: String): Flow<List<UnitAliasEntity>>
+
+	@Query("SELECT * FROM UnitAlias WHERE aliasName LIKE '%' || :query || '%' ORDER BY aliasName COLLATE LOCALIZED ASC")
+	fun searchUnitAliasesList(query: String): List<UnitAliasEntity>
+
+	@Query("SELECT * FROM UnitAlias WHERE baseUnit = :baseUnit AND aliasName LIKE '%' || :query || '%' ORDER BY aliasName COLLATE LOCALIZED ASC")
+	fun searchUnitAliasesByCategory(query: String, baseUnit: BaseUnitType): Flow<List<UnitAliasEntity>>
+
+	@Query("SELECT * FROM UnitAlias WHERE baseUnit = :baseUnit AND aliasName LIKE '%' || :query || '%' ORDER BY aliasName COLLATE LOCALIZED ASC")
+	fun searchUnitAliasesByCategoryList(query: String, baseUnit: BaseUnitType): List<UnitAliasEntity>
+
 	@Query("SELECT * FROM UnitAlias WHERE aliasName = :name COLLATE NOCASE LIMIT 1")
 	suspend fun getAliasByName(name: String): UnitAliasEntity?
 

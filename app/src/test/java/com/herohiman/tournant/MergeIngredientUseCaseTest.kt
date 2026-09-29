@@ -252,6 +252,11 @@ class MergeIngredientUseCaseTest {
 		override suspend fun hardDeleteMasterIngredient(id: Long) { map.remove(id) }
 		override suspend fun getMasterIngredientByLinkedRecipeId(recipeId: Long): MasterIngredientEntity? = map.values.firstOrNull { it.linkedRecipeId == recipeId && it.isActive }
 		override suspend fun getMasterIngredientsWithLinkedRecipes(): List<MasterIngredientEntity> = map.values.filter { it.linkedRecipeId != null && it.isActive }
+		override fun searchMasterIngredients(query: String): Flow<List<MasterIngredientEntity>> = flowOf(searchMasterIngredientsList(query))
+		override fun searchActiveMasterIngredients(query: String): Flow<List<MasterIngredientEntity>> =
+			flowOf(map.values.filter { it.isActive && (it.name.contains(query, ignoreCase = true) || it.category?.contains(query, ignoreCase = true) == true) }.sortedBy { it.name })
+		override fun searchMasterIngredientsList(query: String) =
+			map.values.filter { it.name.contains(query, ignoreCase = true) || it.category?.contains(query, ignoreCase = true) == true }.sortedBy { it.name }
 	}
 
 	private class FakeAliasDao : IngredientAliasDao {

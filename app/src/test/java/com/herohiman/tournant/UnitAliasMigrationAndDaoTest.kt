@@ -240,5 +240,21 @@ class UnitAliasMigrationAndDaoTest {
 		override suspend fun getUnitAliasCount(): Int {
 			return map.size
 		}
+
+		override fun searchUnitAliases(query: String): Flow<List<UnitAliasEntity>> {
+			return flowOf(searchUnitAliasesList(query))
+		}
+
+		override fun searchUnitAliasesList(query: String): List<UnitAliasEntity> {
+			return map.values.filter { it.aliasName.contains(query, ignoreCase = true) }.sortedBy { it.aliasName }
+		}
+
+		override fun searchUnitAliasesByCategory(query: String, baseUnit: BaseUnitType): Flow<List<UnitAliasEntity>> {
+			return flowOf(searchUnitAliasesByCategoryList(query, baseUnit))
+		}
+
+		override fun searchUnitAliasesByCategoryList(query: String, baseUnit: BaseUnitType): List<UnitAliasEntity> {
+			return map.values.filter { it.baseUnit == baseUnit && it.aliasName.contains(query, ignoreCase = true) }.sortedBy { it.aliasName }
+		}
 	}
 }
