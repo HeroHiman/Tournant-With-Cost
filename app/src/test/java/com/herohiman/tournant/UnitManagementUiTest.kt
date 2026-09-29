@@ -5,6 +5,7 @@ import com.herohiman.tournant.data.room.UnitAliasDao
 import com.herohiman.tournant.data.room.UnitAliasEntity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.Locale
@@ -128,5 +129,35 @@ class UnitManagementUiTest {
 		assertTrue(combined.any { it.aliasName == "डब्बा" && it.conversionFactor == 15.0 })
 		assertTrue(combined.any { it.aliasName == "किलो" && it.conversionFactor == 1.0 })
 		assertTrue(combined.any { it.aliasName == "ग्राम" && it.conversionFactor == 0.001 })
+	}
+
+	@Test
+	fun `unit backup filename generator produces valid timestamped filename`() {
+		val filename = com.herohiman.tournant.cost.CostConfigBackupManager.generateUnitBackupFilename(1759163400000L)
+		assertTrue(filename.startsWith("tournant_units_backup_"))
+		assertTrue(filename.endsWith(".json"))
+	}
+
+	@Test
+	fun `unit export payload isolates unit aliases and deserializes cleanly`() {
+		val customAliases = listOf(
+			UnitAliasEntity(id = 1, aliasName = "डब्बा", baseUnit = BaseUnitType.KG, conversionFactor = 15.0),
+			UnitAliasEntity(id = 2, aliasName = "चुटकी", baseUnit = BaseUnitType.KG, conversionFactor = 0.002)
+		)
+
+		val payload = com.herohiman.tournant.cost.CostConfigBackupPayload(
+			unitAliases = customAliases
+		)
+
+		val json = com.herohiman.tournant.cost.CostConfigBackupManager.serializeToJson(payload)
+		assertNotNull(json)
+		assertTrue(json.contains("डब्बा"))
+		assertTrue(json.contains("15.0"))
+
+		val restored = com.herohiman.tournant.cost.CostConfigBackupManager.deserializeFromJson(json)
+		assertNotNull(restored)
+		assertEquals(2, restored!!.unitAliases.size)
+		assertEquals("डब्बा", restored.unitAliases[0].aliasName)
+		assertEquals(15.0, restored.unitAliases[0].conversionFactor, 0.0001)
 	}
 }

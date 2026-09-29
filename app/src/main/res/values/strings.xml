@@ -314,5 +314,13 @@
 	<string name="search_units">Search units…</string>
 	<string name="filter_all">All</string>
 	<string name="delete">Delete</string>
+	<string name="export_unit_aliases">Export Units</string>
+	<string name="import_unit_aliases">Import Units</string>
+	<string name="units_exported_success">Unit dictionary exported successfully</string>
+	<string name="units_export_failed">Failed to export unit dictionary</string>
+	<string name="units_imported_summary">Imported %d unit aliases</string>
+	<string name="units_import_failed">Failed to import unit dictionary</string>
+	<string name="units_import_invalid_file">Invalid or corrupted unit backup file</string>
+	<string name="no_units_in_backup">No unit aliases found in backup file</string>
 
 </resources>

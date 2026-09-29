@@ -16,6 +16,16 @@
 		app:showAsAction="ifRoom" />
 
 	<item
+		android:id="@+id/action_export_units"
+		android:title="@string/export_unit_aliases"
+		app:showAsAction="never" />
+
+	<item
+		android:id="@+id/action_import_units"
+		android:title="@string/import_unit_aliases"
+		app:showAsAction="never" />
+
+	<item
 		android:id="@+id/action_restore_defaults"
 		android:title="@string/reset_default_units"
 		app:showAsAction="never" />

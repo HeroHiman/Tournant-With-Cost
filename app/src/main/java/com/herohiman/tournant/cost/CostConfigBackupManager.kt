@@ -78,4 +78,9 @@ object CostConfigBackupManager {
 		val formatter = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
 		return "tournant_cost_config_${formatter.format(Date(timestamp))}.json"
 	}
+
+	fun generateUnitBackupFilename(timestamp: Long = System.currentTimeMillis()): String {
+		val formatter = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
+		return "tournant_units_backup_${formatter.format(Date(timestamp))}.json"
+	}
 }

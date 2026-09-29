@@ -123,6 +123,16 @@ class RecipeRepository(
 		)
 	}
 
+	fun exportUnitConfiguration(): CostConfigBackupPayload {
+		return CostConfigBackupPayload(
+			schemaVersion = CostConfigBackupPayload.CURRENT_SCHEMA_VERSION,
+			exportedAt = System.currentTimeMillis(),
+			masterIngredients = emptyList(),
+			unitAliases = getAllUnitAliasesList(),
+			ingredientAliases = emptyList()
+		)
+	}
+
 	suspend fun importCostConfiguration(payload: CostConfigBackupPayload): ImportConfigResult {
 		if (payload.schemaVersion <= 0 || payload.schemaVersion > CostConfigBackupPayload.CURRENT_SCHEMA_VERSION) {
 			return ImportConfigResult(

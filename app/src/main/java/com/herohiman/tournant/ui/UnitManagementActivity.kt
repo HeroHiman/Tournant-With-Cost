@@ -1,5 +1,6 @@
 package com.herohiman.tournant.ui
 
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
@@ -14,6 +15,7 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
@@ -30,6 +32,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textfield.TextInputEditText
 import com.herohiman.tournant.R
 import com.herohiman.tournant.TournantApplication
+import com.herohiman.tournant.cost.CostConfigBackupManager
+import com.herohiman.tournant.cost.ImportConfigResult
 import com.herohiman.tournant.data.room.BaseUnitType
 import com.herohiman.tournant.data.room.RecipeRepository
 import com.herohiman.tournant.data.room.UnitAliasDao
@@ -51,6 +55,18 @@ class UnitManagementActivity : AppCompatActivity() {
 	private var allAliases: List<UnitAliasEntity> = emptyList()
 	private var currentSearchQuery: String = ""
 	private var selectedCategoryFilter: BaseUnitType? = null
+
+	private val exportUnitsLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+		if (uri != null) {
+			exportUnitsToUri(uri)
+		}
+	}
+
+	private val importUnitsLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+		if (uri != null) {
+			importUnitsFromUri(uri)
+		}
+	}
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -145,6 +161,14 @@ class UnitManagementActivity : AppCompatActivity() {
 				showAddEditDialog(null)
 				true
 			}
+			R.id.action_export_units -> {
+				exportUnitsLauncher.launch(CostConfigBackupManager.generateUnitBackupFilename())
+				true
+			}
+			R.id.action_import_units -> {
+				importUnitsLauncher.launch(arrayOf("application/json", "text/plain", "application/octet-stream", "*/*"))
+				true
+			}
 			R.id.action_restore_defaults -> {
 				MaterialAlertDialogBuilder(this)
 					.setTitle(R.string.reset_default_units)
@@ -157,6 +181,45 @@ class UnitManagementActivity : AppCompatActivity() {
 				true
 			}
 			else -> super.onOptionsItemSelected(item)
+		}
+	}
+
+	private fun exportUnitsToUri(uri: Uri) {
+		lifecycleScope.launch {
+			val success = withContext(Dispatchers.IO) {
+				val payload = repository.exportUnitConfiguration()
+				CostConfigBackupManager.exportToUri(contentResolver, uri, payload)
+			}
+			if (success) {
+				Toast.makeText(this@UnitManagementActivity, R.string.units_exported_success, Toast.LENGTH_SHORT).show()
+			} else {
+				Toast.makeText(this@UnitManagementActivity, R.string.units_export_failed, Toast.LENGTH_SHORT).show()
+			}
+		}
+	}
+
+	private fun importUnitsFromUri(uri: Uri) {
+		lifecycleScope.launch {
+			val result = withContext(Dispatchers.IO) {
+				val payload = CostConfigBackupManager.importFromUri(contentResolver, uri)
+				if (payload == null) {
+					null
+				} else if (payload.unitAliases.isEmpty()) {
+					ImportConfigResult(success = false, message = getString(R.string.no_units_in_backup))
+				} else {
+					repository.importCostConfiguration(payload)
+				}
+			}
+			if (result == null) {
+				Toast.makeText(this@UnitManagementActivity, R.string.units_import_invalid_file, Toast.LENGTH_SHORT).show()
+			} else if (result.success) {
+				val message = getString(R.string.units_imported_summary, result.importedUnitAliasesCount)
+				Toast.makeText(this@UnitManagementActivity, message, Toast.LENGTH_SHORT).show()
+				loadUnitAliases()
+			} else {
+				val message = "${getString(R.string.units_import_failed)}: ${result.message}"
+				Toast.makeText(this@UnitManagementActivity, message, Toast.LENGTH_LONG).show()
+			}
 		}
 	}
 
