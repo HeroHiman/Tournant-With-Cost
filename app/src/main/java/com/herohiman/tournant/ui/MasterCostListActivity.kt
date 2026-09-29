@@ -96,7 +96,8 @@ class MasterCostListActivity : AppCompatActivity() {
 			onEdit = { showAddEditDialog(it) },
 			onToggleActive = { toggleIngredientActive(it) },
 			onMerge = { showMergeDialog(it) },
-			onViewSubRecipe = { openSubRecipe(it) }
+			onViewSubRecipe = { openSubRecipe(it) },
+			onViewUsage = { showUsageBottomSheet(it) }
 		)
 		recyclerView.layoutManager = LinearLayoutManager(this)
 		recyclerView.adapter = adapter
@@ -237,10 +238,56 @@ class MasterCostListActivity : AppCompatActivity() {
 
 	private fun openSubRecipe(entity: MasterIngredientEntity) {
 		val recipeId = entity.linkedRecipeId ?: return
+		openRecipeById(recipeId)
+	}
+
+	private fun openRecipeById(recipeId: Long) {
 		val intent = android.content.Intent(this, RecipeActivity::class.java).apply {
 			putExtra("RECIPE_ID", recipeId)
 		}
 		startActivity(intent)
+	}
+
+	private fun showUsageBottomSheet(entity: MasterIngredientEntity) {
+		lifecycleScope.launch {
+			val recipes = withContext(Dispatchers.IO) {
+				repository.getRecipesUsingMasterIngredient(entity.id)
+			}
+			val bottomSheetDialog = com.google.android.material.bottomsheet.BottomSheetDialog(this@MasterCostListActivity)
+			val sheetView = layoutInflater.inflate(R.layout.bottom_sheet_ingredient_usage, null)
+			bottomSheetDialog.setContentView(sheetView)
+
+			val txtName = sheetView.findViewById<TextView>(R.id.txt_usage_ingredient_name)
+			val txtCount = sheetView.findViewById<TextView>(R.id.txt_usage_count)
+			val recycler = sheetView.findViewById<RecyclerView>(R.id.recycler_ingredient_usage)
+			val emptyContainer = sheetView.findViewById<View>(R.id.empty_usage_container)
+
+			txtName.text = entity.name
+			if (recipes.isEmpty()) {
+				txtCount.text = getString(R.string.recipe_usage_count_zero)
+				txtCount.setTextColor(ContextCompat.getColor(this@MasterCostListActivity, R.color.subtitle_color))
+				emptyContainer.visibility = View.VISIBLE
+				recycler.visibility = View.GONE
+			} else {
+				val countText = if (recipes.size == 1) {
+					getString(R.string.recipe_usage_count_one)
+				} else {
+					getString(R.string.recipe_usage_count, recipes.size)
+				}
+				txtCount.text = countText
+				txtCount.setTextColor(ContextCompat.getColor(this@MasterCostListActivity, R.color.blue_text))
+				emptyContainer.visibility = View.GONE
+				recycler.visibility = View.VISIBLE
+
+				recycler.layoutManager = LinearLayoutManager(this@MasterCostListActivity)
+				recycler.adapter = IngredientUsageRecipeAdapter(recipes) { recipeId ->
+					bottomSheetDialog.dismiss()
+					openRecipeById(recipeId)
+				}
+			}
+
+			bottomSheetDialog.show()
+		}
 	}
 
 	private fun showAddEditDialog(existing: MasterIngredientEntity?) {
@@ -435,7 +482,8 @@ class MasterCostListActivity : AppCompatActivity() {
 		private val onEdit: (MasterIngredientEntity) -> Unit,
 		private val onToggleActive: (MasterIngredientEntity) -> Unit,
 		private val onMerge: (MasterIngredientEntity) -> Unit,
-		private val onViewSubRecipe: (MasterIngredientEntity) -> Unit
+		private val onViewSubRecipe: (MasterIngredientEntity) -> Unit,
+		private val onViewUsage: (MasterIngredientEntity) -> Unit
 	) : RecyclerView.Adapter<MasterCostAdapter.ViewHolder>() {
 
 		class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -445,6 +493,7 @@ class MasterCostListActivity : AppCompatActivity() {
 			val categoryText: TextView = view.findViewById(R.id.ingredient_category)
 			val subRecipeBadge: TextView = view.findViewById(R.id.ingredient_sub_recipe_badge)
 			val subRecipeBtn: ImageButton = view.findViewById(R.id.btn_sub_recipe)
+			val usageBtn: ImageButton = view.findViewById(R.id.btn_usage)
 			val mergeBtn: ImageButton = view.findViewById(R.id.btn_merge)
 			val editBtn: ImageButton = view.findViewById(R.id.btn_edit)
 			val deleteRestoreBtn: ImageButton = view.findViewById(R.id.btn_delete_restore)
@@ -506,6 +555,7 @@ class MasterCostListActivity : AppCompatActivity() {
 				holder.categoryText.visibility = View.GONE
 			}
 
+			holder.usageBtn.setOnClickListener { onViewUsage(item) }
 			holder.mergeBtn.setOnClickListener { onMerge(item) }
 			holder.editBtn.setOnClickListener { onEdit(item) }
 			holder.deleteRestoreBtn.setOnClickListener { onToggleActive(item) }
@@ -522,5 +572,28 @@ class MasterCostListActivity : AppCompatActivity() {
 			isPrivacyMode = privacyMode
 			notifyDataSetChanged()
 		}
+	}
+
+	class IngredientUsageRecipeAdapter(
+		private val items: List<com.herohiman.tournant.data.RecipeTitleId>,
+		private val onClick: (Long) -> Unit
+	) : RecyclerView.Adapter<IngredientUsageRecipeAdapter.ViewHolder>() {
+
+		class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+			val titleText: TextView = view.findViewById(R.id.txt_recipe_title)
+		}
+
+		override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+			val view = LayoutInflater.from(parent.context).inflate(R.layout.item_ingredient_usage_recipe, parent, false)
+			return ViewHolder(view)
+		}
+
+		override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+			val item = items[position]
+			holder.titleText.text = item.title
+			holder.itemView.setOnClickListener { onClick(item.id) }
+		}
+
+		override fun getItemCount(): Int = items.size
 	}
 }

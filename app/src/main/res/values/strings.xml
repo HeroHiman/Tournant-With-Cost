@@ -276,4 +276,12 @@
 	<string name="config_import_failed">Failed to import configuration</string>
 	<string name="config_import_invalid_file">Invalid or corrupted configuration file</string>
 
+	<!-- Ingredient Usage Cross-Reference -->
+	<string name="ingredient_usage">Where-Used</string>
+	<string name="where_used_description">Recipes using \"%s\"</string>
+	<string name="recipe_usage_count_one">Used in 1 recipe</string>
+	<string name="recipe_usage_count">Used in %d recipes</string>
+	<string name="recipe_usage_count_zero">Not used in any recipes</string>
+	<string name="no_recipes_using_ingredient">No recipes currently use this ingredient.\nIt is safe to edit or deactivate.</string>
+
 </resources>

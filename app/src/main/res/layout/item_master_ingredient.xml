@@ -90,7 +90,7 @@
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			app:barrierDirection="start"
-			app:constraint_referenced_ids="btn_sub_recipe,btn_merge" />
+			app:constraint_referenced_ids="btn_sub_recipe,btn_usage,btn_merge" />
 
 		<ImageButton
 			android:id="@+id/btn_sub_recipe"
@@ -102,9 +102,21 @@
 			app:tint="@color/blue_text"
 			android:visibility="gone"
 			app:layout_constraintBottom_toBottomOf="parent"
-			app:layout_constraintEnd_toStartOf="@+id/btn_merge"
+			app:layout_constraintEnd_toStartOf="@+id/btn_usage"
 			app:layout_constraintTop_toTopOf="parent"
 			tools:visibility="visible" />
+
+		<ImageButton
+			android:id="@+id/btn_usage"
+			android:layout_width="40dp"
+			android:layout_height="40dp"
+			android:background="?attr/selectableItemBackgroundBorderless"
+			android:contentDescription="@string/ingredient_usage"
+			android:src="@drawable/ic_info"
+			app:tint="@color/subtitle_color"
+			app:layout_constraintBottom_toBottomOf="parent"
+			app:layout_constraintEnd_toStartOf="@+id/btn_merge"
+			app:layout_constraintTop_toTopOf="parent" />
 
 		<ImageButton
 			android:id="@+id/btn_merge"

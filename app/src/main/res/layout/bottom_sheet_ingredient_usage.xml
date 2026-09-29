@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:orientation="vertical"
+	android:paddingBottom="24dp">
+
+	<View
+		android:layout_width="36dp"
+		android:layout_height="4dp"
+		android:layout_gravity="center_horizontal"
+		android:layout_marginTop="10dp"
+		android:layout_marginBottom="12dp"
+		android:background="@drawable/badge_background"
+		android:alpha="0.6" />
+
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical"
+		android:paddingHorizontal="20dp"
+		android:paddingBottom="12dp">
+
+		<TextView
+			android:id="@+id/txt_usage_ingredient_name"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textColor="@color/normal_text_color"
+			android:textSize="20sp"
+			android:textStyle="bold"
+			tools:text="All-Purpose Flour" />
+
+		<TextView
+			android:id="@+id/txt_usage_count"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="4dp"
+			android:textColor="@color/blue_text"
+			android:textSize="14sp"
+			android:textStyle="bold"
+			tools:text="Used in 3 recipes" />
+
+	</LinearLayout>
+
+	<View
+		android:layout_width="match_parent"
+		android:layout_height="1dp"
+		android:background="?android:attr/listDivider" />
+
+	<androidx.recyclerview.widget.RecyclerView
+		android:id="@+id/recycler_ingredient_usage"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:maxHeight="360dp"
+		android:clipToPadding="false"
+		android:paddingVertical="4dp"
+		tools:listitem="@layout/item_ingredient_usage_recipe" />
+
+	<LinearLayout
+		android:id="@+id/empty_usage_container"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:gravity="center"
+		android:orientation="vertical"
+		android:padding="32dp"
+		android:visibility="gone"
+		tools:visibility="visible">
+
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:gravity="center"
+			android:text="@string/no_recipes_using_ingredient"
+			android:textColor="@color/subtitle_color"
+			android:textSize="14sp" />
+
+	</LinearLayout>
+
+</LinearLayout>
