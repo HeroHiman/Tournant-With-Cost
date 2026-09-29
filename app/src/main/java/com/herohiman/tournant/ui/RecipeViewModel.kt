@@ -23,6 +23,7 @@ import com.herohiman.tournant.toStringForCooks
 import com.herohiman.tournant.cost.LiveCostCalculator
 import com.herohiman.tournant.cost.RecipeCostBreakdown
 import com.herohiman.tournant.data.room.MasterIngredientEntity
+import com.herohiman.tournant.data.room.UnitAliasEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -88,21 +89,29 @@ class RecipeViewModel(application: TournantApplication, private val recipeId: Lo
 	private val _masterIngredients: Flow<List<MasterIngredientEntity>> =
 		recipeRepository.getAllActiveMasterIngredients() ?: kotlinx.coroutines.flow.flowOf(emptyList())
 
+	private val _unitAliases: Flow<List<UnitAliasEntity>> =
+		recipeRepository.getAllUnitAliases() ?: kotlinx.coroutines.flow.flowOf(emptyList())
+
 	val recipeCostBreakdown: Flow<RecipeCostBreakdown?> = combine(
 		_ingredients,
 		_recipeYieldValue,
 		_scaleRatio,
-		_masterIngredients
-	) { ingredients: List<IngredientLine>, yield: Double?, scale: Double, masters: List<MasterIngredientEntity> ->
+		_masterIngredients,
+		_unitAliases
+	) { ingredients: List<IngredientLine>, yield: Double?, scale: Double, masters: List<MasterIngredientEntity>, aliases: List<UnitAliasEntity> ->
 		val rawIngredients = ingredients.filterIsInstance<IngredientItem>().map { it.ingredient }
 		if (rawIngredients.isEmpty() || masters.isEmpty()) {
 			null
 		} else {
+			val aliasMap = aliases.associateBy { it.aliasName.trim().lowercase(java.util.Locale.ROOT) }
 			LiveCostCalculator.calculateRecipeCost(
 				ingredients = rawIngredients,
 				masterIngredients = masters,
 				yield = yield ?: 1.0,
-				scaleFactor = scale
+				scaleFactor = scale,
+				unitAliases = aliasMap,
+				subRecipeResolver = recipeRepository.asSubRecipeResolver(),
+				currentRecipeId = recipeId
 			)
 		}
 	}

@@ -2,6 +2,7 @@ package com.herohiman.tournant.cost
 
 import com.herohiman.tournant.data.Ingredient
 import com.herohiman.tournant.data.room.MasterIngredientEntity
+import com.herohiman.tournant.data.room.UnitAliasEntity
 import java.util.Locale
 import kotlin.math.round
 
@@ -165,6 +166,7 @@ object LiveCostCalculator {
 		isPrivacyMode: Boolean = false,
 		currency: String = "USD",
 		aliases: Map<String, MasterIngredientEntity> = emptyMap(),
+		unitAliases: Map<String, UnitAliasEntity> = emptyMap(),
 		subRecipeResolver: SubRecipeResolver? = null,
 		currentRecipeId: Long? = null,
 		visitedRecipeIds: Set<Long> = emptySet()
@@ -184,6 +186,7 @@ object LiveCostCalculator {
 				masterIngredients = masterIngredients,
 				includeOptional = includeOptional,
 				aliases = aliases,
+				unitAliases = unitAliases,
 				subRecipeResolver = subRecipeResolver,
 				currentRecipeId = currentRecipeId,
 				visitedRecipeIds = visitedRecipeIds
@@ -264,6 +267,7 @@ object LiveCostCalculator {
 		masterIngredients: List<MasterIngredientEntity>,
 		includeOptional: Boolean = false,
 		aliases: Map<String, MasterIngredientEntity> = emptyMap(),
+		unitAliases: Map<String, UnitAliasEntity> = emptyMap(),
 		subRecipeResolver: SubRecipeResolver? = null,
 		currentRecipeId: Long? = null,
 		visitedRecipeIds: Set<Long> = emptySet()
@@ -344,6 +348,7 @@ object LiveCostCalculator {
 						scaleFactor = 1.0,
 						includeOptional = includeOptional,
 						aliases = aliases,
+						unitAliases = unitAliases,
 						subRecipeResolver = subRecipeResolver,
 						currentRecipeId = refId,
 						visitedRecipeIds = nextVisited
@@ -429,6 +434,7 @@ object LiveCostCalculator {
 						scaleFactor = 1.0,
 						includeOptional = includeOptional,
 						aliases = aliases,
+						unitAliases = unitAliases,
 						subRecipeResolver = subRecipeResolver,
 						currentRecipeId = targetRecipeId,
 						visitedRecipeIds = nextVisited
@@ -452,7 +458,7 @@ object LiveCostCalculator {
 		}
 
 		val amount = ingredient.amount ?: 1.0
-		val conversionFactor = resolveConversionFactor(ingredient.unit, candidate.baseUnit)
+		val conversionFactor = resolveConversionFactor(ingredient.unit, candidate.baseUnit, unitAliases)
 		if (conversionFactor == null) {
 			return IngredientCostItem(
 				ingredient = ingredient,
@@ -483,44 +489,12 @@ object LiveCostCalculator {
 		)
 	}
 
-	fun resolveConversionFactor(sourceUnit: String?, targetUnit: String?): Double? {
-		val source = sourceUnit?.trim()?.lowercase(Locale.ROOT)
-		val target = targetUnit?.trim()?.lowercase(Locale.ROOT)
-
-		// Both units null or blank -> assume 1:1 match
-		if (source.isNullOrBlank() && target.isNullOrBlank()) {
-			return 1.0
-		}
-
-		// Exact match
-		if (source == target) {
-			return 1.0
-		}
-
-		// Both are count units (e.g., piece, unit, can, eggs)
-		val isSourceCount = source.isNullOrBlank() || source in COUNT_UNITS
-		val isTargetCount = target.isNullOrBlank() || target in COUNT_UNITS
-		if (isSourceCount && isTargetCount) {
-			return 1.0
-		}
-
-		// Weight conversion
-		if (source != null && target != null) {
-			val sourceWeight = WEIGHT_UNITS[source]
-			val targetWeight = WEIGHT_UNITS[target]
-			if (sourceWeight != null && targetWeight != null) {
-				return sourceWeight / targetWeight
-			}
-
-			// Volume conversion
-			val sourceVolume = VOLUME_UNITS[source]
-			val targetVolume = VOLUME_UNITS[target]
-			if (sourceVolume != null && targetVolume != null) {
-				return sourceVolume / targetVolume
-			}
-		}
-
-		return null
+	fun resolveConversionFactor(
+		sourceUnit: String?,
+		targetUnit: String?,
+		unitAliases: Map<String, UnitAliasEntity> = emptyMap()
+	): Double? {
+		return UnitConverterEngine.resolveConversionFactor(sourceUnit, targetUnit, unitAliases)
 	}
 
 	fun findMatchingMasterIngredient(

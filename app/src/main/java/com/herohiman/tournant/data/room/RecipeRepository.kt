@@ -79,6 +79,12 @@ class RecipeRepository(
 		return 0
 	}
 
+	suspend fun buildUnitAliasLookupMap(): Map<String, UnitAliasEntity> {
+		val aliases = getAllUnitAliasesList()
+		if (aliases.isEmpty()) return emptyMap()
+		return aliases.associateBy { it.aliasName.trim().lowercase(java.util.Locale.ROOT) }
+	}
+
 	// Ingredient Alias operations
 	suspend fun getIngredientAliasByRawName(rawName: String) = ingredientAliasDao?.getAliasByRawName(rawName)
 	suspend fun getMasterIngredientForRawName(rawName: String) = ingredientAliasDao?.getMasterIngredientForRawName(rawName)
