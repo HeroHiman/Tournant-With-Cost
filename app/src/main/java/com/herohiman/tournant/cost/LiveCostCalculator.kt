@@ -38,8 +38,47 @@ data class IngredientCostItem(
 	val status: CostStatus,
 	val isDerivedFromSubRecipe: Boolean = false,
 	val derivedRecipeId: Long? = null,
-	val derivedUnitCost: Double? = null
-)
+	val derivedUnitCost: Double? = null,
+	val potentialCost: Double? = null
+) {
+	/**
+	 * Returns true if this line has a valid, non-zero cost resolved (either active or potential substitute cost).
+	 */
+	val hasResolvedCost: Boolean
+		get() = (status == CostStatus.MATCHED && lineCost > 0.0) ||
+				(status == CostStatus.SUBSTITUTE_INACTIVE && (potentialCost ?: 0.0) > 0.0)
+
+	/**
+	 * Formats line cost for display.
+	 * If inactive substitute, formats its potentialCost.
+	 * If privacy mode is enabled, masks with [mask].
+	 */
+	fun formattedCost(
+		symbol: String = CostCurrencyFormatter.DEFAULT_CURRENCY_SYMBOL,
+		isPrivacyMode: Boolean = false,
+		mask: String = "••••"
+	): String? {
+		if (isPrivacyMode) return mask
+		return when (status) {
+			CostStatus.MATCHED -> {
+				if (lineCost > 0.0) {
+					CostCurrencyFormatter.formatAmount(lineCost, symbol = symbol, decimals = 2)
+				} else {
+					null
+				}
+			}
+			CostStatus.SUBSTITUTE_INACTIVE -> {
+				val pot = potentialCost ?: 0.0
+				if (pot > 0.0) {
+					CostCurrencyFormatter.formatAmount(pot, symbol = symbol, decimals = 2)
+				} else {
+					null
+				}
+			}
+			else -> null
+		}
+	}
+}
 
 data class RecipeCostBreakdown(
 	val totalCost: Double,
@@ -57,6 +96,53 @@ data class RecipeCostBreakdown(
 
 	fun formattedCostPerPortion(symbol: String = CostCurrencyFormatter.DEFAULT_CURRENCY_SYMBOL, mask: String = "••••"): String {
 		return CostCurrencyFormatter.formatAmount(costPerPortion, symbol = symbol, decimals = 2, isPrivacyMode = isPrivacyMode, mask = mask)
+	}
+
+	/**
+	 * Look up the resolved IngredientCostItem for a given ingredient.
+	 * Matches by refId first, or by trimmed item name, unit, and substituteGroupId.
+	 */
+	fun findCostItem(ingredient: Ingredient): IngredientCostItem? {
+		return items.firstOrNull { item ->
+			if (ingredient.refId != null && item.ingredient.refId != null) {
+				ingredient.refId == item.ingredient.refId
+			} else {
+				item.ingredient.item?.trim().equals(ingredient.item?.trim(), ignoreCase = true) &&
+						item.ingredient.substituteGroupId == ingredient.substituteGroupId &&
+						(ingredient.amount == null || item.ingredient.amount == ingredient.amount)
+			}
+		} ?: items.firstOrNull { item ->
+			item.ingredient.item?.trim().equals(ingredient.item?.trim(), ignoreCase = true)
+		}
+	}
+
+	/**
+	 * Formatted cost for a specific ingredient, respecting privacy mode and substitute status.
+	 */
+	fun formattedCostForIngredient(
+		ingredient: Ingredient,
+		symbol: String = CostCurrencyFormatter.DEFAULT_CURRENCY_SYMBOL,
+		mask: String = "••••"
+	): String? {
+		val costItem = findCostItem(ingredient) ?: return null
+		return costItem.formattedCost(symbol = symbol, isPrivacyMode = isPrivacyMode, mask = mask)
+	}
+
+	/**
+	 * Returns a quick lookup map from Ingredient to formatted cost string.
+	 */
+	fun ingredientCostMap(
+		symbol: String = CostCurrencyFormatter.DEFAULT_CURRENCY_SYMBOL,
+		mask: String = "••••"
+	): Map<Ingredient, String> {
+		val map = mutableMapOf<Ingredient, String>()
+		for (item in items) {
+			val formatted = item.formattedCost(symbol = symbol, isPrivacyMode = isPrivacyMode, mask = mask)
+			if (formatted != null) {
+				map[item.ingredient] = formatted
+			}
+		}
+		return map
 	}
 
 	fun calculateTargetSellingPrice(targetFoodCostPercentage: Double): Double {
@@ -286,21 +372,25 @@ object LiveCostCalculator {
 		val itemName = ingredient.item?.trim()
 		val refId = ingredient.refId
 
-		// Inactive substitutes are excluded from the total cost ($0.00) without generating unpriced errors
+		// Inactive substitutes are excluded from the total cost (₹0.00) without generating unpriced errors,
+		// but we calculate potentialCost so the UI can display line-item pricing for substitute options.
 		if (!ingredient.substituteGroupId.isNullOrBlank() && !ingredient.isActiveSubstitute) {
-			val candidate = if (!itemName.isNullOrBlank()) {
-				findMatchingMasterIngredient(itemName, masterIngredients, aliases)
-			} else if (refId != null) {
-				masterIngredients.firstOrNull { it.linkedRecipeId == refId && it.isActive }
-			} else null
+			val hypothetical = calculateLineCost(
+				ingredient = ingredient.copy(isActiveSubstitute = true),
+				masterIngredients = masterIngredients,
+				includeOptional = includeOptional,
+				aliases = aliases,
+				unitAliases = unitAliases,
+				subRecipeResolver = subRecipeResolver,
+				currentRecipeId = currentRecipeId,
+				visitedRecipeIds = visitedRecipeIds
+			)
 
-			return IngredientCostItem(
+			return hypothetical.copy(
 				ingredient = ingredient,
-				masterIngredient = candidate,
-				matchedUnit = ingredient.unit,
-				effectiveAmount = ingredient.amount,
 				lineCost = 0.0,
-				status = CostStatus.SUBSTITUTE_INACTIVE
+				status = CostStatus.SUBSTITUTE_INACTIVE,
+				potentialCost = if (hypothetical.status == CostStatus.MATCHED) hypothetical.lineCost else null
 			)
 		}
 		if (itemName.isNullOrBlank() && refId == null) {
