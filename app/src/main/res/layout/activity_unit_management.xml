@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:id="@+id/coordinator_layout"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:background="@color/surface">
+
+	<com.google.android.material.appbar.AppBarLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
+
+		<androidx.appcompat.widget.Toolbar
+			android:id="@+id/toolbar"
+			android:layout_width="match_parent"
+			android:layout_height="?attr/actionBarSize"
+			android:background="@color/bar_color"
+			app:title="@string/unit_management"
+			app:titleTextColor="@color/normal_text_color"
+			app:navigationIcon="@drawable/ic_arrow" />
+
+		<HorizontalScrollView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:scrollbars="none"
+			android:background="@color/bar_color"
+			android:paddingHorizontal="12dp"
+			android:paddingBottom="8dp">
+
+			<com.google.android.material.chip.ChipGroup
+				android:id="@+id/chip_group_filters"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				app:singleSelection="true">
+
+				<com.google.android.material.chip.Chip
+					android:id="@+id/chip_all"
+					style="@style/Widget.MaterialComponents.Chip.Choice"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:checked="true"
+					android:text="@string/filter_all" />
+
+				<com.google.android.material.chip.Chip
+					android:id="@+id/chip_mass"
+					style="@style/Widget.MaterialComponents.Chip.Choice"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="@string/category_mass" />
+
+				<com.google.android.material.chip.Chip
+					android:id="@+id/chip_volume"
+					style="@style/Widget.MaterialComponents.Chip.Choice"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="@string/category_volume" />
+
+				<com.google.android.material.chip.Chip
+					android:id="@+id/chip_count"
+					style="@style/Widget.MaterialComponents.Chip.Choice"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="@string/category_count" />
+
+			</com.google.android.material.chip.ChipGroup>
+		</HorizontalScrollView>
+
+	</com.google.android.material.appbar.AppBarLayout>
+
+	<FrameLayout
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+		<androidx.recyclerview.widget.RecyclerView
+			android:id="@+id/recycler_units"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:clipToPadding="false"
+			android:paddingTop="8dp"
+			android:paddingBottom="88dp"
+			tools:listitem="@layout/item_unit_alias" />
+
+		<LinearLayout
+			android:id="@+id/empty_state_container"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center"
+			android:gravity="center"
+			android:orientation="vertical"
+			android:padding="32dp"
+			android:visibility="gone"
+			tools:visibility="visible">
+
+			<TextView
+				android:id="@+id/empty_state_text"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:gravity="center"
+				android:text="@string/no_unit_aliases"
+				style="@style/TextAppearance.AppCompat.Medium"
+				android:textColor="@color/subtitle_color" />
+
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/btn_restore_defaults"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="16dp"
+				android:text="@string/reset_default_units"
+				app:icon="@drawable/ic_restaurant" />
+
+		</LinearLayout>
+
+	</FrameLayout>
+
+	<com.google.android.material.floatingactionbutton.FloatingActionButton
+		android:id="@+id/fab_add_unit_alias"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="bottom|end"
+		android:layout_margin="16dp"
+		android:contentDescription="@string/add_unit_alias"
+		app:srcCompat="@drawable/ic_plus" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

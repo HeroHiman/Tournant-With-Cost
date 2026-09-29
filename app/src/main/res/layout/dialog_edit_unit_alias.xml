@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content">
+
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical"
+		android:padding="20dp">
+
+		<com.google.android.material.textfield.TextInputLayout
+			android:id="@+id/layout_alias_name"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:hint="@string/alias_name"
+			style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+			<com.google.android.material.textfield.TextInputEditText
+				android:id="@+id/edit_alias_name"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:inputType="text" />
+
+		</com.google.android.material.textfield.TextInputLayout>
+
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="16dp"
+			android:text="@string/base_unit_category"
+			style="@style/TextAppearance.AppCompat.Caption"
+			android:textColor="@color/subtitle_color" />
+
+		<RadioGroup
+			android:id="@+id/radio_group_base_category"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="4dp"
+			android:orientation="vertical">
+
+			<com.google.android.material.radiobutton.MaterialRadioButton
+				android:id="@+id/radio_category_mass"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:checked="true"
+				android:text="@string/category_mass" />
+
+			<com.google.android.material.radiobutton.MaterialRadioButton
+				android:id="@+id/radio_category_volume"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/category_volume" />
+
+			<com.google.android.material.radiobutton.MaterialRadioButton
+				android:id="@+id/radio_category_count"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/category_count" />
+
+		</RadioGroup>
+
+		<com.google.android.material.textfield.TextInputLayout
+			android:id="@+id/layout_conversion_factor"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="12dp"
+			android:hint="@string/conversion_factor"
+			app:helperText="@string/conversion_factor_helper"
+			app:helperTextEnabled="true"
+			style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+			<com.google.android.material.textfield.TextInputEditText
+				android:id="@+id/edit_conversion_factor"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:inputType="numberDecimal" />
+
+		</com.google.android.material.textfield.TextInputLayout>
+
+		<TextView
+			android:id="@+id/txt_formula_preview"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="16dp"
+			android:background="@drawable/badge_background"
+			android:padding="12dp"
+			style="@style/TextAppearance.AppCompat.Body2"
+			android:textColor="@color/blue_text"
+			android:textStyle="bold"
+			android:text="Formula: 1 unit = 1.0 kg" />
+
+	</LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

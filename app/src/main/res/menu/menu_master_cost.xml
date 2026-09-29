@@ -21,6 +21,11 @@
 		app:showAsAction="ifRoom" />
 
 	<item
+		android:id="@+id/action_manage_units"
+		android:title="@string/manage_unit_aliases"
+		app:showAsAction="never" />
+
+	<item
 		android:id="@+id/action_export_config"
 		android:title="@string/export_cost_config"
 		app:showAsAction="never" />

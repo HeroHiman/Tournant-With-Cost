@@ -213,6 +213,13 @@ class SettingsActivity : AppCompatActivity() {
 				}
 			}
 
+			findPreference<Preference>("unit_management")?.apply {
+				setOnPreferenceClickListener {
+					startActivity(Intent(requireContext(), UnitManagementActivity::class.java))
+					true
+				}
+			}
+
 			findPreference<SwitchPreference>("decimal_separator")?.apply {
 				isChecked = sharedPrefs.getBoolean(PREF_DECIMAL_SEPARATOR_COMMA, DecimalFormatSymbols.getInstance().decimalSeparator == ',')
 				setOnPreferenceChangeListener { _, value ->

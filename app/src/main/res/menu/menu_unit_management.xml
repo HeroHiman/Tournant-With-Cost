@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto">
+
+	<item
+		android:id="@+id/action_search_units"
+		android:icon="@drawable/ic_search"
+		android:title="@string/search_units"
+		app:actionViewClass="androidx.appcompat.widget.SearchView"
+		app:showAsAction="always|collapseActionView" />
+
+	<item
+		android:id="@+id/action_add_unit"
+		android:icon="@drawable/ic_plus"
+		android:title="@string/add_unit_alias"
+		app:showAsAction="ifRoom" />
+
+	<item
+		android:id="@+id/action_restore_defaults"
+		android:title="@string/reset_default_units"
+		app:showAsAction="never" />
+
+</menu>

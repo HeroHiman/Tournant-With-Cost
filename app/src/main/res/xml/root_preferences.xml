@@ -41,6 +41,12 @@
 	<PreferenceCategory
 		app:title="@string/import_export">
 
+		<Preference
+			app:key="unit_management"
+			app:title="@string/unit_management"
+			app:summary="@string/unit_management_summary"
+			app:icon="@drawable/ic_numbers"/>
+
 		<SwitchPreference
 			app:key="decimal_separator"
 			app:title="@string/use_comma_as_decimal_separator"

@@ -289,4 +289,30 @@
 	<string name="recipe_usage_count_zero">Not used in any recipes</string>
 	<string name="no_recipes_using_ingredient">No recipes currently use this ingredient.\nIt is safe to edit or deactivate.</string>
 
+	<!-- Unit Management -->
+	<string name="unit_management">Unit Management</string>
+	<string name="manage_unit_aliases">Manage Units</string>
+	<string name="unit_management_summary">Configure multilingual units, custom conversions, and multipliers</string>
+	<string name="add_unit_alias">Add Unit Alias</string>
+	<string name="edit_unit_alias">Edit Unit Alias</string>
+	<string name="alias_name">Unit Name / Alias (e.g. डब्बा, चुटकी)</string>
+	<string name="base_unit_category">Base Category</string>
+	<string name="category_mass">Mass (kg)</string>
+	<string name="category_volume">Volume (liter)</string>
+	<string name="category_count">Count (units/pcs)</string>
+	<string name="conversion_factor">Multiplier to Base Unit</string>
+	<string name="conversion_factor_helper">e.g. 15 for 1 डब्बा = 15 kg, or 0.002 for 1 चुटकी = 0.002 kg</string>
+	<string name="unit_formula_preview">Formula: 1 %1$s = %2$s %3$s</string>
+	<string name="unit_alias_saved">Unit alias saved</string>
+	<string name="unit_alias_deleted">Unit alias deleted</string>
+	<string name="delete_unit_alias">Delete Unit Alias</string>
+	<string name="delete_unit_alias_confirm">Are you sure you want to delete \"%s\"?</string>
+	<string name="reset_default_units">Restore Default Units</string>
+	<string name="reset_default_units_confirm">Restore standard English and Hindi unit dictionary?</string>
+	<string name="units_restored">Default units restored</string>
+	<string name="no_unit_aliases">No unit aliases found. Tap + to add custom units.</string>
+	<string name="search_units">Search units…</string>
+	<string name="filter_all">All</string>
+	<string name="delete">Delete</string>
+
 </resources>

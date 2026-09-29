@@ -21,6 +21,11 @@
 			android:theme="@style/Theme.Tournant.NoActionBar"
 			android:label="@string/master_cost_list"/>
 		<activity
+			android:name=".ui.UnitManagementActivity"
+			android:exported="false"
+			android:theme="@style/Theme.Tournant.NoActionBar"
+			android:label="@string/unit_management"/>
+		<activity
 			android:name=".ui.SettingsActivity"
 			android:exported="false"/>
 		<activity

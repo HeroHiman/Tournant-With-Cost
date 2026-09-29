@@ -1,5 +1,6 @@
 package com.herohiman.tournant.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -137,6 +138,10 @@ class MasterCostListActivity : AppCompatActivity() {
 			}
 			R.id.action_add_ingredient -> {
 				showAddEditDialog(null)
+				true
+			}
+			R.id.action_manage_units -> {
+				startActivity(Intent(this, UnitManagementActivity::class.java))
 				true
 			}
 			R.id.action_export_config -> {
