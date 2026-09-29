@@ -42,7 +42,7 @@ class TournantApplication : Application() {
 	}
 
 	val recipeRepository: RecipeRepository by lazy {
-		RecipeRepository(database.recipeDao(), database.masterIngredientDao(), database.unitAliasDao(), database.ingredientAliasDao())
+		RecipeRepository(database.recipeDao(), database.masterIngredientDao(), database.unitAliasDao(), database.ingredientAliasDao(), database)
 	}
 
 	override fun onCreate() {

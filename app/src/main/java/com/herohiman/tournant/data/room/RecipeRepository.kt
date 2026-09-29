@@ -2,13 +2,17 @@ package com.herohiman.tournant.data.room
 
 import android.util.Log
 import androidx.room.Transaction
+import androidx.room.withTransaction
+import com.herohiman.tournant.cost.CostConfigBackupPayload
+import com.herohiman.tournant.cost.ImportConfigResult
 import java.util.Date
 
 class RecipeRepository(
 	private val dao: RecipeDao,
 	private val masterIngredientDao: MasterIngredientDao? = null,
 	private val unitAliasDao: UnitAliasDao? = null,
-	private val ingredientAliasDao: IngredientAliasDao? = null
+	private val ingredientAliasDao: IngredientAliasDao? = null,
+	private val database: RecipeRoomDatabase? = null
 ) {
 
 	companion object { private const val TAG = "RecipeRepository" }
@@ -96,6 +100,120 @@ class RecipeRepository(
 			}
 		}
 		return lookup
+	}
+
+	fun exportCostConfiguration(): CostConfigBackupPayload {
+		return CostConfigBackupPayload(
+			schemaVersion = CostConfigBackupPayload.CURRENT_SCHEMA_VERSION,
+			exportedAt = System.currentTimeMillis(),
+			masterIngredients = getAllMasterIngredientsList(),
+			unitAliases = getAllUnitAliasesList(),
+			ingredientAliases = getAllIngredientAliasesList()
+		)
+	}
+
+	suspend fun importCostConfiguration(payload: CostConfigBackupPayload): ImportConfigResult {
+		if (payload.schemaVersion <= 0 || payload.schemaVersion > CostConfigBackupPayload.CURRENT_SCHEMA_VERSION) {
+			return ImportConfigResult(
+				success = false,
+				message = "Unsupported configuration schema version: ${payload.schemaVersion}"
+			)
+		}
+
+		if (masterIngredientDao == null && unitAliasDao == null && ingredientAliasDao == null) {
+			return ImportConfigResult(
+				success = false,
+				message = "Database DAOs not initialized"
+			)
+		}
+
+		suspend fun executeImport(): ImportConfigResult {
+			var importedMasters = 0
+			var importedUnits = 0
+			var importedIngredientAliases = 0
+
+			val masterIdMap = mutableMapOf<Long, Long>()
+
+			// 1. Process Master Ingredients
+			if (masterIngredientDao != null) {
+				for (master in payload.masterIngredients) {
+					val existing = masterIngredientDao.getMasterIngredientByName(master.name)
+					val resolvedId = if (existing != null) {
+						val updated = master.copy(
+							id = existing.id,
+							lastUpdated = System.currentTimeMillis()
+						)
+						masterIngredientDao.updateMasterIngredient(updated)
+						existing.id
+					} else {
+						val toInsert = master.copy(
+							id = 0L,
+							lastUpdated = System.currentTimeMillis()
+						)
+						masterIngredientDao.insertMasterIngredient(toInsert)
+					}
+					if (master.id != 0L) {
+						masterIdMap[master.id] = resolvedId
+					}
+					importedMasters++
+				}
+			}
+
+			// 2. Process Unit Aliases
+			if (unitAliasDao != null) {
+				for (unitAlias in payload.unitAliases) {
+					val existing = unitAliasDao.getAliasByName(unitAlias.aliasName)
+					if (existing != null) {
+						val updated = unitAlias.copy(id = existing.id)
+						unitAliasDao.updateAlias(updated)
+					} else {
+						unitAliasDao.insertAlias(unitAlias.copy(id = 0L))
+					}
+					importedUnits++
+				}
+			}
+
+			// 3. Process Ingredient Aliases
+			if (ingredientAliasDao != null) {
+				for (alias in payload.ingredientAliases) {
+					val targetMasterId = masterIdMap[alias.masterIngredientId] ?: alias.masterIngredientId
+					val targetMaster = masterIngredientDao?.getMasterIngredientById(targetMasterId)
+					if (targetMaster != null) {
+						val existing = ingredientAliasDao.getAliasByRawName(alias.rawName)
+						if (existing != null) {
+							val updated = alias.copy(id = existing.id, masterIngredientId = targetMasterId)
+							ingredientAliasDao.updateAlias(updated)
+						} else {
+							ingredientAliasDao.insertAlias(alias.copy(id = 0L, masterIngredientId = targetMasterId))
+						}
+						importedIngredientAliases++
+					}
+				}
+			}
+
+			return ImportConfigResult(
+				success = true,
+				message = "Configuration imported successfully",
+				importedMastersCount = importedMasters,
+				importedUnitAliasesCount = importedUnits,
+				importedIngredientAliasesCount = importedIngredientAliases
+			)
+		}
+
+		return try {
+			if (database != null) {
+				database.withTransaction {
+					executeImport()
+				}
+			} else {
+				executeImport()
+			}
+		} catch (e: Exception) {
+			ImportConfigResult(
+				success = false,
+				message = "Failed to import configuration: ${e.message}"
+			)
+		}
 	}
 
 
