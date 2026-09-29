@@ -18,3 +18,10 @@ _bmad/
 _bmad-output/
 *.memlog.md
 AGENTS.md
+
+# BMAD & Project Documentation
+.clinerules
+.mailmap
+stories.yml
+Tournant-BMAD-Implementation*
+bmad-output/
