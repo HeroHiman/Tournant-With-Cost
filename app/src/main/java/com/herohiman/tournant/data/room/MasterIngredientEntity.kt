@@ -14,7 +14,7 @@ data class MasterIngredientEntity(
 	var name: String,
 	var unitCost: Double,
 	var baseUnit: String,
-	var currency: String = "USD",
+	var currency: String = "INR",
 	var isActive: Boolean = true,
 	var lastUpdated: Long = System.currentTimeMillis(),
 	var category: String? = null,

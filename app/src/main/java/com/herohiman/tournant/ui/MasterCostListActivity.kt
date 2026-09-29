@@ -28,6 +28,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.herohiman.tournant.R
 import com.herohiman.tournant.TournantApplication
 import com.herohiman.tournant.cost.CostConfigBackupManager
+import com.herohiman.tournant.cost.CostCurrencyFormatter
 import com.herohiman.tournant.cost.CostPrivacyManager
 import com.herohiman.tournant.data.room.MasterIngredientEntity
 import com.herohiman.tournant.data.room.RecipeRepository
@@ -532,17 +533,12 @@ class MasterCostListActivity : AppCompatActivity() {
 				holder.subRecipeBtn.visibility = View.GONE
 			}
 
-			val costFormatted = if (isPrivacyMode) {
-				"•••• / ${item.baseUnit}"
-			} else if (isDerived) {
-				if (item.unitCost > 0.0) {
-					String.format(Locale.US, "$%.4f / %s (Derived)", item.unitCost, item.baseUnit)
-				} else {
-					String.format(Locale.US, "%s (Derived)", item.baseUnit)
-				}
-			} else {
-				String.format(Locale.US, "$%.4f / %s", item.unitCost, item.baseUnit)
-			}
+			val costFormatted = CostCurrencyFormatter.formatUnitCost(
+				unitCost = item.unitCost,
+				baseUnit = item.baseUnit,
+				isDerived = isDerived,
+				isPrivacyMode = isPrivacyMode
+			)
 			holder.costText.text = costFormatted
 
 			if (item.isActive) {

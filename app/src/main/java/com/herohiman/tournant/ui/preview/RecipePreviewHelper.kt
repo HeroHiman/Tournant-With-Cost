@@ -129,7 +129,7 @@ class RecipePreviewHelper(private val context: Context) {
             yieldValue: Double? = 1.0,
             scaleFactor: Double = 1.0,
             isPrivacyMode: Boolean = false,
-            symbol: String = "$",
+            symbol: String = com.herohiman.tournant.cost.CostCurrencyFormatter.DEFAULT_CURRENCY_SYMBOL,
             subRecipeResolver: com.herohiman.tournant.cost.SubRecipeResolver? = null,
             currentRecipeId: Long? = null,
             unitAliases: Map<String, com.herohiman.tournant.data.room.UnitAliasEntity> = emptyMap()

@@ -200,9 +200,9 @@ class LiveCostCalculatorTest {
 		assertEquals(3.00, breakdown.totalCost, 0.001)
 		assertEquals(0.50, breakdown.costPerPortion, 0.001)
 		assertEquals(6.0, breakdown.yield, 0.001)
-		assertEquals(0, breakdown.unpricedItemCount)
-		assertEquals("$3.00", breakdown.formattedTotalCost())
-		assertEquals("$0.50", breakdown.formattedCostPerPortion())
+		assertEquals("₹3.00", breakdown.formattedTotalCost())
+		assertEquals("₹0.50", breakdown.formattedCostPerPortion())
+		assertEquals("$3.00", breakdown.formattedTotalCost(symbol = "$"))
 	}
 
 	@Test
@@ -291,7 +291,16 @@ class LiveCostCalculatorTest {
 			isPrivacyMode = false
 		)
 
-		assertEquals("Cost: $2.00 ($1.00 / serving)", preview)
+		assertEquals("Cost: ₹2.00 (₹1.00 / serving)", preview)
+
+		val customSymbolPreview = com.herohiman.tournant.ui.preview.RecipePreviewHelper.formatCostForPreview(
+			ingredients = ingredients,
+			masterIngredients = masterIngredients,
+			yieldValue = 2.0,
+			isPrivacyMode = false,
+			symbol = "$"
+		)
+		assertEquals("Cost: $2.00 ($1.00 / serving)", customSymbolPreview)
 	}
 
 	@Test

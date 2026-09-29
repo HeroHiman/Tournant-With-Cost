@@ -34,8 +34,11 @@ class MasterCostListUiTest {
 			baseUnit = "ml"
 		)
 
-		val formatted = String.format(Locale.US, "$%.4f / %s", item.unitCost, item.baseUnit)
-		assertEquals("$0.0250 / ml", formatted)
+		val formatted = com.herohiman.tournant.cost.CostCurrencyFormatter.formatUnitCost(
+			unitCost = item.unitCost,
+			baseUnit = item.baseUnit
+		)
+		assertEquals("₹0.0250 / ml", formatted)
 	}
 
 	@Test
@@ -47,12 +50,11 @@ class MasterCostListUiTest {
 			baseUnit = "ml"
 		)
 
-		val isPrivacyMode = true
-		val formatted = if (isPrivacyMode) {
-			"•••• / ${item.baseUnit}"
-		} else {
-			String.format(Locale.US, "$%.4f / %s", item.unitCost, item.baseUnit)
-		}
+		val formatted = com.herohiman.tournant.cost.CostCurrencyFormatter.formatUnitCost(
+			unitCost = item.unitCost,
+			baseUnit = item.baseUnit,
+			isPrivacyMode = true
+		)
 
 		assertEquals("•••• / ml", formatted)
 	}

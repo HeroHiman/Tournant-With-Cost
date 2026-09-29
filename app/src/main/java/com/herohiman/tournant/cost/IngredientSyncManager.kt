@@ -60,7 +60,7 @@ object IngredientSyncManager {
 					name = trimmedName,
 					unitCost = 0.0,
 					baseUnit = preferredUnit,
-					currency = "USD",
+					currency = CostCurrencyFormatter.DEFAULT_CURRENCY_CODE,
 					isActive = true,
 					lastUpdated = System.currentTimeMillis()
 				)

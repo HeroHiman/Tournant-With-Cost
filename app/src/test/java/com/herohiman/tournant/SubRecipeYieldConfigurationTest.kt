@@ -43,19 +43,14 @@ class SubRecipeYieldConfigurationTest {
 		val isPrivacyMode = false
 		val isDerived = itemWithFallback.linkedRecipeId != null
 
-		val formattedCost = if (isPrivacyMode) {
-			"•••• / ${itemWithFallback.baseUnit}"
-		} else if (isDerived) {
-			if (itemWithFallback.unitCost > 0.0) {
-				String.format(Locale.US, "$%.4f / %s (Derived)", itemWithFallback.unitCost, itemWithFallback.baseUnit)
-			} else {
-				String.format(Locale.US, "%s (Derived)", itemWithFallback.baseUnit)
-			}
-		} else {
-			String.format(Locale.US, "$%.4f / %s", itemWithFallback.unitCost, itemWithFallback.baseUnit)
-		}
+		val formattedCost = com.herohiman.tournant.cost.CostCurrencyFormatter.formatUnitCost(
+			unitCost = itemWithFallback.unitCost,
+			baseUnit = itemWithFallback.baseUnit,
+			isDerived = isDerived,
+			isPrivacyMode = isPrivacyMode
+		)
 
-		assertEquals("$8.5000 / kg (Derived)", formattedCost)
+		assertEquals("₹8.5000 / kg (Derived)", formattedCost)
 	}
 
 	@Test
@@ -72,17 +67,12 @@ class SubRecipeYieldConfigurationTest {
 		val isPrivacyMode = false
 		val isDerived = itemZeroCost.linkedRecipeId != null
 
-		val formattedCost = if (isPrivacyMode) {
-			"•••• / ${itemZeroCost.baseUnit}"
-		} else if (isDerived) {
-			if (itemZeroCost.unitCost > 0.0) {
-				String.format(Locale.US, "$%.4f / %s (Derived)", itemZeroCost.unitCost, itemZeroCost.baseUnit)
-			} else {
-				String.format(Locale.US, "%s (Derived)", itemZeroCost.baseUnit)
-			}
-		} else {
-			String.format(Locale.US, "$%.4f / %s", itemZeroCost.unitCost, itemZeroCost.baseUnit)
-		}
+		val formattedCost = com.herohiman.tournant.cost.CostCurrencyFormatter.formatUnitCost(
+			unitCost = itemZeroCost.unitCost,
+			baseUnit = itemZeroCost.baseUnit,
+			isDerived = isDerived,
+			isPrivacyMode = isPrivacyMode
+		)
 
 		assertEquals("kg (Derived)", formattedCost)
 	}
@@ -98,12 +88,11 @@ class SubRecipeYieldConfigurationTest {
 			yieldRatio = 0.20
 		)
 
-		val isPrivacyMode = true
-		val formattedCost = if (isPrivacyMode) {
-			"•••• / ${item.baseUnit}"
-		} else {
-			String.format(Locale.US, "$%.4f / %s", item.unitCost, item.baseUnit)
-		}
+		val formattedCost = com.herohiman.tournant.cost.CostCurrencyFormatter.formatUnitCost(
+			unitCost = item.unitCost,
+			baseUnit = item.baseUnit,
+			isPrivacyMode = true
+		)
 
 		assertEquals("•••• / kg", formattedCost)
 	}

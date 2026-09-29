@@ -45,18 +45,18 @@ data class RecipeCostBreakdown(
 	val totalCost: Double,
 	val costPerPortion: Double,
 	val yield: Double,
-	val currency: String = "USD",
+	val currency: String = CostCurrencyFormatter.DEFAULT_CURRENCY_CODE,
 	val isPrivacyMode: Boolean = false,
 	val items: List<IngredientCostItem> = emptyList(),
 	val unpricedItemCount: Int = 0,
 	val hasRecursionCycle: Boolean = items.any { it.status == CostStatus.RECURSION_CYCLE_DETECTED }
 ) {
-	fun formattedTotalCost(symbol: String = "$", mask: String = "••••"): String {
-		return if (isPrivacyMode) mask else String.format(Locale.US, "%s%.2f", symbol, totalCost)
+	fun formattedTotalCost(symbol: String = CostCurrencyFormatter.DEFAULT_CURRENCY_SYMBOL, mask: String = "••••"): String {
+		return CostCurrencyFormatter.formatAmount(totalCost, symbol = symbol, decimals = 2, isPrivacyMode = isPrivacyMode, mask = mask)
 	}
 
-	fun formattedCostPerPortion(symbol: String = "$", mask: String = "••••"): String {
-		return if (isPrivacyMode) mask else String.format(Locale.US, "%s%.2f", symbol, costPerPortion)
+	fun formattedCostPerPortion(symbol: String = CostCurrencyFormatter.DEFAULT_CURRENCY_SYMBOL, mask: String = "••••"): String {
+		return CostCurrencyFormatter.formatAmount(costPerPortion, symbol = symbol, decimals = 2, isPrivacyMode = isPrivacyMode, mask = mask)
 	}
 
 	fun calculateTargetSellingPrice(targetFoodCostPercentage: Double): Double {
@@ -164,7 +164,7 @@ object LiveCostCalculator {
 		scaleFactor: Double = 1.0,
 		includeOptional: Boolean = false,
 		isPrivacyMode: Boolean = false,
-		currency: String = "USD",
+		currency: String = CostCurrencyFormatter.DEFAULT_CURRENCY_CODE,
 		aliases: Map<String, MasterIngredientEntity> = emptyMap(),
 		unitAliases: Map<String, UnitAliasEntity> = emptyMap(),
 		subRecipeResolver: SubRecipeResolver? = null,
