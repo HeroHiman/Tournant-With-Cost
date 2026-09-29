@@ -16,7 +16,9 @@ data class Ingredient(
 	var item: String? = null,
 	var refId: Long? = null,
 	var group: String? = null,
-	var optional: Boolean = false
+	var optional: Boolean = false,
+	var substituteGroupId: String? = null,
+	var isActiveSubstitute: Boolean = true
 ) : Parcelable {
 
 	companion object {

@@ -27,5 +27,9 @@ data class IngredientEntity(
 	var item: String?,
 	var refId: Long?,
 	var group: String?,
-	var optional: Boolean
+	var optional: Boolean,
+	@ColumnInfo(defaultValue = "NULL", index = true)
+	var substituteGroupId: String? = null,
+	@ColumnInfo(defaultValue = "1")
+	var isActiveSubstitute: Boolean = true
 )
