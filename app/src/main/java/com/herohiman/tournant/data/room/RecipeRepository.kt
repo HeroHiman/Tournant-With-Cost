@@ -5,6 +5,8 @@ import androidx.room.Transaction
 import androidx.room.withTransaction
 import com.herohiman.tournant.cost.CostConfigBackupPayload
 import com.herohiman.tournant.cost.ImportConfigResult
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import java.util.Date
 
 class RecipeRepository(
@@ -18,12 +20,16 @@ class RecipeRepository(
 	companion object { private const val TAG = "RecipeRepository" }
 
 	// Master Ingredient operations
-	fun getAllActiveMasterIngredients() = masterIngredientDao?.getAllActiveMasterIngredients()
+	fun getAllActiveMasterIngredients(): Flow<List<MasterIngredientEntity>> =
+		masterIngredientDao?.getAllActiveMasterIngredients() ?: flowOf(emptyList())
 	fun getAllActiveMasterIngredientsList() = masterIngredientDao?.getAllActiveMasterIngredientsList() ?: emptyList()
-	fun getAllMasterIngredients() = masterIngredientDao?.getAllMasterIngredients()
+	fun getAllMasterIngredients(): Flow<List<MasterIngredientEntity>> =
+		masterIngredientDao?.getAllMasterIngredients() ?: flowOf(emptyList())
 	fun getAllMasterIngredientsList() = masterIngredientDao?.getAllMasterIngredientsList() ?: emptyList()
-	fun searchMasterIngredients(query: String) = masterIngredientDao?.searchMasterIngredients(query)
-	fun searchActiveMasterIngredients(query: String) = masterIngredientDao?.searchActiveMasterIngredients(query)
+	fun searchMasterIngredients(query: String): Flow<List<MasterIngredientEntity>> =
+		masterIngredientDao?.searchMasterIngredients(query) ?: flowOf(emptyList())
+	fun searchActiveMasterIngredients(query: String): Flow<List<MasterIngredientEntity>> =
+		masterIngredientDao?.searchActiveMasterIngredients(query) ?: flowOf(emptyList())
 	fun searchMasterIngredientsList(query: String) = masterIngredientDao?.searchMasterIngredientsList(query) ?: emptyList()
 	fun getMasterIngredientById(id: Long) = masterIngredientDao?.getMasterIngredientById(id)
 	fun getMasterIngredientByName(name: String) = masterIngredientDao?.getMasterIngredientByName(name)
@@ -60,11 +66,14 @@ class RecipeRepository(
 		}
 
 	// Unit Alias operations
-	fun getAllUnitAliases() = unitAliasDao?.getAllUnitAliases()
+	fun getAllUnitAliases(): Flow<List<UnitAliasEntity>> =
+		unitAliasDao?.getAllUnitAliases() ?: flowOf(emptyList())
 	fun getAllUnitAliasesList() = unitAliasDao?.getAllUnitAliasesList() ?: emptyList()
-	fun searchUnitAliases(query: String) = unitAliasDao?.searchUnitAliases(query)
+	fun searchUnitAliases(query: String): Flow<List<UnitAliasEntity>> =
+		unitAliasDao?.searchUnitAliases(query) ?: flowOf(emptyList())
 	fun searchUnitAliasesList(query: String) = unitAliasDao?.searchUnitAliasesList(query) ?: emptyList()
-	fun searchUnitAliasesByCategory(query: String, baseUnit: BaseUnitType) = unitAliasDao?.searchUnitAliasesByCategory(query, baseUnit)
+	fun searchUnitAliasesByCategory(query: String, baseUnit: BaseUnitType): Flow<List<UnitAliasEntity>> =
+		unitAliasDao?.searchUnitAliasesByCategory(query, baseUnit) ?: flowOf(emptyList())
 	fun searchUnitAliasesByCategoryList(query: String, baseUnit: BaseUnitType) = unitAliasDao?.searchUnitAliasesByCategoryList(query, baseUnit) ?: emptyList()
 	suspend fun getUnitAliasByName(name: String) = unitAliasDao?.getAliasByName(name)
 	suspend fun getUnitAliasById(id: Long) = unitAliasDao?.getAliasById(id)
