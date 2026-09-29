@@ -7,10 +7,12 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.net.Uri
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -24,6 +26,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.herohiman.tournant.R
 import com.herohiman.tournant.TournantApplication
+import com.herohiman.tournant.cost.CostConfigBackupManager
 import com.herohiman.tournant.cost.CostPrivacyManager
 import com.herohiman.tournant.data.room.MasterIngredientEntity
 import com.herohiman.tournant.data.room.RecipeRepository
@@ -41,6 +44,18 @@ class MasterCostListActivity : AppCompatActivity() {
 	private lateinit var emptyStateContainer: View
 	private lateinit var adapter: MasterCostAdapter
 	private var ingredientsList = listOf<MasterIngredientEntity>()
+
+	private val exportConfigLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+		if (uri != null) {
+			exportConfigurationToUri(uri)
+		}
+	}
+
+	private val importConfigLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+		if (uri != null) {
+			importConfigurationFromUri(uri)
+		}
+	}
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -123,7 +138,57 @@ class MasterCostListActivity : AppCompatActivity() {
 				showAddEditDialog(null)
 				true
 			}
+			R.id.action_export_config -> {
+				exportConfigLauncher.launch(CostConfigBackupManager.generateBackupFilename())
+				true
+			}
+			R.id.action_import_config -> {
+				importConfigLauncher.launch(arrayOf("application/json", "text/plain", "application/octet-stream", "*/*"))
+				true
+			}
 			else -> super.onOptionsItemSelected(item)
+		}
+	}
+
+	private fun exportConfigurationToUri(uri: Uri) {
+		lifecycleScope.launch {
+			val success = withContext(Dispatchers.IO) {
+				val payload = repository.exportCostConfiguration()
+				CostConfigBackupManager.exportToUri(contentResolver, uri, payload)
+			}
+			if (success) {
+				Toast.makeText(this@MasterCostListActivity, R.string.config_exported_success, Toast.LENGTH_SHORT).show()
+			} else {
+				Toast.makeText(this@MasterCostListActivity, R.string.config_export_failed, Toast.LENGTH_SHORT).show()
+			}
+		}
+	}
+
+	private fun importConfigurationFromUri(uri: Uri) {
+		lifecycleScope.launch {
+			val result = withContext(Dispatchers.IO) {
+				val payload = CostConfigBackupManager.importFromUri(contentResolver, uri)
+				if (payload == null) {
+					null
+				} else {
+					repository.importCostConfiguration(payload)
+				}
+			}
+			if (result == null) {
+				Toast.makeText(this@MasterCostListActivity, R.string.config_import_invalid_file, Toast.LENGTH_SHORT).show()
+			} else if (result.success) {
+				val message = getString(
+					R.string.config_imported_summary,
+					result.importedMastersCount,
+					result.importedUnitAliasesCount,
+					result.importedIngredientAliasesCount
+				)
+				Toast.makeText(this@MasterCostListActivity, message, Toast.LENGTH_LONG).show()
+				loadMasterIngredients()
+			} else {
+				val message = "${getString(R.string.config_import_failed)}: ${result.message}"
+				Toast.makeText(this@MasterCostListActivity, message, Toast.LENGTH_LONG).show()
+			}
 		}
 	}
 

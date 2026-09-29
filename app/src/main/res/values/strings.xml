@@ -267,4 +267,13 @@
 	<string name="unit_cost_optional_fallback">Manual Fallback Cost (Optional)</string>
 	<string name="select_sub_recipe_error">Please select a valid sub-recipe</string>
 
+	<!-- Cost Configuration Export/Import -->
+	<string name="export_cost_config">Export Configuration</string>
+	<string name="import_cost_config">Import Configuration</string>
+	<string name="config_exported_success">Configuration exported successfully</string>
+	<string name="config_export_failed">Failed to export configuration</string>
+	<string name="config_imported_summary">Imported %1$d ingredients, %2$d unit aliases, %3$d ingredient aliases</string>
+	<string name="config_import_failed">Failed to import configuration</string>
+	<string name="config_import_invalid_file">Invalid or corrupted configuration file</string>
+
 </resources>
