@@ -78,7 +78,8 @@ class RecipePreviewHelper(private val context: Context) {
         fun formatIngredientsForPreview(
             ingredients: List<com.herohiman.tournant.data.IngredientLine>,
             scaleFactor: Double = 1.0,
-            optionalWord: String = ""
+            optionalWord: String = "",
+            costBreakdown: com.herohiman.tournant.cost.RecipeCostBreakdown? = null
         ): String {
             val builder = StringBuilder()
             val safeScale = if (scaleFactor > 0.0 && !scaleFactor.isNaN() && !scaleFactor.isInfinite()) scaleFactor else 1.0
@@ -100,14 +101,16 @@ class RecipePreviewHelper(private val context: Context) {
                         }
                         val formatted = ingredient.toStringForCooks(optionalWord).trim()
                         if (formatted.isNotEmpty()) {
+                            val lineCost = costBreakdown?.formattedCostForIngredient(ingredient)
+                            val costSuffix = if (!lineCost.isNullOrEmpty()) " ($lineCost)" else ""
                             if (!ingredient.substituteGroupId.isNullOrBlank()) {
                                 if (ingredient.isActiveSubstitute) {
-                                    builder.append("- $formatted *(Active)*\n")
+                                    builder.append("- $formatted *(Active)*$costSuffix\n")
                                 } else {
-                                    builder.append("  *OR* $formatted\n")
+                                    builder.append("  *OR* $formatted$costSuffix\n")
                                 }
                             } else {
-                                builder.append("- $formatted\n")
+                                builder.append("- $formatted$costSuffix\n")
                             }
                         }
                     }

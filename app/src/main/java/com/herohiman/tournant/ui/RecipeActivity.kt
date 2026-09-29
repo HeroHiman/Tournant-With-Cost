@@ -33,6 +33,7 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import com.herohiman.tournant.cost.RecipeCostBreakdown
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -579,6 +580,7 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 						contentDescription = stringResource(R.string.more)
 					)
 				}
+				val costBreakdown by viewModel.recipeCostBreakdown.collectAsState(null)
 				Row(
 					Modifier.padding(vertical = 16.dp)
 				) {
@@ -605,7 +607,6 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 							),
 						style = italicTextStyle
 					)
-					val costBreakdown by viewModel.recipeCostBreakdown.collectAsState(null)
 					if (costBreakdown != null && costBreakdown!!.totalCost > 0.0) {
 						Text(
 							text = " • Cost: ${costBreakdown!!.formattedTotalCost()}",
@@ -619,7 +620,8 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 						items,
 						Modifier.weight(1f),
 						textMeasurer,
-						weighingModeOn
+						weighingModeOn,
+						costBreakdown
 					)
 					Column(
 						verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -663,7 +665,8 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 		items: List<IngredientLine>,
 		modifier: Modifier = Modifier,
 		textMeasurer: TextMeasurer = rememberTextMeasurer(),
-		weighMode: Boolean
+		weighMode: Boolean,
+		costBreakdown: RecipeCostBreakdown? = null
 	) {
 		val amountMaxWidth = with(LocalDensity.current) {
 			items.filterIsInstance<IngredientItem>().maxOfOrNull {
@@ -711,7 +714,8 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 							item = item,
 							id = i,
 							amountMaxWidth = amountMaxWidth ?: 0.dp,
-							weighMode = weighMode
+							weighMode = weighMode,
+							costBreakdown = costBreakdown
 						)
 					}
 				}
@@ -727,13 +731,21 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 
 	@OptIn(ExperimentalFoundationApi::class)
 	@Composable
-	fun IngredientDisplay(item: IngredientItem, id: Int, amountMaxWidth: Dp, weighMode: Boolean) {
+	fun IngredientDisplay(
+		item: IngredientItem,
+		id: Int,
+		amountMaxWidth: Dp,
+		weighMode: Boolean,
+		costBreakdown: RecipeCostBreakdown? = null
+	) {
 		val interactionSource = remember { MutableInteractionSource() }
 		var dialogVisible by remember { mutableStateOf(false) }
 		var value by remember { mutableStateOf(TextFieldValue("")) }
 
 		val isSubstitute = !item.ingredient.substituteGroupId.isNullOrBlank()
 		val isInactiveSub = isSubstitute && !item.ingredient.isActiveSubstitute
+
+		val lineCostFormatted = costBreakdown?.formattedCostForIngredient(item.ingredient)
 
 		val amountText = if (item.originalIngredient != null && item.originalIngredient.amount != item.ingredient.amount) {
 			buildAnnotatedString {
@@ -749,6 +761,7 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 
 		Row(
 			Modifier
+				.fillMaxWidth()
 				.alpha(if (weighMode && item.isSelected || !weighMode && item.isChecked) ContentAlpha.disabled else if (isInactiveSub) 0.55f else 1f)
 				.padding(vertical = 2.dp)
 				.combinedClickable(
@@ -817,33 +830,52 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 			val layoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
 			Text(
 				text = fullItemString,
-				modifier = Modifier.pointerInput(Unit) {
-					detectTapGestures(
-						onPress = {
-							layoutResult.value?.getOffsetForPosition(it)?.let { offset ->
-								val annotations = baseItemString.getStringAnnotations(
-									tag = "LINK_TO_RECIPE",
-									start = offset,
-									end = offset
-								)
-								if (annotations.isNotEmpty()) {
-									item.ingredient.refId?.let { refId ->
-										openRecipe(refId = refId, item.ingredient.amount, item.ingredient.unit)
+				modifier = Modifier
+					.weight(1f)
+					.pointerInput(Unit) {
+						detectTapGestures(
+							onPress = {
+								layoutResult.value?.getOffsetForPosition(it)?.let { offset ->
+									val annotations = baseItemString.getStringAnnotations(
+										tag = "LINK_TO_RECIPE",
+										start = offset,
+										end = offset
+									)
+									if (annotations.isNotEmpty()) {
+										item.ingredient.refId?.let { refId ->
+											openRecipe(refId = refId, item.ingredient.amount, item.ingredient.unit)
+										}
+									} else {
+										viewModel.toggleChecked(id)
 									}
-								} else {
-									viewModel.toggleChecked(id)
 								}
+							},
+							onLongPress = {
+								value = TextFieldValue(item.ingredient.amount.toStringForCooks(thousands = false))
+								dialogVisible = true
 							}
-						},
-						onLongPress = {
-							value = TextFieldValue(item.ingredient.amount.toStringForCooks(thousands = false))
-							dialogVisible = true
-						}
-					)
-				},
+						)
+					},
 				onTextLayout = { layoutResult.value = it },
 				lineHeight = 24.sp
 			)
+
+			if (!lineCostFormatted.isNullOrEmpty()) {
+				Spacer(Modifier.width(8.dp))
+				Text(
+					text = lineCostFormatted,
+					style = MaterialTheme.typography.body2.copy(
+						fontWeight = FontWeight.SemiBold,
+						color = if (isInactiveSub) {
+							MaterialTheme.colors.onSurface.copy(alpha = 0.45f)
+						} else {
+							MaterialTheme.colors.primary.copy(alpha = 0.85f)
+						}
+					),
+					modifier = Modifier.align(Alignment.CenterVertically),
+					textAlign = TextAlign.End
+				)
+			}
 		}
 		
 		if (dialogVisible) {

@@ -41,15 +41,15 @@ class IngredientSubstitutionUiTest {
 			Ingredient(amount = 750.0, unit = "g", item = "Sugar", substituteGroupId = "sw_1", isActiveSubstitute = false)
 		)
 		val costA = RecipePreviewHelper.formatCostForPreview(stateA, masterIngredients, yieldValue = 1.0)
-		assertEquals("Cost: $50.00 ($50.00 / serving)", costA)
+		assertEquals("Cost: ₹50.00 (₹50.00 / serving)", costA)
 
-		// State B: Sugar is active (750g * 0.04 = $30.00)
+		// State B: Sugar is active (750g * 0.04 = ₹30.00)
 		val stateB = listOf(
 			Ingredient(amount = 500.0, unit = "g", item = "Gud", substituteGroupId = "sw_1", isActiveSubstitute = false),
 			Ingredient(amount = 750.0, unit = "g", item = "Sugar", substituteGroupId = "sw_1", isActiveSubstitute = true)
 		)
 		val costB = RecipePreviewHelper.formatCostForPreview(stateB, masterIngredients, yieldValue = 1.0)
-		assertEquals("Cost: $30.00 ($30.00 / serving)", costB)
+		assertEquals("Cost: ₹30.00 (₹30.00 / serving)", costB)
 	}
 
 	@Test
