@@ -7,6 +7,9 @@
 	<item android:id="@+id/toggle_optional"
 		android:title="@string/make_optional"/>
 
+	<item android:id="@+id/toggle_informational"
+		android:title="@string/mark_as_informational"/>
+
 	<item android:id="@+id/toggle_substitute"
 		android:title="@string/link_as_substitute"/>
 

@@ -72,4 +72,29 @@ class InformationalCostExclusionTest {
 		assertEquals(0.0, informationalItem.lineCost, 0.001)
 		assertNull(breakdown.formattedCostForIngredient(packagingNote))
 	}
+
+	@Test
+	fun `informational item formats display name from noteTitle and noteValue`() {
+		val trayNote = Ingredient(
+			isInformationalOnly = true,
+			noteTitle = "ट्रे Size",
+			noteValue = "12x18 inch"
+		)
+		val title = trayNote.noteTitle?.trim() ?: ""
+		val value = trayNote.noteValue?.trim() ?: ""
+		val displayName = if (title.isNotEmpty() && value.isNotEmpty()) "$title: $value" else title.ifEmpty { value }
+		assertEquals("ट्रे Size: 12x18 inch", displayName)
+	}
+
+	@Test
+	fun `informational item with only noteValue formats correctly`() {
+		val noteOnly = Ingredient(
+			isInformationalOnly = true,
+			noteValue = "17 किलो डब्बा में पैक"
+		)
+		val title = noteOnly.noteTitle?.trim() ?: ""
+		val value = noteOnly.noteValue?.trim() ?: ""
+		val displayName = if (title.isNotEmpty() && value.isNotEmpty()) "$title: $value" else title.ifEmpty { value }
+		assertEquals("17 किलो डब्बा में पैक", displayName)
+	}
 }

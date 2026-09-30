@@ -800,7 +800,20 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 				lineHeight = 24.sp
 			)
 			val baseItemString = buildAnnotatedString {
-				val name = item.ingredient.item ?: ""
+				if (item.ingredient.isInformationalOnly) {
+					withStyle(SpanStyle(color = MaterialTheme.colors.primary, fontWeight = FontWeight.Bold, fontSize = 11.sp)) {
+						append("ℹ ")
+					}
+				}
+				val name = if (item.ingredient.isInformationalOnly) {
+					if (!item.ingredient.noteTitle.isNullOrBlank() && !item.ingredient.noteValue.isNullOrBlank()) {
+						"${item.ingredient.noteTitle}: ${item.ingredient.noteValue}"
+					} else {
+						item.ingredient.noteValue ?: item.ingredient.noteTitle ?: item.ingredient.item ?: ""
+					}
+				} else {
+					item.ingredient.item ?: ""
+				}
 				if (item.ingredient.refId == null) {
 					append(name)
 				}

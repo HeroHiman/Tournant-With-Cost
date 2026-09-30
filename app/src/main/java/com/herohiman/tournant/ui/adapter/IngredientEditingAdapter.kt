@@ -152,17 +152,58 @@ class IngredientEditingAdapter(
 			}
 
 
-			val isSubstitute = !ingredient.substituteGroupId.isNullOrBlank()
-			if (isSubstitute) {
-				binding.textSubstituteBadge.visibility = View.VISIBLE
-				binding.textSubstituteBadge.text = if (ingredient.isActiveSubstitute) {
-					"${binding.textSubstituteBadge.context.getString(R.string.substitute_or)} ✓"
-				} else {
-					binding.textSubstituteBadge.context.getString(R.string.substitute_or)
-				}
-				binding.textSubstituteBadge.alpha = if (ingredient.isActiveSubstitute) 1.0f else 0.6f
-			} else {
+			if (ingredient.isInformationalOnly) {
+				binding.editAmountContainer.visibility = View.GONE
+				binding.editUnitContainer.visibility = View.GONE
+				binding.editItemContainer.visibility = View.GONE
 				binding.textSubstituteBadge.visibility = View.GONE
+				binding.textInfoBadge.visibility = View.VISIBLE
+				binding.editNoteTitleContainer.visibility = View.VISIBLE
+				binding.editNoteValueContainer.visibility = View.VISIBLE
+			} else {
+				binding.editAmountContainer.visibility = View.VISIBLE
+				binding.editUnitContainer.visibility = View.VISIBLE
+				binding.editItemContainer.visibility = View.VISIBLE
+				binding.textInfoBadge.visibility = View.GONE
+				binding.editNoteTitleContainer.visibility = View.GONE
+				binding.editNoteValueContainer.visibility = View.GONE
+
+				val isSubstitute = !ingredient.substituteGroupId.isNullOrBlank()
+				if (isSubstitute) {
+					binding.textSubstituteBadge.visibility = View.VISIBLE
+					binding.textSubstituteBadge.text = if (ingredient.isActiveSubstitute) {
+						"${binding.textSubstituteBadge.context.getString(R.string.substitute_or)} ✓"
+					} else {
+						binding.textSubstituteBadge.context.getString(R.string.substitute_or)
+					}
+					binding.textSubstituteBadge.alpha = if (ingredient.isActiveSubstitute) 1.0f else 0.6f
+				} else {
+					binding.textSubstituteBadge.visibility = View.GONE
+				}
+			}
+
+			binding.editNoteTitle.apply {
+				setOnEditorActionListener(onEditorActionListener)
+				filters = arrayOf(inputFilter)
+				if (text?.toString() != (ingredient.noteTitle ?: "")) {
+					setText(ingredient.noteTitle ?: "")
+				}
+				doAfterTextChanged {
+					ingredient.noteTitle = it?.toString()?.trim()?.ifEmpty { null }
+					updateInformationalItemString(ingredient)
+				}
+			}
+
+			binding.editNoteValue.apply {
+				setOnEditorActionListener(onEditorActionListener)
+				filters = arrayOf(inputFilter)
+				if (text?.toString() != (ingredient.noteValue ?: "")) {
+					setText(ingredient.noteValue ?: "")
+				}
+				doAfterTextChanged {
+					ingredient.noteValue = it?.toString()?.trim()?.ifEmpty { null }
+					updateInformationalItemString(ingredient)
+				}
 			}
 
 			binding.editPosition.setOnTouchListener { _, event ->
@@ -178,16 +219,26 @@ class IngredientEditingAdapter(
 					if (ingredient.optional)
 						menu.findItem(R.id.toggle_optional).title = view.context.getString(R.string.make_mandatory)
 
+					val toggleInfoItem = menu.findItem(R.id.toggle_informational)
 					val toggleSubItem = menu.findItem(R.id.toggle_substitute)
 					val setActiveSubItem = menu.findItem(R.id.set_active_substitute)
+					val toggleOptionalItem = menu.findItem(R.id.toggle_optional)
 
 					val isItemSubstitute = !ingredient.substituteGroupId.isNullOrBlank()
-					if (isItemSubstitute) {
-						toggleSubItem.title = view.context.getString(R.string.unlink_substitute)
-						setActiveSubItem.isVisible = !ingredient.isActiveSubstitute
+					if (ingredient.isInformationalOnly) {
+						toggleInfoItem?.title = view.context.getString(R.string.mark_as_ingredient)
+						toggleOptionalItem?.isVisible = false
+						toggleSubItem?.isVisible = false
+						setActiveSubItem?.isVisible = false
 					} else {
-						toggleSubItem.title = view.context.getString(R.string.link_as_substitute)
-						setActiveSubItem.isVisible = false
+						toggleInfoItem?.title = view.context.getString(R.string.mark_as_informational)
+						if (isItemSubstitute) {
+							toggleSubItem?.title = view.context.getString(R.string.unlink_substitute)
+							setActiveSubItem?.isVisible = !ingredient.isActiveSubstitute
+						} else {
+							toggleSubItem?.title = view.context.getString(R.string.link_as_substitute)
+							setActiveSubItem?.isVisible = false
+						}
 					}
 
 					setOnMenuItemClickListener { item ->
@@ -216,6 +267,30 @@ class IngredientEditingAdapter(
 
 							R.id.toggle_optional -> {
 								ingredient.optional = !ingredient.optional
+								notifyItemChanged(holder.bindingAdapterPosition)
+								true
+							}
+
+							R.id.toggle_informational -> {
+								ingredient.isInformationalOnly = !ingredient.isInformationalOnly
+								if (ingredient.isInformationalOnly) {
+									ingredient.substituteGroupId = null
+									ingredient.isActiveSubstitute = true
+									ingredient.optional = false
+									if (ingredient.noteTitle.isNullOrBlank() && ingredient.noteValue.isNullOrBlank()) {
+										if (!ingredient.item.isNullOrBlank()) {
+											ingredient.noteTitle = "जानकारी"
+											ingredient.noteValue = ingredient.item
+										}
+									}
+									updateInformationalItemString(ingredient)
+								} else {
+									if (ingredient.item.isNullOrBlank()) {
+										val title = ingredient.noteTitle?.trim() ?: ""
+										val value = ingredient.noteValue?.trim() ?: ""
+										ingredient.item = if (title.isNotEmpty() && value.isNotEmpty()) "$title: $value" else title.ifEmpty { value.ifEmpty { null } }
+									}
+								}
 								notifyItemChanged(holder.bindingAdapterPosition)
 								true
 							}
@@ -312,9 +387,28 @@ class IngredientEditingAdapter(
 
 	override fun onViewAttachedToWindow(holder: ViewHolder) {
 		if (focus) {
-			(holder as? IngredientViewHolder)?.binding?.editAmount?.requestFocus()
+			val ingHolder = holder as? IngredientViewHolder
+			if (ingHolder != null) {
+				if (ingHolder.binding.editNoteTitleContainer.visibility == View.VISIBLE) {
+					ingHolder.binding.editNoteTitle.requestFocus()
+				} else {
+					ingHolder.binding.editAmount.requestFocus()
+				}
+			}
 			(holder as? GroupTitleViewHolder)?.binding?.editTitle?.requestFocus()
 			focus = false
+		}
+	}
+
+	private fun updateInformationalItemString(ingredient: Ingredient) {
+		if (ingredient.isInformationalOnly) {
+			val title = ingredient.noteTitle?.trim() ?: ""
+			val value = ingredient.noteValue?.trim() ?: ""
+			ingredient.item = if (title.isNotEmpty() && value.isNotEmpty()) {
+				"$title: $value"
+			} else {
+				title.ifEmpty { value.ifEmpty { null } }
+			}
 		}
 	}
 

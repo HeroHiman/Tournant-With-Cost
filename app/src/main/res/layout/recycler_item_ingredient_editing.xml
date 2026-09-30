@@ -101,6 +101,64 @@
 			android:textStyle="bold"
 			android:visibility="gone" />
 
+		<TextView
+			android:id="@+id/text_info_badge"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginHorizontal="4dp"
+			android:paddingHorizontal="6dp"
+			android:paddingVertical="3dp"
+			android:background="@drawable/badge_background"
+			android:text="@string/informational_badge"
+			android:textColor="@color/blue_text"
+			android:textSize="10sp"
+			android:textStyle="bold"
+			android:visibility="gone" />
+
+		<com.google.android.material.textfield.TextInputLayout
+			android:id="@+id/edit_note_title_container"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_weight=".6"
+			android:paddingBottom="4dp"
+			android:visibility="gone"
+			app:expandedHintEnabled="false"
+			android:hint="@string/note_title_hint"
+			style="@style/Tournant.TextInputLayout.OutlinedBox.Dense">
+
+			<com.google.android.material.textfield.TextInputEditText
+				android:id="@+id/edit_note_title"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:imeOptions="actionNext"
+				android:inputType="text"
+				android:text="@={ingredient.noteTitle}"/>
+
+		</com.google.android.material.textfield.TextInputLayout>
+
+		<com.google.android.material.textfield.TextInputLayout
+			android:id="@+id/edit_note_value_container"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_weight="1.2"
+			android:layout_marginStart="4dp"
+			android:paddingBottom="4dp"
+			android:visibility="gone"
+			app:expandedHintEnabled="false"
+			android:hint="@string/note_value_hint"
+			style="@style/Tournant.TextInputLayout.OutlinedBox.Dense">
+
+			<com.google.android.material.textfield.TextInputEditText
+				android:id="@+id/edit_note_value"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:imeOptions="actionDone"
+				android:inputType="textMultiLine"
+				android:maxLines="3"
+				android:text="@={ingredient.noteValue}"/>
+
+		</com.google.android.material.textfield.TextInputLayout>
+
 		<ImageButton
 			android:id="@+id/edit_options"
 			android:layout_width="42dp"

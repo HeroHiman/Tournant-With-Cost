@@ -323,5 +323,11 @@
 	<string name="units_import_failed">Failed to import unit dictionary</string>
 	<string name="units_import_invalid_file">Invalid or corrupted unit backup file</string>
 	<string name="no_units_in_backup">No unit aliases found in backup file</string>
+	<!-- Recipe Metadata & Cost Exclusions (Epic 11) -->
+	<string name="informational_badge">जानकारी</string>
+	<string name="note_title_hint">Title (e.g. ट्रे Size)</string>
+	<string name="note_value_hint">Note / विवरण (e.g. 12x18 inch)</string>
+	<string name="mark_as_informational">Mark as Informational (जानकारी)</string>
+	<string name="mark_as_ingredient">Convert to Raw Material (सामग्री)</string>
 
 </resources>
