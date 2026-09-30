@@ -30,8 +30,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -114,6 +116,10 @@ class RecipeViewModel(application: TournantApplication, private val recipeId: Lo
 				currentRecipeId = recipeId
 			)
 		}
+	}.flowOn(Dispatchers.IO)
+	.catch { e ->
+		logit { "Error calculating recipe cost breakdown: ${e.message}" }
+		emit(null)
 	}
 
 	fun selectActiveSubstitute(targetIngredient: com.herohiman.tournant.data.Ingredient) {
@@ -144,7 +150,7 @@ class RecipeViewModel(application: TournantApplication, private val recipeId: Lo
 			recipe.ingredients.forEach {
 				it.refId?.let { refId ->
 					withContext(Dispatchers.IO) {
-						it.item = recipeRepository.getRecipeTitleById(refId)
+						it.item = recipeRepository.getRecipeTitleById(refId) ?: it.item
 					}
 				}
 			}
@@ -264,7 +270,7 @@ class RecipeViewModel(application: TournantApplication, private val recipeId: Lo
 		viewModelScope.launch {
 			withContext(Dispatchers.IO) {
 				dependentRecipes.emit(recipeRepository.getDependentRecipeIds(setOf(recipeId)).map {
-					RecipeTitleId(it, recipeRepository.getRecipeTitleById(it))
+					RecipeTitleId(it, recipeRepository.getRecipeTitleById(it) ?: "")
 				})
 			}
 		}

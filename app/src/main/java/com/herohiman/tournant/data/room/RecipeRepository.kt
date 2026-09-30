@@ -258,7 +258,7 @@ class RecipeRepository(
 	fun getRecipesById(ids: Set<Long>) = dao.getRecipesById(ids)
 	fun getReferencedRecipes(ids: Set<Long>) = dao.getReferencedRecipes(ids)
 	fun getRecipeTitlesWithIds() = dao.getRecipeTitlesWithIds()
-	fun getRecipeTitleById(id: Long) = dao.getRecipeTitleById(id)
+	fun getRecipeTitleById(id: Long): String? = dao.getRecipeTitleById(id)
 	fun getRecipeDescriptions(query: String, orderedBy: Int, offset: Int, limit: Int, month: Int) = dao.getRecipeDescriptions(query, orderedBy, offset, limit, month)
 	fun getKeywords(id: Long) = dao.getKeywords(id)
 	fun getRecipeCount() = dao.getRecipeCount()

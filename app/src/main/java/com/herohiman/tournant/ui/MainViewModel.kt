@@ -371,7 +371,7 @@ class MainViewModel(private val application: TournantApplication) : AndroidViewM
 		}
 	}
 
-	fun getRecipeTitle(id: Long) = recipeRepository.getRecipeTitleById(id)
+	fun getRecipeTitle(id: Long): String = recipeRepository.getRecipeTitleById(id) ?: ""
 
 	fun copyRecipesFromExportDir(filename: String, extension: String, toUri: Uri) {
 		viewModelScope.launch {

@@ -112,4 +112,19 @@ class RecipeViewerLineCostUiTest {
 		val formattedCost = breakdown.formattedCostForIngredient(kaju)
 		assertEquals("₹7000.00", formattedCost)
 	}
+
+	@Test
+	fun `recipe viewer cost calculation handles null item names and missing sub recipes safely`() {
+		val emptyItem = Ingredient(amount = null, unit = null, item = null, refId = 9999L)
+		val breakdown = LiveCostCalculator.calculateRecipeCost(
+			ingredients = listOf(emptyItem),
+			masterIngredients = emptyList(),
+			subRecipeResolver = { null },
+			currentRecipeId = 1L
+		)
+		assertNotNull(breakdown)
+		assertEquals(0.0, breakdown.totalCost, 0.001)
+		assertEquals(1, breakdown.unpricedItemCount)
+		assertNull(breakdown.formattedCostForIngredient(emptyItem))
+	}
 }

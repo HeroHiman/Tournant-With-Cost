@@ -90,7 +90,7 @@ class RecipeLinkingManager(
             withContext(Dispatchers.IO) {
                 val dependentIds = recipeRepository.getDependentRecipeIds(setOf(recipeId))
                 Result.success(dependentIds.map { id ->
-                    com.herohiman.tournant.data.RecipeTitleId(id, recipeRepository.getRecipeTitleById(id))
+                    com.herohiman.tournant.data.RecipeTitleId(id, recipeRepository.getRecipeTitleById(id) ?: "")
                 })
             }
         } catch (e: Exception) {
@@ -112,7 +112,7 @@ class RecipeLinkingManager(
                     .distinct()
 
                 Result.success(referencedIds.map { id ->
-                    com.herohiman.tournant.data.RecipeTitleId(id, recipeRepository.getRecipeTitleById(id))
+                    com.herohiman.tournant.data.RecipeTitleId(id, recipeRepository.getRecipeTitleById(id) ?: "")
                 })
             }
         } catch (e: Exception) {

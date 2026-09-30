@@ -668,6 +668,7 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 		weighMode: Boolean,
 		costBreakdown: RecipeCostBreakdown? = null
 	) {
+		val typography = MaterialTheme.typography.body1
 		val amountMaxWidth = with(LocalDensity.current) {
 			items.filterIsInstance<IngredientItem>().maxOfOrNull {
 				val displayStr = if (it.originalIngredient != null && it.originalIngredient.amount != it.ingredient.amount) {
@@ -677,7 +678,7 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 				}
 				textMeasurer.measure(
 					displayStr,
-					MaterialTheme.typography.body1
+					typography
 				).size.width.toDp()
 			}
 		}
@@ -799,20 +800,21 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 				lineHeight = 24.sp
 			)
 			val baseItemString = buildAnnotatedString {
+				val name = item.ingredient.item ?: ""
 				if (item.ingredient.refId == null) {
-					append(item.ingredient.item)
+					append(name)
 				}
 				else {
 					pushStringAnnotation("LINK_TO_RECIPE", item.ingredient.refId.toString())
 					withStyle(SpanStyle(color = MaterialTheme.colors.primary, textDecoration = TextDecoration.Underline)) {
-						append(item.ingredient.item)
+						append(name)
 					}
 					pop()
 				}
 			}
 			val fullItemString = buildAnnotatedString {
 				if (item.ingredient.optional) {
-					append(stringResource(R.string.optional, baseItemString))
+					append(stringResource(R.string.optional, baseItemString.text))
 				} else {
 					append(baseItemString)
 				}
