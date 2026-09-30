@@ -64,7 +64,10 @@ data class RecipeWithIngredientsAndPreparations(
 					group = it.group,
 					optional = it.optional,
 					substituteGroupId = it.substituteGroupId,
-					isActiveSubstitute = it.isActiveSubstitute
+					isActiveSubstitute = it.isActiveSubstitute,
+					isInformationalOnly = it.isInformationalOnly,
+					noteTitle = it.noteTitle,
+					noteValue = it.noteValue
 				)
 			}.toMutableList(),
 			preparations = preparations.flatMap { entry -> List(entry.count) { entry.date } }.sorted().toMutableList()

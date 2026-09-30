@@ -31,5 +31,11 @@ data class IngredientEntity(
 	@ColumnInfo(defaultValue = "NULL", index = true)
 	var substituteGroupId: String? = null,
 	@ColumnInfo(defaultValue = "1")
-	var isActiveSubstitute: Boolean = true
+	var isActiveSubstitute: Boolean = true,
+	@ColumnInfo(defaultValue = "0")
+	var isInformationalOnly: Boolean = false,
+	@ColumnInfo(defaultValue = "NULL")
+	var noteTitle: String? = null,
+	@ColumnInfo(defaultValue = "NULL")
+	var noteValue: String? = null
 )

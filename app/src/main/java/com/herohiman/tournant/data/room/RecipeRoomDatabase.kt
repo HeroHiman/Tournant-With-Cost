@@ -17,8 +17,8 @@ import kotlin.reflect.full.declaredFunctions
 @Database(
 	entities = [RecipeEntity::class, IngredientEntity::class, KeywordEntity::class, PreparationEntity::class, RecipePinEntity::class, MasterIngredientEntity::class, UnitAliasEntity::class, IngredientAliasEntity::class],
 	exportSchema = true,
-	version = 13,
-	autoMigrations = [AutoMigration(1, 2), AutoMigration(2, 3), AutoMigration(4, 5), AutoMigration(6, 7), AutoMigration(7, 8), AutoMigration(8, 9), AutoMigration(9, 10), AutoMigration(10, 11), AutoMigration(11, 12), AutoMigration(12, 13)]
+	version = 14,
+	autoMigrations = [AutoMigration(1, 2), AutoMigration(2, 3), AutoMigration(4, 5), AutoMigration(6, 7), AutoMigration(7, 8), AutoMigration(8, 9), AutoMigration(9, 10), AutoMigration(10, 11), AutoMigration(11, 12), AutoMigration(12, 13), AutoMigration(13, 14)]
 )
 abstract class RecipeRoomDatabase : RoomDatabase() {
 	abstract fun recipeDao(): RecipeDao
@@ -52,7 +52,7 @@ abstract class RecipeRoomDatabase : RoomDatabase() {
 					}, Executors.newSingleThreadExecutor()
 					)
 */
-					.addMigrations(MIGRATION_3_4, MIGRATION_5_6, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13)
+					.addMigrations(MIGRATION_3_4, MIGRATION_5_6, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14)
 					.build()
 				INSTANCE = instance
 				return instance
@@ -142,6 +142,14 @@ abstract class RecipeRoomDatabase : RoomDatabase() {
 				db.execSQL("ALTER TABLE `Ingredient` ADD COLUMN `substituteGroupId` TEXT DEFAULT NULL")
 				db.execSQL("ALTER TABLE `Ingredient` ADD COLUMN `isActiveSubstitute` INTEGER NOT NULL DEFAULT 1")
 				db.execSQL("CREATE INDEX IF NOT EXISTS `index_Ingredient_substituteGroupId` ON `Ingredient` (`substituteGroupId`)")
+			}
+		}
+
+		val MIGRATION_13_14 = object : Migration(13, 14) {
+			override fun migrate(db: SupportSQLiteDatabase) {
+				db.execSQL("ALTER TABLE `Ingredient` ADD COLUMN `isInformationalOnly` INTEGER NOT NULL DEFAULT 0")
+				db.execSQL("ALTER TABLE `Ingredient` ADD COLUMN `noteTitle` TEXT DEFAULT NULL")
+				db.execSQL("ALTER TABLE `Ingredient` ADD COLUMN `noteValue` TEXT DEFAULT NULL")
 			}
 		}
 	}

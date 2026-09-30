@@ -13,7 +13,8 @@ enum class CostStatus {
 	INCOMPATIBLE_UNITS,
 	OPTIONAL_EXCLUDED,
 	RECURSION_CYCLE_DETECTED,
-	SUBSTITUTE_INACTIVE
+	SUBSTITUTE_INACTIVE,
+	INFORMATIONAL_EXCLUDED
 }
 
 data class SubRecipeData(
@@ -358,6 +359,17 @@ object LiveCostCalculator {
 		currentRecipeId: Long? = null,
 		visitedRecipeIds: Set<Long> = emptySet()
 	): IngredientCostItem {
+		if (ingredient.isInformationalOnly) {
+			return IngredientCostItem(
+				ingredient = ingredient,
+				masterIngredient = null,
+				matchedUnit = ingredient.unit,
+				effectiveAmount = ingredient.amount,
+				lineCost = 0.0,
+				status = CostStatus.INFORMATIONAL_EXCLUDED
+			)
+		}
+
 		if (ingredient.optional && !includeOptional) {
 			return IngredientCostItem(
 				ingredient = ingredient,

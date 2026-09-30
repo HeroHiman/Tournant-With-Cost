@@ -82,7 +82,10 @@ data class Recipe(
 				group = it.group,
 				optional = it.optional,
 				substituteGroupId = it.substituteGroupId,
-				isActiveSubstitute = it.isActiveSubstitute
+				isActiveSubstitute = it.isActiveSubstitute,
+				isInformationalOnly = it.isInformationalOnly,
+				noteTitle = it.noteTitle,
+				noteValue = it.noteValue
 			) },
 			keywords.mapIndexed { i, it -> KeywordEntity(id, i, it) },
 			preparations.groupBy { it }.map { (date, elements) -> PreparationEntity(id, date, elements.size) }
