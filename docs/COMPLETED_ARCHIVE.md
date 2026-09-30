@@ -142,3 +142,16 @@ This archive provides technical documentation for all recently implemented stori
   - [`UnitManagementViewModel.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/UnitManagementViewModel.kt)
   - [`StateManagementSearchViewModelTest.kt`](file:///workspace/recipeMaker/Tournant/app/src/test/java/com/herohiman/tournant/StateManagementSearchViewModelTest.kt)
 - **Exact Solution**: Permitted optional `CoroutineScope` injection in ViewModel constructors defaulting to `viewModelScope`, allowing unit tests to supply `CoroutineScope(Dispatchers.IO)` so upstream database emissions execute concurrently.
+
+---
+
+### Bug 5: Main-Thread Database Access and Null Dereference Crash on Opening Recipes
+- **Summary**: When opening any recipe detail screen (`RecipeActivity`), the app crashed immediately with `IllegalStateException: Cannot access database on the main thread` and `NullPointerException` on sub-recipe and ingredient lookups.
+- **Technical Files Modified**:
+  - [`RecipeViewModel.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt): Added `.flowOn(Dispatchers.IO)` and error catching to `recipeCostBreakdown` Flow.
+  - [`RecipeDao.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/data/room/RecipeDao.kt) & [`RecipeRepository.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/data/room/RecipeRepository.kt): Changed `getRecipeTitleById(id: Long)` to return `String?`.
+  - [`MainViewModel.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/MainViewModel.kt) & [`RecipeLinkingManager.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/elements/RecipeLinkingManager.kt): Handled null recipe titles with safe elvis defaults `?: ""`.
+  - [`RecipeActivity.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt): Safeguarded ingredient item strings and typography extraction outside of Compose lambda limitations.
+  - [`RecipeViewerLineCostUiTest.kt`](file:///workspace/recipeMaker/Tournant/app/src/test/java/com/herohiman/tournant/RecipeViewerLineCostUiTest.kt): Added unit test validating resilient handling of null items and missing sub-recipes.
+- **Exact Solution**: Prevented Compose `collectAsState` on the main thread from invoking synchronous DAO queries during sub-recipe resolution by shifting flow computation to `Dispatchers.IO`, and added null-safety fallbacks across all referenced recipe lookups.
+
