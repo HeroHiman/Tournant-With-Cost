@@ -17,10 +17,22 @@ This document tracks the implementation status of all feature epics, stories, an
 | **Epic 7: Multilingual Unit Normalization & Custom Aliases** | **100% Complete** | `UnitConverterEngineTest`, `UnitManagementUiTest` |
 | **Epic 8: Line-Item Costing & Currency Localization (₹)** | **100% Complete** | `CostCurrencyFormatterTest`, `LineItemCostResolutionTest` |
 | **Epic 9: Smart Search Integration** | **100% Complete** | `ReactiveSearchQueriesTest`, `StateManagementSearchViewModelTest` |
+| **Epic 11: Recipe Metadata & Cost Exclusions** | **100% Complete** | `InformationalCostExclusionTest`, `YieldParserTest` |
 
 ---
 
 ## Detailed Story Checklist
+
+### Epic 11: Recipe Metadata & Cost Exclusions
+- [x] **Story 11.1: Informational Cost Exclusion (Domain & Schema Layer)**
+  - `isInformationalOnly: Boolean = false`, `noteTitle: String?`, `noteValue: String?` in `IngredientEntity` (Room migration 13 to 14)
+  - `CostStatus.INFORMATIONAL_EXCLUDED` in `LiveCostCalculator` with 0.0 line cost and zero unpriced errors
+- [x] **Story 11.2: Title & Tray Size Metadata UI (Presentation Layer)**
+  - Toggle between ingredient mode and informational mode in recipe editor
+  - Display Title (`noteTitle`) and Note (`noteValue`) text fields with "जानकारी" badge
+- [x] **Story 11.3: YieldParser & "Cost per kg" Metric (Domain & Presentation Layer)**
+  - Multi-pattern parser supporting parentheses `1 टीपा काजू (10 किलो)`, Devanagari numerals, and direct mass units
+  - Real-time `Cost per kg: ₹...` calculation and display in Recipe Viewer header
 
 ### Epic 9: Smart Search Integration
 - [x] **Story 9.1: Reactive Search Queries (Data Layer)**

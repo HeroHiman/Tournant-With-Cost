@@ -34,6 +34,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.herohiman.tournant.cost.RecipeCostBreakdown
+import com.herohiman.tournant.cost.YieldParser
+import com.herohiman.tournant.cost.CostCurrencyFormatter
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -581,6 +583,18 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 					)
 				}
 				val costBreakdown by viewModel.recipeCostBreakdown.collectAsState(null)
+				val scaleRatio by viewModel.scaleRatio.collectAsState(1.0)
+				val costPerKg = costBreakdown?.let {
+					YieldParser.calculateCostPerKg(
+						totalCost = it.totalCost,
+						yieldValue = recipe.yieldValue,
+						yieldUnit = recipe.yieldUnit,
+						scaleFactor = scaleRatio
+					)
+				}
+				val formattedCostPerKg = costPerKg?.let {
+					CostCurrencyFormatter.formatAmount(it)
+				}
 				Row(
 					Modifier.padding(vertical = 16.dp)
 				) {
@@ -609,9 +623,15 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 					)
 					if (costBreakdown != null && costBreakdown!!.totalCost > 0.0) {
 						Text(
-							text = " • Cost: ${costBreakdown!!.formattedTotalCost()}",
+							text = " • " + stringResource(R.string.total_cost_label, costBreakdown!!.formattedTotalCost()),
 							style = italicTextStyle
 						)
+						if (formattedCostPerKg != null) {
+							Text(
+								text = " • " + stringResource(R.string.cost_per_kg_label, formattedCostPerKg),
+								style = italicTextStyle
+							)
+						}
 					}
 				}
 				Row {

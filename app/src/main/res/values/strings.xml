@@ -329,5 +329,7 @@
 	<string name="note_value_hint">Note / विवरण (e.g. 12x18 inch)</string>
 	<string name="mark_as_informational">Mark as Informational (जानकारी)</string>
 	<string name="mark_as_ingredient">Convert to Raw Material (सामग्री)</string>
+	<string name="total_cost_label">Total Cost: %s</string>
+	<string name="cost_per_kg_label">Cost per kg: %s</string>
 
 </resources>

@@ -56,6 +56,7 @@ class RecipeViewModel(application: TournantApplication, private val recipeId: Lo
 	private val _scaleRatio = combine(_recipeYieldValue, _targetYieldValue) { currentYield, targetYield ->
 		targetYield?.div(currentYield ?: 1.0) ?: 1.0
 	}
+	val scaleRatio: Flow<Double> = _scaleRatio
 
 	val yieldValueScaled = combine(_recipeYieldValue, _scaleRatio, _yieldFromTextField) { yield, ratio, textField ->
 		textField ?: yield?.times(ratio).toStringForCooks(thousands = false)

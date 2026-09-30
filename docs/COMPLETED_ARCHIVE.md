@@ -6,6 +6,35 @@ This archive provides technical documentation for all recently implemented stori
 
 ## 1. Implemented Stories
 
+### Epic 11: Recipe Metadata, Informational Cost Exclusions & Yield Parsing
+
+#### Story 11.1: Informational Cost Exclusion (Domain & Schema Layer)
+- **Summary**: Added `isInformationalOnly`, `noteTitle`, and `noteValue` to `Ingredient` and `IngredientEntity` (Room migration 13 to 14) and updated `LiveCostCalculator` with `CostStatus.INFORMATIONAL_EXCLUDED` to exclude non-material notes (e.g. "17 किलो डब्बा में पैक") from inflating recipe cost totals and false unpriced warnings.
+- **Technical Files Modified**:
+  - [`Ingredient.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/data/Ingredient.kt) & [`IngredientEntity.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/data/room/IngredientEntity.kt)
+  - [`RecipeRoomDatabase.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/data/room/RecipeRoomDatabase.kt) (Migration 13 to 14, schema `14.json`)
+  - [`Recipe.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/data/Recipe.kt) & [`RecipeWithIngredientsAndPreparations.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/data/room/RecipeWithIngredientsAndPreparations.kt)
+  - [`LiveCostCalculator.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/cost/LiveCostCalculator.kt)
+  - [`InformationalCostExclusionTest.kt`](file:///workspace/recipeMaker/Tournant/app/src/test/java/com/herohiman/tournant/InformationalCostExclusionTest.kt)
+
+#### Story 11.2: Title & Tray Size Metadata UI (Presentation Layer)
+- **Summary**: Updated Recipe Editor ingredient rows to support marking items as informational. When enabled, ingredient amount/unit/item dropdowns are replaced with dedicated Title (e.g., "ट्रे Size") and Note/विवरण fields with a distinct "जानकारी" badge.
+- **Technical Files Modified**:
+  - [`recycler_item_ingredient_editing.xml`](file:///workspace/recipeMaker/Tournant/app/src/main/res/layout/recycler_item_ingredient_editing.xml)
+  - [`options_ingredient.xml`](file:///workspace/recipeMaker/Tournant/app/src/main/res/menu/options_ingredient.xml)
+  - [`IngredientEditingAdapter.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/adapter/IngredientEditingAdapter.kt)
+  - [`strings.xml`](file:///workspace/recipeMaker/Tournant/app/src/main/res/values/strings.xml)
+
+#### Story 11.3: YieldParser & "Cost per kg" Metric (Domain & Presentation Layer)
+- **Summary**: Implemented `YieldParser` capable of extracting target mass amounts and units from complex yield descriptions (e.g., "1 टीपा काजू (10 किलो)", "500 ग्राम", Devanagari numerals), computing normalized cost per kilogram (`totalCost / effectiveKg`), and rendering `Cost per kg: ₹...` in the Recipe Viewer header.
+- **Technical Files Modified**:
+  - [`YieldParser.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/cost/YieldParser.kt)
+  - [`RecipeViewModel.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt)
+  - [`RecipeActivity.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt)
+  - [`YieldParserTest.kt`](file:///workspace/recipeMaker/Tournant/app/src/test/java/com/herohiman/tournant/YieldParserTest.kt)
+
+---
+
 ### Story 9.1: Reactive Search Queries (Data Layer)
 - **Summary**: Implemented reactive Room SQL queries supporting dynamic partial-match search (`LIKE '%' || :query || '%'`) across master ingredient names, categories, and unit aliases in both English and Hindi (Devanagari script).
 - **Technical Files Modified**:
