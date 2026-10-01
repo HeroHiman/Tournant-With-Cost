@@ -1129,17 +1129,22 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 		onOpenQuickMap: ((Ingredient) -> Unit)? = null
 	) {
 		val typography = MaterialTheme.typography.body1
+		val captionTypography = MaterialTheme.typography.caption.copy(fontSize = 11.sp)
 		val amountMaxWidth = with(LocalDensity.current) {
 			items.filterIsInstance<IngredientItem>().maxOfOrNull {
-				val displayStr = if (it.originalIngredient != null && it.originalIngredient.amount != it.ingredient.amount) {
-					"${it.ingredient.amountToStringForCooks(appendSpace = false)} (${it.originalIngredient.amountToStringForCooks(appendSpace = false)}) "
-				} else {
-					it.ingredient.amountToStringForCooks()
-				}
-				textMeasurer.measure(
-					displayStr,
+				val scaledWidth = textMeasurer.measure(
+					it.ingredient.amountToStringForCooks(),
 					typography
 				).size.width.toDp()
+				val originalWidth = if (it.originalIngredient != null && it.originalIngredient.amount != it.ingredient.amount) {
+					textMeasurer.measure(
+						"(Original: ${it.originalIngredient.amountToStringForCooks(appendSpace = false)})",
+						captionTypography
+					).size.width.toDp()
+				} else {
+					0.dp
+				}
+				maxOf(scaledWidth, originalWidth)
 			}
 		}
 		Column(modifier) {
@@ -1241,17 +1246,11 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 
 		val lineCostFormatted = costBreakdown?.formattedCostForIngredient(item.ingredient)
 
-		val amountText = if (item.originalIngredient != null && item.originalIngredient.amount != item.ingredient.amount) {
-			buildAnnotatedString {
-				append(item.ingredient.amountToStringForCooks(appendSpace = false))
-				withStyle(SpanStyle(fontSize = if (cookMode) 14.sp else 12.sp, color = MaterialTheme.colors.onSurface.copy(alpha = 0.55f))) {
-					append(" (${item.originalIngredient.amountToStringForCooks(appendSpace = false)})")
-				}
-				append(" ")
-			}
-		} else {
-			buildAnnotatedString { append(item.ingredient.amountToStringForCooks()) }
-		}
+		val isScaled = item.originalIngredient != null && item.originalIngredient.amount != item.ingredient.amount
+		val scaledAmountText = item.ingredient.amountToStringForCooks()
+		val originalAmountText = if (isScaled) {
+			item.originalIngredient?.amountToStringForCooks(appendSpace = false)
+		} else null
 
 		Row(
 			modifier = Modifier
@@ -1294,8 +1293,7 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 				Spacer(Modifier.width(4.dp))
 			}
 
-			Text(
-				text = amountText,
+			Column(
 				modifier = Modifier
 					.width(if (cookMode) amountMaxWidth * 1.15f else amountMaxWidth)
 					.pointerInput(Unit) {
@@ -1308,14 +1306,31 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 							}
 						)
 					},
-				textAlign = TextAlign.End,
-				lineHeight = if (cookMode) 28.sp else 24.sp,
-				style = if (cookMode) MaterialTheme.typography.subtitle1.copy(
-					fontWeight = FontWeight.Bold,
-					color = if (item.isChecked) MaterialTheme.colors.onSurface.copy(alpha = 0.5f) else MaterialTheme.colors.primary,
-					textDecoration = if (item.isChecked) TextDecoration.LineThrough else null
-				) else LocalTextStyle.current
-			)
+				horizontalAlignment = Alignment.End
+			) {
+				Text(
+					text = scaledAmountText,
+					textAlign = TextAlign.End,
+					lineHeight = if (cookMode) 28.sp else 22.sp,
+					style = if (cookMode) MaterialTheme.typography.subtitle1.copy(
+						fontWeight = FontWeight.Bold,
+						color = if (item.isChecked) MaterialTheme.colors.onSurface.copy(alpha = 0.5f) else MaterialTheme.colors.primary,
+						textDecoration = if (item.isChecked) TextDecoration.LineThrough else null
+					) else if (isScaled) LocalTextStyle.current.copy(fontWeight = FontWeight.Bold) else LocalTextStyle.current
+				)
+				if (isScaled && originalAmountText != null) {
+					Text(
+						text = stringResource(R.string.original_amount_subtitle, originalAmountText),
+						textAlign = TextAlign.End,
+						style = MaterialTheme.typography.caption.copy(
+							fontSize = if (cookMode) 12.sp else 10.sp,
+							fontStyle = FontStyle.Italic,
+							color = MaterialTheme.colors.onSurface.copy(alpha = 0.55f)
+						),
+						maxLines = 1
+					)
+				}
+			}
 			Spacer(Modifier.width(8.dp))
 			val baseItemString = buildAnnotatedString {
 				if (isInformational) {

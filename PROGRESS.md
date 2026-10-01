@@ -71,6 +71,7 @@ This document tracks the implementation status of all feature epics, stories, an
   - Resolved yield text truncation ("1 कि...") by splitting `OutputSummaryDashboard` interactive section into two dedicated sub-rows:
     - Row 1: Full-width yield title, input field, and unit description (`maxLines = 2`, `weight(1f)`) preventing ellipsis on long unit strings
     - Row 2: Dedicated scaling action sub-row with `[⚡ Batch Scaler]` pill button and grouped `[↺ 1x]`, `[ - ]`, `[ + ]` touch controls (30dp)
+  - Implemented Two-Line Scaler Layout in `IngredientDisplay` and decoupled measurement in `IngredientList`: top line displays bold scaled amount, bottom line renders `(Original: ...)` in caption italics, freeing ~50% horizontal space and preventing awkward vertical wrapping of ingredient names
   - Expanded ingredient list to full width and styled line-item price badges with subtle container badges
 
 ### Epic 11: Recipe Metadata & Cost Exclusions

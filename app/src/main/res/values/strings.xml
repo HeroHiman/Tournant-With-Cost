@@ -354,5 +354,6 @@
 	<string name="multiplier">Multiplier</string>
 	<string name="scale_batch_button">Scale ⚡</string>
 	<string name="kitchen_notes_pinned">📌 Kitchen &amp; Operational Notes (ट्रे / जानकारी):</string>
+	<string name="original_amount_subtitle">(Original: %s)</string>
 
 </resources>
