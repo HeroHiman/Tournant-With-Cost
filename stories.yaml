@@ -368,6 +368,18 @@ epics:
         tech_stack: [kotlin, android, compose]
         test_focus: [unit]
         complexity: MEDIUM
+      "11.4":
+        title: "Group-Level Informational Exclusion Zones"
+        description: "As a production cook, I want entire groups (like टोटल माल or जानकारी) to be marked informational so child notes are excluded from total output mass and costing"
+        acceptance_criteria:
+          - "IngredientGroupTitle supports isInformationalGroup flag and cascades isInformationalOnly to child items"
+          - "LiveCostCalculator excludes informational group items from active mass kg sum and line costing"
+          - "Recipe Editor supports group-level 'Mark as Informational' popup toggle with 'जानकारी' badge"
+          - "Recipe Viewer hides [+ Add Cost / Map] chip and prices for items within informational groups"
+        dependencies: ["11.1", "11.2"]
+        tech_stack: [kotlin, android, compose, room]
+        test_focus: [ui, unit]
+        complexity: MEDIUM
 
   # Epic 12: Modern Recipe UI & Output Dashboard
   "12":
@@ -671,6 +683,17 @@ story_implementations:
     files:
       - "app/src/main/java/com/herohiman/tournant/cost/YieldParser.kt"
       - "app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt"
+
+  "11.4":
+    status: "completed"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/data/IngredientLine.kt"
+      - "app/src/main/java/com/herohiman/tournant/Extensions.kt"
+      - "app/src/main/java/com/herohiman/tournant/cost/LiveCostCalculator.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/adapter/IngredientEditingAdapter.kt"
+      - "app/src/main/res/layout/recycler_item_ingredient_editing_group.xml"
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt"
+      - "app/src/test/java/com/herohiman/tournant/RecipeViewerLineCostUiTest.kt"
 
   "12.1":
     status: "completed"

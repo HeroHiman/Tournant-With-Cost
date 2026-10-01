@@ -168,8 +168,11 @@ fun MutableList<Ingredient>.addGroupTitles(): MutableList<IngredientLine> {
 			if (group != null)
 				newList.add(IngredientGroupTitle(null))
 			group = newgroup
-			if (group != null)
-				newList.add(IngredientGroupTitle(group))
+			if (group != null) {
+				val isInfo = this.filter { it.group == group }.all { it.isInformationalOnly } ||
+						com.herohiman.tournant.cost.LiveCostCalculator.isInformationalGroup(group)
+				newList.add(IngredientGroupTitle(group, isInformationalGroup = isInfo))
+			}
 		}
 		newList.add(IngredientItem(item))
 	}
@@ -181,14 +184,20 @@ fun MutableList<Ingredient>.addGroupTitles(): MutableList<IngredientLine> {
 fun MutableList<IngredientLine>.hideGroupTitles(): MutableList<Ingredient> {
 	val newList = mutableListOf<Ingredient>()
 	var group: String? = null
+	var isInfoGroup = false
 	for (item in this) {
+		if (item is IngredientGroupTitle) {
+			group = item.title
+			isInfoGroup = item.isInformationalGroup || com.herohiman.tournant.cost.LiveCostCalculator.isInformationalGroup(item.title)
+		}
 		if (item is IngredientItem && (item.ingredient.item?.isBlank() == false || item.ingredient.refId?.equals(0L) == false)) {
 			newList.add(item.ingredient.apply {
 				item.ingredient.group = group
+				if (isInfoGroup) {
+					item.ingredient.isInformationalOnly = true
+				}
 			})
 		}
-		if (item is IngredientGroupTitle)
-			group = item.title
 	}
 	return newList
 }

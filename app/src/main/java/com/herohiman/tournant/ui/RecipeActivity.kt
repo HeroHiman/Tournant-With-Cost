@@ -738,7 +738,9 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 							}
 						}
 
-						val infoItems = items.filterIsInstance<IngredientItem>().filter { it.ingredient.isInformationalOnly }
+						val infoItems = items.filterIsInstance<IngredientItem>().filter {
+							it.ingredient.isInformationalOnly || com.herohiman.tournant.cost.LiveCostCalculator.isInformationalGroup(it.ingredient.group)
+						}
 						if (infoItems.isNotEmpty()) {
 							Card(
 								modifier = Modifier.fillMaxWidth(),
@@ -757,7 +759,7 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 									)
 									Spacer(Modifier.height(6.dp))
 									infoItems.forEach { infoLine ->
-										val title = infoLine.ingredient.noteTitle ?: "Note"
+										val title = infoLine.ingredient.noteTitle ?: infoLine.ingredient.group ?: "जानकारी"
 										val value = infoLine.ingredient.noteValue ?: infoLine.ingredient.item ?: ""
 										Row(modifier = Modifier.padding(vertical = 2.dp)) {
 											Text(
@@ -1093,13 +1095,40 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 		Column(modifier) {
 			items.forEachIndexed { i, item ->
 				when (item) {
-					is IngredientGroupTitle -> Text(
-						text = item.title ?: "",
-						style = MaterialTheme.typography.caption,
-						modifier = Modifier.padding(bottom = 4.dp).clickable {
-							item.title?.let { viewModel.toggleChecked(it) }
-						},
-					)
+					is IngredientGroupTitle -> {
+						val isInfoGroup = item.isInformationalGroup || com.herohiman.tournant.cost.LiveCostCalculator.isInformationalGroup(item.title)
+						Row(
+							verticalAlignment = Alignment.CenterVertically,
+							modifier = Modifier
+								.padding(top = if (i == 0) 0.dp else 8.dp, bottom = 4.dp)
+								.clickable {
+									item.title?.let { viewModel.toggleChecked(it) }
+								}
+						) {
+							Text(
+								text = item.title ?: "",
+								style = MaterialTheme.typography.caption.copy(fontWeight = FontWeight.Bold),
+								color = if (isInfoGroup) MaterialTheme.colors.primary else MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
+							)
+							if (isInfoGroup) {
+								Spacer(Modifier.width(6.dp))
+								Surface(
+									shape = RoundedCornerShape(4.dp),
+									color = MaterialTheme.colors.primary.copy(alpha = 0.12f)
+								) {
+									Text(
+										text = stringResource(R.string.informational_badge),
+										style = MaterialTheme.typography.caption.copy(
+											fontSize = 10.sp,
+											fontWeight = FontWeight.Bold,
+											color = MaterialTheme.colors.primary
+										),
+										modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+									)
+								}
+							}
+						}
+					}
 					is IngredientItem -> {
 						val prevItem = items.getOrNull(i - 1) as? IngredientItem
 						val isConsecutiveSubstitute = !item.ingredient.substituteGroupId.isNullOrBlank() &&
@@ -1157,6 +1186,8 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 
 		val isSubstitute = !item.ingredient.substituteGroupId.isNullOrBlank()
 		val isInactiveSub = isSubstitute && !item.ingredient.isActiveSubstitute
+		val isInformational = item.ingredient.isInformationalOnly ||
+				com.herohiman.tournant.cost.LiveCostCalculator.isInformationalGroup(item.ingredient.group)
 
 		val lineCostFormatted = costBreakdown?.formattedCostForIngredient(item.ingredient)
 
@@ -1186,7 +1217,7 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 						}
 					},
 					onLongClick = {
-						if (!item.ingredient.isInformationalOnly && !cookMode) {
+						if (!isInformational && !cookMode) {
 							showQuickEditPriceDialog(item.ingredient, costBreakdown?.findCostItem(item.ingredient))
 						}
 					},
@@ -1237,12 +1268,12 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 			)
 			Spacer(Modifier.width(8.dp))
 			val baseItemString = buildAnnotatedString {
-				if (item.ingredient.isInformationalOnly) {
+				if (isInformational) {
 					withStyle(SpanStyle(color = MaterialTheme.colors.primary, fontWeight = FontWeight.Bold, fontSize = if (cookMode) 13.sp else 11.sp)) {
 						append("ℹ ")
 					}
 				}
-				val name = if (item.ingredient.isInformationalOnly) {
+				val name = if (isInformational) {
 					if (!item.ingredient.noteTitle.isNullOrBlank() && !item.ingredient.noteValue.isNullOrBlank()) {
 						"${item.ingredient.noteTitle}: ${item.ingredient.noteValue}"
 					} else {
@@ -1303,7 +1334,7 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 								}
 							},
 							onLongPress = {
-								if (!item.ingredient.isInformationalOnly && !cookMode) {
+								if (!isInformational && !cookMode) {
 									showQuickEditPriceDialog(item.ingredient, costBreakdown?.findCostItem(item.ingredient))
 								}
 							}
@@ -1319,6 +1350,8 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 
 			if (cookMode) {
 				// Hide prices in Cook Mode for privacy
+			} else if (isInformational) {
+				// Informational / Group exclusion rows render purely as clean text without prices or pricing prompts
 			} else if (!lineCostFormatted.isNullOrEmpty()) {
 				Spacer(Modifier.width(8.dp))
 				Surface(
@@ -1329,7 +1362,7 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 						MaterialTheme.colors.primary.copy(alpha = 0.10f)
 					},
 					modifier = Modifier.clickable {
-						if (!item.ingredient.isInformationalOnly) {
+						if (!isInformational) {
 							showQuickEditPriceDialog(item.ingredient, costBreakdown?.findCostItem(item.ingredient))
 						}
 					}
@@ -1348,7 +1381,7 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 						textAlign = TextAlign.End
 					)
 				}
-			} else if (costBreakdown != null && !item.ingredient.isInformationalOnly && !item.ingredient.item.isNullOrBlank()) {
+			} else if (costBreakdown != null && !item.ingredient.item.isNullOrBlank()) {
 				Spacer(Modifier.width(8.dp))
 				Surface(
 					shape = RoundedCornerShape(6.dp),

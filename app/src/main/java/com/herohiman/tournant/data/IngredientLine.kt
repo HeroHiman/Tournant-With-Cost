@@ -1,7 +1,10 @@
 package com.herohiman.tournant.data
 
 sealed class IngredientLine {
-	data class IngredientGroupTitle(var title: String?) : IngredientLine()
+	data class IngredientGroupTitle(
+		var title: String?,
+		var isInformationalGroup: Boolean = false
+	) : IngredientLine()
 	data class IngredientItem(
 		val ingredient: Ingredient,
 		val isChecked: Boolean = false,

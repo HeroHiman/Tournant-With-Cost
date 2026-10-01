@@ -361,19 +361,56 @@ class IngredientEditingAdapter(
 				PopupMenu(view.context, view).apply {
 					inflate(R.menu.options_ingredient)
 					menu.removeItem(R.id.toggle_optional)
+					menu.removeItem(R.id.toggle_substitute)
+					menu.removeItem(R.id.set_active_substitute)
+
+					val toggleInfoItem = menu.findItem(R.id.toggle_informational)
+					if (group.isInformationalGroup) {
+						toggleInfoItem?.title = view.context.getString(R.string.mark_as_ingredient)
+					} else {
+						toggleInfoItem?.title = view.context.getString(R.string.mark_as_informational)
+					}
+
 					setOnMenuItemClickListener { item ->
 						when (item.itemId) {
 							R.id.remove_ingredient -> {
-								ingredientLines.removeAt(bindingAdapterPosition)
-								val stopIndex = bindingAdapterPosition + ingredientLines.subList(
-									bindingAdapterPosition,
+								val pos = holder.bindingAdapterPosition
+								ingredientLines.removeAt(pos)
+								val stopIndex = pos + ingredientLines.subList(
+									pos,
 									ingredientLines.size
 								).indexOfFirst {
 									it is IngredientGroupTitle
 								}
 								ingredientLines.removeAt(stopIndex)
-								notifyItemRemoved(bindingAdapterPosition)
+								notifyItemRemoved(pos)
 								notifyItemRemoved(stopIndex)
+								true
+							}
+							R.id.toggle_informational -> {
+								group.isInformationalGroup = !group.isInformationalGroup
+								// Cascade informational exclusion status to all items in this group
+								val pos = holder.bindingAdapterPosition
+								val subList = ingredientLines.drop(pos + 1)
+								for (line in subList) {
+									if (line is IngredientGroupTitle) break
+									if (line is IngredientItem) {
+										line.ingredient.isInformationalOnly = group.isInformationalGroup
+										if (group.isInformationalGroup) {
+											line.ingredient.substituteGroupId = null
+											line.ingredient.isActiveSubstitute = true
+											line.ingredient.optional = false
+											if (line.ingredient.noteTitle.isNullOrBlank() && line.ingredient.noteValue.isNullOrBlank()) {
+												if (!line.ingredient.item.isNullOrBlank()) {
+													line.ingredient.noteTitle = "जानकारी"
+													line.ingredient.noteValue = line.ingredient.item
+												}
+											}
+											updateInformationalItemString(line.ingredient)
+										}
+									}
+								}
+								notifyDataSetChanged()
 								true
 							}
 							else -> false

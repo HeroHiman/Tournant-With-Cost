@@ -251,6 +251,30 @@ object LiveCostCalculator {
 		"slice", "slices", "pinch", "pinches", "dash", "dashes", "package", "packages", "pkg", "pkgs"
 	)
 
+	/**
+	 * Checks if a group name corresponds to an informational exclusion zone.
+	 * Matches keywords such as "जानकारी", "सूचना", "टोटल", "डब्बा", "पैकिंग", "info", "notes", "packaging", "output".
+	 */
+	@JvmStatic
+	fun isInformationalGroup(groupName: String?): Boolean {
+		if (groupName.isNullOrBlank()) return false
+		val trimmed = groupName.trim().lowercase(Locale.ROOT)
+		return trimmed.contains("जानकारी") ||
+				trimmed.contains("सूचना") ||
+				trimmed.contains("टोटल") ||
+				trimmed.contains("डब्बा") ||
+				trimmed.contains("पैकिंग") ||
+				trimmed.contains("notes") ||
+				trimmed.contains("info") ||
+				trimmed.contains("packaging") ||
+				trimmed.contains("output")
+	}
+
+	@JvmStatic
+	fun isInformationalIngredient(ingredient: Ingredient): Boolean {
+		return ingredient.isInformationalOnly || isInformationalGroup(ingredient.group)
+	}
+
 	fun calculateRecipeCost(
 		ingredients: List<Ingredient>,
 		masterIngredients: List<MasterIngredientEntity>,
@@ -298,8 +322,9 @@ object LiveCostCalculator {
 		}
 
 		// Calculate the Sum of All Active Ingredient Weights (in kg)
+		// Strictly ignores informational rows and informational groups (e.g. Total Mal, Dabba, etc.)
 		val activeIngredients = filterActiveIngredients(normalizedIngredients)
-			.filter { !it.isInformationalOnly && (!it.optional || includeOptional) }
+			.filter { !isInformationalIngredient(it) && (!it.optional || includeOptional) }
 
 		val activeMassKgSum = activeIngredients.mapNotNull { ing ->
 			val amount = ing.amount ?: return@mapNotNull null
@@ -396,7 +421,7 @@ object LiveCostCalculator {
 		currentRecipeId: Long? = null,
 		visitedRecipeIds: Set<Long> = emptySet()
 	): IngredientCostItem {
-		if (ingredient.isInformationalOnly) {
+		if (isInformationalIngredient(ingredient)) {
 			return IngredientCostItem(
 				ingredient = ingredient,
 				masterIngredient = null,

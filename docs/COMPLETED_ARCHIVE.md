@@ -112,6 +112,17 @@ This archive provides technical documentation for all recently implemented stori
   - [`RecipeActivity.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt)
   - [`YieldParserTest.kt`](file:///workspace/recipeMaker/Tournant/app/src/test/java/com/herohiman/tournant/YieldParserTest.kt)
 
+#### Story 11.4: Group-Level Informational Exclusion Zones (Data, Domain & UI Layer)
+- **Summary**: Upgraded group handling so that entire groups (such as "टोटल माल", "जानकारी", "डब्बा", or custom informational groups) act as exclusion zones. `IngredientGroupTitle` carries `isInformationalGroup`, cascading `isInformationalOnly = true` to all child items during save. `LiveCostCalculator` ignores informational groups and items when summing active mass for Total Output ($10\text{ kg} + 9\text{ kg} = 19\text{ kg}$ instead of 57 kg) and assigns `CostStatus.INFORMATIONAL_EXCLUDED` with ₹0.00 line cost. In the Recipe Editor, group headers support a 1-tap "Mark as Informational (जानकारी)" toggle with a badge, while the Recipe Viewer suppresses price badges and `[+ Add Cost / Map]` prompts for all enclosed notes.
+- **Technical Files Modified**:
+  - [`IngredientLine.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/data/IngredientLine.kt)
+  - [`Extensions.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/Extensions.kt)
+  - [`LiveCostCalculator.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/cost/LiveCostCalculator.kt)
+  - [`IngredientEditingAdapter.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/adapter/IngredientEditingAdapter.kt)
+  - [`recycler_item_ingredient_editing_group.xml`](file:///workspace/recipeMaker/Tournant/app/src/main/res/layout/recycler_item_ingredient_editing_group.xml)
+  - [`RecipeActivity.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt)
+  - [`RecipeViewerLineCostUiTest.kt`](file:///workspace/recipeMaker/Tournant/app/src/test/java/com/herohiman/tournant/RecipeViewerLineCostUiTest.kt)
+
 ---
 
 ### Story 9.1: Reactive Search Queries (Data Layer)

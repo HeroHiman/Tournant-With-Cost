@@ -415,4 +415,79 @@ class RecipeViewerLineCostUiTest {
 		assertEquals(7432.00, cookModeBreakdown.totalCost, 0.001)
 		assertEquals(19.0, cookModeBreakdown.totalMassInKg ?: 0.0, 0.001)
 	}
+
+	@Test
+	fun `group-level informational exclusion zone excludes total mal, dabba, and tukda notes from mass sum and costing`() {
+		// Raw materials
+		val kaju = Ingredient(amount = 10.0, unit = "kg", item = "काजू", group = "सामग्री")
+		val sugar = Ingredient(amount = 9.0, unit = "kg", item = "Sugar", group = "सामग्री")
+
+		// Operational notes under informational groups "टोटल माल" and "जानकारी"
+		val totalMal = Ingredient(amount = 19.0, unit = "kg", item = "टोटल माल", group = "टोटल माल")
+		val dabbaPack = Ingredient(amount = 17.0, unit = "kg", item = "डब्बा में पैक", group = "जानकारी")
+		val tukda = Ingredient(amount = 2.0, unit = "kg", item = "टुकड़ा", group = "जानकारी")
+
+		val masterIngredients = listOf(
+			MasterIngredientEntity(id = 1L, name = "काजू", unitCost = 700.0, baseUnit = "kg"), // ₹7000.00
+			MasterIngredientEntity(id = 2L, name = "Sugar", unitCost = 48.0, baseUnit = "kg")   // ₹432.00
+		)
+
+		val breakdown = LiveCostCalculator.calculateRecipeCost(
+			ingredients = listOf(kaju, sugar, totalMal, dabbaPack, tukda),
+			masterIngredients = masterIngredients
+		)
+
+		// 1. Total Output must NOT be 57 kg; it must strictly sum only the raw materials (10 + 9 = 19 kg)
+		assertEquals(19.0, breakdown.totalMassInKg ?: 0.0, 0.001)
+
+		// 2. Batch Cost is exactly 7000 + 432 = ₹7432.00
+		assertEquals(7432.00, breakdown.totalCost, 0.001)
+
+		// 3. Cost Per Kg is 7432 / 19 = ₹391.16/kg
+		assertEquals(391.16, breakdown.costPerKg ?: 0.0, 0.001)
+		assertEquals("₹391.16", breakdown.formattedCostPerKg())
+
+		// 4. Operational lines under informational groups MUST NOT trigger unpriced warnings
+		assertEquals(0, breakdown.unpricedItemCount)
+
+		// 5. Line costs for operational items are ₹0.00 and have INFORMATIONAL_EXCLUDED status
+		val totalMalCost = breakdown.findCostItem(totalMal)
+		assertNotNull(totalMalCost)
+		assertEquals(com.herohiman.tournant.cost.CostStatus.INFORMATIONAL_EXCLUDED, totalMalCost?.status)
+		assertNull(breakdown.formattedCostForIngredient(totalMal))
+
+		val dabbaCost = breakdown.findCostItem(dabbaPack)
+		assertNotNull(dabbaCost)
+		assertEquals(com.herohiman.tournant.cost.CostStatus.INFORMATIONAL_EXCLUDED, dabbaCost?.status)
+
+		val tukdaCost = breakdown.findCostItem(tukda)
+		assertNotNull(tukdaCost)
+		assertEquals(com.herohiman.tournant.cost.CostStatus.INFORMATIONAL_EXCLUDED, tukdaCost?.status)
+	}
+
+	@Test
+	fun `group-level informational toggle in extensions cascades isInformationalOnly across group items`() {
+		val items = mutableListOf(
+			Ingredient(amount = 10.0, unit = "kg", item = "काजू", group = "सामग्री"),
+			Ingredient(amount = 19.0, unit = "kg", item = "टोटल माल", group = "टोटल माल"),
+			Ingredient(amount = 17.0, unit = "kg", item = "डब्बा में पैक", group = "टोटल माल")
+		)
+
+		// Add group titles
+		val lines = items.addGroupTitles()
+		val groupTitle = lines.filterIsInstance<com.herohiman.tournant.data.IngredientLine.IngredientGroupTitle>()
+			.firstOrNull { it.title == "टोटल माल" }
+		assertNotNull(groupTitle)
+		assertTrue(groupTitle!!.isInformationalGroup)
+
+		// Converting back via hideGroupTitles cascades isInformationalOnly = true
+		val persisted = lines.hideGroupTitles()
+		val persistedTotalMal = persisted.first { it.item == "टोटल माल" }
+		val persistedDabba = persisted.first { it.item == "डब्बा में पैक" }
+		val persistedKaju = persisted.first { it.item == "काजू" }
+
+		assertTrue(persistedTotalMal.isInformationalOnly)
+		assertTrue(persistedDabba.isInformationalOnly)
+		assertTrue(!persistedKaju.isInformationalOnly)
+	}
 }

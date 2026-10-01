@@ -81,6 +81,12 @@ This document tracks the implementation status of all feature epics, stories, an
 - [x] **Story 11.3: YieldParser & "Cost per kg" Metric (Domain & Presentation Layer)**
   - Multi-pattern parser supporting parentheses `1 टीपा काजू (10 किलो)`, Devanagari numerals, and direct mass units
   - Real-time `Cost per kg: ₹...` calculation and display in Recipe Viewer header
+- [x] **Story 11.4: Group-Level Informational Exclusion Zones (Data, Domain & UI Layer)**
+  - Added `isInformationalGroup` flag to `IngredientGroupTitle` and auto-cascading in `addGroupTitles()` / `hideGroupTitles()`
+  - Filtered informational group items (e.g. *टोटल माल*, *जानकारी*, *डब्बा*) out of `activeIngredients` in `LiveCostCalculator`, keeping Total Output true to raw materials (10 + 9 = 19 kg instead of 57 kg)
+  - Assigned `CostStatus.INFORMATIONAL_EXCLUDED` with ₹0.00 line cost, eliminating false unpriced errors
+  - Supported group header "Mark as Informational (जानकारी)" popup toggle with visual badge in Recipe Editor
+  - Suppressed `[+ Add Cost / Map]` button and price badge for informational items in Recipe Viewer
 
 ### Epic 9: Smart Search Integration
 - [x] **Story 9.1: Reactive Search Queries (Data Layer)**

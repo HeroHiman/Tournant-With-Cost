@@ -44,6 +44,20 @@
 		</com.google.android.material.textfield.TextInputLayout>
 
 		<TextView
+			android:id="@+id/text_group_info_badge"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginHorizontal="6dp"
+			android:paddingHorizontal="6dp"
+			android:paddingVertical="3dp"
+			android:background="@drawable/badge_background"
+			android:text="@string/informational_badge"
+			android:textColor="@color/blue_text"
+			android:textSize="10sp"
+			android:textStyle="bold"
+			android:visibility="@{group.isInformationalGroup ? View.VISIBLE : View.GONE}" />
+
+		<TextView
 			android:id="@+id/show_title"
 			android:layout_width="0dp"
 			android:layout_height="wrap_content"
