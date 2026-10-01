@@ -331,6 +331,82 @@ epics:
         test_focus: [unit, integration]
         complexity: MEDIUM
 
+  # Epic 11: Recipe Metadata & Cost Exclusions
+  "11":
+    title: "Recipe Metadata & Cost Exclusions"
+    goal: "Exclude operational and packaging notes from ingredient costing and parse mass yield for cost per kg"
+    priority: HIGH
+    stories:
+      "11.1":
+        title: "Informational Cost Exclusion"
+        description: "As a recipe creator, I want informational notes (like packaging instructions) excluded from costing calculations"
+        acceptance_criteria:
+          - "IngredientEntity supports isInformationalOnly flag"
+          - "LiveCostCalculator assigns zero cost and excludes informational rows from unpriced warnings"
+          - "Room Migration 13 to 14 persists isInformationalOnly flag"
+        dependencies: []
+        tech_stack: [kotlin, android, room]
+        test_focus: [unit]
+        complexity: LOW
+      "11.2":
+        title: "Title & Tray Size Metadata UI"
+        description: "As a recipe creator, I want dedicated title and note fields when an item is marked informational"
+        acceptance_criteria:
+          - "User can toggle between raw material ingredient and informational note"
+          - "Informational items display noteTitle and noteValue fields with a 'जानकारी' badge"
+        dependencies: ["11.1"]
+        tech_stack: [kotlin, android, viewmodel]
+        test_focus: [ui, unit]
+        complexity: LOW
+      "11.3":
+        title: "YieldParser & Cost per kg Metric"
+        description: "As a cook, I want the system to parse target mass yields and calculate real-time cost per kilogram"
+        acceptance_criteria:
+          - "YieldParser extracts kilograms from complex strings like '1 टीपा काजू (10 किलो)' and Devanagari numerals"
+          - "Real-time cost per kg calculation dynamically updates in Recipe Viewer header"
+        dependencies: ["11.1"]
+        tech_stack: [kotlin, android, compose]
+        test_focus: [unit]
+        complexity: MEDIUM
+
+  # Epic 12: Modern Recipe UI & Output Dashboard
+  "12":
+    title: "Modern Recipe UI & Output Dashboard"
+    goal: "Modernize recipe presentation with a financial output dashboard, compact ingredient rows, and fix layout gaps"
+    priority: HIGH
+    stories:
+      "12.1":
+        title: "Fix Layout Spacing Bug"
+        description: "As a user, I want the recipe detail view to snap directly below the header without large vertical gaps"
+        acceptance_criteria:
+          - "Remove FlexboxLayout stretch wrapping ComposeView"
+          - "Ensure ingredients card snaps directly below header details card"
+        dependencies: []
+        tech_stack: [android, xml]
+        test_focus: [ui]
+        complexity: LOW
+      "12.2":
+        title: "Output Summary Dashboard Card"
+        description: "As a business owner, I want a prominent dashboard showing Total Output, Batch Cost, and Cost per kg"
+        acceptance_criteria:
+          - "Dedicated Material Card with metric tiles for Total Output, Batch Cost, and Cost / kg"
+          - "Interactive yield scale controls embedded within the summary card"
+        dependencies: ["11.3", "12.1"]
+        tech_stack: [kotlin, android, compose]
+        test_focus: [unit, ui]
+        complexity: MEDIUM
+      "12.3":
+        title: "Modernize Ingredient Rows & Relocate Action Buttons"
+        description: "As a cook, I want full-width ingredient rows and action buttons that don't cover prices"
+        acceptance_criteria:
+          - "Relocate Copy and Weigh buttons to the header actions row beside scale buttons"
+          - "Ingredient list takes full card width without floating obstruction"
+          - "Line-item prices are styled in dedicated primary-tinted Surface badges"
+        dependencies: ["12.1"]
+        tech_stack: [kotlin, android, compose]
+        test_focus: [ui]
+        complexity: LOW
+
 # Story Prioritization
 prioritization:
   high: ["1.1", "1.2", "1.3", "2.1", "2.2", "2.3", "3.1", "3.2", "3.3", "6.1", "6.2", "6.3"]
@@ -487,6 +563,40 @@ story_implementations:
     files:
       - "app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt"
       - "app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt"
+
+  "11.1":
+    status: "completed"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/data/Ingredient.kt"
+      - "app/src/main/java/com/herohiman/tournant/data/room/IngredientEntity.kt"
+      - "app/src/main/java/com/herohiman/tournant/cost/LiveCostCalculator.kt"
+
+  "11.2":
+    status: "completed"
+    files:
+      - "app/src/main/res/layout/recycler_item_ingredient_editing.xml"
+      - "app/src/main/java/com/herohiman/tournant/ui/adapter/IngredientEditingAdapter.kt"
+
+  "11.3":
+    status: "completed"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/cost/YieldParser.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt"
+
+  "12.1":
+    status: "completed"
+    files:
+      - "app/src/main/res/layout/activity_recipe.xml"
+
+  "12.2":
+    status: "completed"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt"
+
+  "12.3":
+    status: "completed"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt"
 
 # Implementation plan
 implementation_plan:
