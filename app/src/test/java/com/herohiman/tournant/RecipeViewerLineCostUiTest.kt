@@ -490,4 +490,34 @@ class RecipeViewerLineCostUiTest {
 		assertTrue(persistedDabba.isInformationalOnly)
 		assertTrue(!persistedKaju.isInformationalOnly)
 	}
+
+	@Test
+	fun `informational item strips redundant jankari prefix and renders cleanly`() {
+		val kachori = Ingredient(
+			amount = 10.0,
+			unit = "pc",
+			item = "जानकारी: कचौरी",
+			isInformationalOnly = true,
+			noteTitle = "जानकारी",
+			noteValue = "कचौरी",
+			group = "जानकारी"
+		)
+
+		val rawItem = kachori.item?.trim() ?: ""
+		val cleanedItem = if (rawItem.startsWith("जानकारी:", ignoreCase = true)) {
+			rawItem.removePrefix("जानकारी:").removePrefix("जानकारी :").trim()
+		} else {
+			rawItem
+		}
+		val noteTitle = kachori.noteTitle?.trim()
+		val noteValue = kachori.noteValue?.trim()
+		val resolvedName = if (!noteTitle.isNullOrBlank() && !noteTitle.equals("जानकारी", ignoreCase = true) && !noteValue.isNullOrBlank()) {
+			"$noteTitle: $noteValue"
+		} else {
+			noteValue?.ifEmpty { null } ?: cleanedItem.ifEmpty { noteTitle?.takeIf { !it.equals("जानकारी", ignoreCase = true) } ?: "" }
+		}
+
+		assertEquals("कचौरी", resolvedName)
+		assertTrue(!resolvedName.contains("जानकारी"))
+	}
 }

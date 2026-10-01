@@ -87,6 +87,7 @@ This document tracks the implementation status of all feature epics, stories, an
   - Assigned `CostStatus.INFORMATIONAL_EXCLUDED` with ₹0.00 line cost, eliminating false unpriced errors
   - Supported group header "Mark as Informational (जानकारी)" popup toggle with visual badge in Recipe Editor
   - Suppressed `[+ Add Cost / Map]` button and price badge for informational items in Recipe Viewer
+  - Stripped redundant "जानकारी:" prefix from adapter mapping, item storage, and viewer row display
 
 ### Epic 9: Smart Search Integration
 - [x] **Story 9.1: Reactive Search Queries (Data Layer)**

@@ -759,15 +759,32 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 									)
 									Spacer(Modifier.height(6.dp))
 									infoItems.forEach { infoLine ->
-										val title = infoLine.ingredient.noteTitle ?: infoLine.ingredient.group ?: "जानकारी"
-										val value = infoLine.ingredient.noteValue ?: infoLine.ingredient.item ?: ""
+										val noteTitle = infoLine.ingredient.noteTitle?.trim()
+										val noteVal = infoLine.ingredient.noteValue?.trim() ?: infoLine.ingredient.item?.trim() ?: ""
+										val cleanVal = if (noteVal.startsWith("जानकारी:", ignoreCase = true)) {
+											noteVal.removePrefix("जानकारी:").removePrefix("जानकारी :").trim()
+										} else {
+											noteVal
+										}
+										val displayTitle = if (!noteTitle.isNullOrBlank() && !noteTitle.equals("जानकारी", ignoreCase = true)) {
+											noteTitle
+										} else {
+											infoLine.ingredient.group?.takeIf { !it.equals("जानकारी", ignoreCase = true) }
+										}
 										Row(modifier = Modifier.padding(vertical = 2.dp)) {
+											if (!displayTitle.isNullOrBlank()) {
+												Text(
+													text = "• $displayTitle: ",
+													style = MaterialTheme.typography.body2.copy(fontWeight = FontWeight.Bold)
+												)
+											} else {
+												Text(
+													text = "• ",
+													style = MaterialTheme.typography.body2.copy(fontWeight = FontWeight.Bold)
+												)
+											}
 											Text(
-												text = "• $title: ",
-												style = MaterialTheme.typography.body2.copy(fontWeight = FontWeight.Bold)
-											)
-											Text(
-												text = value,
+												text = cleanVal,
 												style = MaterialTheme.typography.body2
 											)
 										}
@@ -1274,10 +1291,19 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 					}
 				}
 				val name = if (isInformational) {
-					if (!item.ingredient.noteTitle.isNullOrBlank() && !item.ingredient.noteValue.isNullOrBlank()) {
-						"${item.ingredient.noteTitle}: ${item.ingredient.noteValue}"
+					val noteTitle = item.ingredient.noteTitle?.trim()
+					val noteValue = item.ingredient.noteValue?.trim()
+					val rawItem = item.ingredient.item?.trim() ?: ""
+					val cleanedItem = if (rawItem.startsWith("जानकारी:", ignoreCase = true)) {
+						rawItem.removePrefix("जानकारी:").removePrefix("जानकारी :").trim()
 					} else {
-						item.ingredient.noteValue ?: item.ingredient.noteTitle ?: item.ingredient.item ?: ""
+						rawItem
+					}
+
+					if (!noteTitle.isNullOrBlank() && !noteTitle.equals("जानकारी", ignoreCase = true) && !noteValue.isNullOrBlank()) {
+						"$noteTitle: $noteValue"
+					} else {
+						noteValue?.ifEmpty { null } ?: cleanedItem.ifEmpty { noteTitle?.takeIf { !it.equals("जानकारी", ignoreCase = true) } ?: "" }
 					}
 				} else {
 					item.ingredient.item ?: ""

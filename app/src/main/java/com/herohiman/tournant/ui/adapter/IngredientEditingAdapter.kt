@@ -279,8 +279,9 @@ class IngredientEditingAdapter(
 									ingredient.optional = false
 									if (ingredient.noteTitle.isNullOrBlank() && ingredient.noteValue.isNullOrBlank()) {
 										if (!ingredient.item.isNullOrBlank()) {
-											ingredient.noteTitle = "जानकारी"
-											ingredient.noteValue = ingredient.item
+											val cleanItem = ingredient.item?.removePrefix("जानकारी:")?.removePrefix("जानकारी :")?.trim()
+											ingredient.noteTitle = null
+											ingredient.noteValue = cleanItem
 										}
 									}
 									updateInformationalItemString(ingredient)
@@ -402,8 +403,9 @@ class IngredientEditingAdapter(
 											line.ingredient.optional = false
 											if (line.ingredient.noteTitle.isNullOrBlank() && line.ingredient.noteValue.isNullOrBlank()) {
 												if (!line.ingredient.item.isNullOrBlank()) {
-													line.ingredient.noteTitle = "जानकारी"
-													line.ingredient.noteValue = line.ingredient.item
+													val cleanItem = line.ingredient.item?.removePrefix("जानकारी:")?.removePrefix("जानकारी :")?.trim()
+													line.ingredient.noteTitle = null
+													line.ingredient.noteValue = cleanItem
 												}
 											}
 											updateInformationalItemString(line.ingredient)
@@ -441,10 +443,10 @@ class IngredientEditingAdapter(
 		if (ingredient.isInformationalOnly) {
 			val title = ingredient.noteTitle?.trim() ?: ""
 			val value = ingredient.noteValue?.trim() ?: ""
-			ingredient.item = if (title.isNotEmpty() && value.isNotEmpty()) {
+			ingredient.item = if (title.isNotEmpty() && !title.equals("जानकारी", ignoreCase = true) && value.isNotEmpty()) {
 				"$title: $value"
 			} else {
-				title.ifEmpty { value.ifEmpty { null } }
+				value.ifEmpty { title.takeIf { !it.equals("जानकारी", ignoreCase = true) } }
 			}
 		}
 	}
