@@ -32,6 +32,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
@@ -82,6 +83,11 @@ class RecipeViewModel(application: TournantApplication, private val recipeId: Lo
 		}
 	}
 
+	private val _cookMode = MutableStateFlow(false)
+	val cookMode: StateFlow<Boolean> = _cookMode.asStateFlow()
+	fun toggleCookMode() { _cookMode.update { !it } }
+	fun setCookMode(enabled: Boolean) { _cookMode.value = enabled }
+
 	private val _weighingModeOn = MutableStateFlow(false)
 	val weighingModeOn = _weighingModeOn.asStateFlow()
 	fun toggleWeighingMode() { _weighingModeOn.update { !it } }
@@ -95,25 +101,39 @@ class RecipeViewModel(application: TournantApplication, private val recipeId: Lo
 
 	private val _masterIngredients: Flow<List<MasterIngredientEntity>> =
 		recipeRepository.getAllActiveMasterIngredients() ?: kotlinx.coroutines.flow.flowOf(emptyList())
+	val allActiveMasterIngredients: Flow<List<MasterIngredientEntity>> = _masterIngredients
 
 	private val _unitAliases: Flow<List<UnitAliasEntity>> =
 		recipeRepository.getAllUnitAliases() ?: kotlinx.coroutines.flow.flowOf(emptyList())
 
+	private val _ingredientAliases: Flow<List<IngredientAliasEntity>> =
+		recipeRepository.getAllIngredientAliases()
+
+	private val _scaleAndCook = combine(_scaleRatio, _cookMode) { scale, cook -> Pair(scale, cook) }
+	private val _aliasesCombined = combine(_unitAliases, _ingredientAliases) { units, ingredients -> Pair(units, ingredients) }
+
 	val recipeCostBreakdown: Flow<RecipeCostBreakdown?> = combine(
 		_ingredients,
 		_recipeYieldValue,
-		_scaleRatio,
+		_scaleAndCook,
 		_masterIngredients,
-		_unitAliases
-	) { ingredients: List<IngredientLine>, yield: Double?, scale: Double, masters: List<MasterIngredientEntity>, aliases: List<UnitAliasEntity> ->
+		_aliasesCombined
+	) { ingredients: List<IngredientLine>, yield: Double?, (scale, cookModeActive), masters: List<MasterIngredientEntity>, (unitAliases, ingredientAliases) ->
 		val rawIngredients = ingredients.filterIsInstance<IngredientItem>().map { it.ingredient }
 		if (rawIngredients.isEmpty() || masters.isEmpty()) {
 			null
 		} else {
-			val aliasMap = aliases.associateBy { it.aliasName.trim().lowercase(java.util.Locale.ROOT) }
+			val unitAliasMap = unitAliases.associateBy { it.aliasName.trim().lowercase(java.util.Locale.ROOT) }
+			val masterMap = masters.associateBy { it.id }
+			val ingredientAliasMap = ingredientAliases.mapNotNull { alias ->
+				masterMap[alias.masterIngredientId]?.let { master ->
+					alias.rawName.trim().lowercase(java.util.Locale.ROOT) to master
+				}
+			}.toMap()
+
 			val yieldUnit = _recipeYieldUnit.value
 			val explicitYieldWeightKg = if (yield != null && yield > 0.0 && !yieldUnit.isNullOrBlank()) {
-				val unitAlias = UnitConverterEngine.findAlias(yieldUnit.trim(), aliasMap)
+				val unitAlias = UnitConverterEngine.findAlias(yieldUnit.trim(), unitAliasMap)
 				if (unitAlias != null && unitAlias.baseUnit == BaseUnitType.KG && unitAlias.conversionFactor > 0.0) {
 					yield * unitAlias.conversionFactor
 				} else {
@@ -128,16 +148,50 @@ class RecipeViewModel(application: TournantApplication, private val recipeId: Lo
 				masterIngredients = masters,
 				yield = yield ?: 1.0,
 				scaleFactor = scale,
-				unitAliases = aliasMap,
+				unitAliases = unitAliasMap,
+				aliases = ingredientAliasMap,
 				subRecipeResolver = recipeRepository.asSubRecipeResolver(),
 				currentRecipeId = recipeId,
-				explicitYieldWeightKg = explicitYieldWeightKg
+				explicitYieldWeightKg = explicitYieldWeightKg,
+				isPrivacyMode = cookModeActive
 			)
 		}
 	}.flowOn(Dispatchers.IO)
 	.catch { e ->
 		logit { "Error calculating recipe cost breakdown: ${e.message}" }
 		emit(null)
+	}
+
+	fun bindIngredientAlias(
+		rawName: String,
+		masterIngredientId: Long,
+		onBound: (() -> Unit)? = null
+	) {
+		viewModelScope.launch {
+			withContext(Dispatchers.IO) {
+				val existing = recipeRepository.getIngredientAliasByRawName(rawName.trim())
+				if (existing != null) {
+					recipeRepository.deleteIngredientAlias(existing)
+				}
+				recipeRepository.insertIngredientAlias(
+					IngredientAliasEntity(
+						masterIngredientId = masterIngredientId,
+						rawName = rawName.trim()
+					)
+				)
+			}
+			withContext(Dispatchers.Main) {
+				onBound?.invoke()
+			}
+		}
+	}
+
+	fun scaleByMultiplier(multiplier: Double) {
+		if (multiplier <= 0.0) return
+		val base = _recipeYieldValue.value ?: 1.0
+		val newTarget = base * multiplier
+		_yieldFromTextField.value = null
+		_targetYieldValue.value = newTarget
 	}
 
 	fun selectActiveSubstitute(targetIngredient: com.herohiman.tournant.data.Ingredient) {

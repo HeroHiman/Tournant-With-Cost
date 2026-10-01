@@ -6,7 +6,37 @@ This archive provides technical documentation for all recently implemented stori
 
 ## 1. Implemented Stories
  
-+### Epic 14: Quick-Edit Pricing Integration
+### Epic 15: Commercial Kitchen & UX Enhancements
+
+#### Story 15.1: In-Line Unpriced Item Indicator & Quick-Map Chip (Presentation & Domain Layer)
+- **Summary**: Added an in-line `[+ Add Cost / Map]` badge to unpriced/unmapped ingredient rows in the Recipe Viewer's `IngredientDisplay`. Tapping the chip launches the `QuickMapOrPriceDialog`, presenting a smart suggestion list of existing master ingredients for 1-tap alias binding, as well as an option to create a brand new master unit price (₹/unit). Binding aliases immediately triggers Room Flow re-emission, recalculating the recipe line costs, total cost, and cost per kg live on screen.
+- **Technical Files Modified**:
+  - [`RecipeActivity.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt)
+  - [`RecipeViewModel.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt)
+  - [`RecipeRepository.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/data/room/RecipeRepository.kt)
+  - [`strings.xml`](file:///workspace/recipeMaker/Tournant/app/src/main/res/values/strings.xml)
+  - [`RecipeViewerLineCostUiTest.kt`](file:///workspace/recipeMaker/Tournant/app/src/test/java/com/herohiman/tournant/RecipeViewerLineCostUiTest.kt)
+
+#### Story 15.2: Interactive Batch Scaler Bottom Sheet with Common Multipliers (Presentation Layer)
+- **Summary**: Implemented the `BatchScalerDialog` triggered directly by tapping the Total Output tile or `Scale ⚡` button in the `OutputSummaryDashboard`. Provides one-tap commercial multiplier preset chips (`0.5x`, `1.0x`, `2.0x`, `5.0x`, `10.0x`), custom numerical multiplier / target output inputs, and a live side-by-side comparison table contrasting current vs. target yield and batch costs before applying.
+- **Technical Files Modified**:
+  - [`RecipeActivity.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt)
+  - [`RecipeViewModel.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt)
+  - [`strings.xml`](file:///workspace/recipeMaker/Tournant/app/src/main/res/values/strings.xml)
+  - [`RecipeViewerLineCostUiTest.kt`](file:///workspace/recipeMaker/Tournant/app/src/test/java/com/herohiman/tournant/RecipeViewerLineCostUiTest.kt)
+
+#### Story 15.3: Recipe Cook Mode Full-Screen Focus with Cost Masking & Step Checkoffs (Presentation Layer)
+- **Summary**: Implemented an employee-friendly Cook Mode toggle accessible via the AppBar (`action_cook_mode` with `ic_restaurant` icon) and recipe overview card. Keeps device screen awake continuously (`FLAG_KEEP_SCREEN_ON`). Masks financial information (line costs, total batch cost, cost per kg) with `••••` for privacy. Pins informational and operational notes (`isInformationalOnly == true`, e.g. tray size, packaging notes) in a dedicated top banner. Increases ingredient typography (`18.sp` bold amounts, `17.sp` names) with large 28dp checkboxes and strike-through checkoffs.
+- **Technical Files Modified**:
+  - [`RecipeActivity.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt)
+  - [`RecipeViewModel.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt)
+  - [`options_recipe.xml`](file:///workspace/recipeMaker/Tournant/app/src/main/res/menu/options_recipe.xml)
+  - [`strings.xml`](file:///workspace/recipeMaker/Tournant/app/src/main/res/values/strings.xml)
+  - [`RecipeViewerLineCostUiTest.kt`](file:///workspace/recipeMaker/Tournant/app/src/test/java/com/herohiman/tournant/RecipeViewerLineCostUiTest.kt)
+
+---
+
+### Epic 14: Quick-Edit Pricing Integration
 +
 +#### Story 14.1: Row Long-Press Listener & Price Badge Click (Presentation Layer)
 +- **Summary**: Added seamless quick-edit interactions directly in the Recipe Viewer's `IngredientDisplay` Compose layout. Long-pressing an ingredient row or text triggers `showQuickEditPriceDialog`, retrieving the corresponding master ingredient ID or record for that specific item (e.g. "काजू"). Tapping the price badge (`Surface`) or the unpriced `+ ₹` badge also directly opens the quick edit dialog.

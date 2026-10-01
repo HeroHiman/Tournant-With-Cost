@@ -105,7 +105,8 @@ class RecipeRepository(
 	suspend fun getIngredientAliasByRawName(rawName: String) = ingredientAliasDao?.getAliasByRawName(rawName)
 	suspend fun getMasterIngredientForRawName(rawName: String) = ingredientAliasDao?.getMasterIngredientForRawName(rawName)
 	suspend fun getAliasesForMaster(masterIngredientId: Long) = ingredientAliasDao?.getAliasesForMaster(masterIngredientId) ?: emptyList()
-	fun getAllIngredientAliases() = ingredientAliasDao?.getAllAliases()
+	fun getAllIngredientAliases(): Flow<List<IngredientAliasEntity>> =
+		ingredientAliasDao?.getAllAliases() ?: flowOf(emptyList())
 	fun getAllIngredientAliasesList() = ingredientAliasDao?.getAllAliasesList() ?: emptyList()
 	suspend fun insertIngredientAlias(alias: IngredientAliasEntity) = ingredientAliasDao?.insertAlias(alias) ?: -1L
 	suspend fun insertIngredientAliases(aliases: List<IngredientAliasEntity>) = ingredientAliasDao?.insertAliases(aliases) ?: emptyList()

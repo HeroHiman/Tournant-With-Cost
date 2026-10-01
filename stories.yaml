@@ -450,6 +450,52 @@ epics:
         test_focus: [unit, integration]
         complexity: MEDIUM
 
+  # Epic 15: Commercial Kitchen & UX Enhancements
+  "15":
+    title: "Commercial Kitchen & UX Enhancements"
+    goal: "Optimize production efficiency in commercial mithai operations with in-line alias mapping, interactive batch scaling presets, and distraction-free Cook Mode"
+    priority: HIGH
+    stories:
+      "15.1":
+        title: "In-Line Unpriced Item Indicator & Quick-Map Chip"
+        description: "As a cook, I want to tap an [+ Add Cost / Map] chip on unpriced ingredients to instantly link aliases or enter quick unit prices without leaving the recipe"
+        acceptance_criteria:
+          - "Unpriced ingredient rows display prominent [+ Add Cost / Map] indicator chip"
+          - "Tapping chip opens bottom dialog offering alias mapping to existing master ingredients or creating a new master price"
+          - "Smart suggestion list provides 1-tap alias binding to existing master ingredients"
+          - "Recipe costs recalculate immediately in the background via Room Flow upon binding"
+        dependencies: ["14.1", "14.3"]
+        tech_stack: [kotlin, android, compose, room]
+        test_focus: [ui, unit]
+        complexity: MEDIUM
+
+      "15.2":
+        title: "Interactive Batch Scaler Bottom Sheet with Common Multipliers"
+        description: "As a production chef, I want an interactive batch scaler dialog with common multiplier presets (0.5x, 1x, 2x, 5x, 10x) and side-by-side cost and output comparisons"
+        acceptance_criteria:
+          - "Output summary dashboard provides direct trigger into Batch Scaler"
+          - "Quick preset chips for 0.5x, 1x, 2x, 5x, and 10x multipliers"
+          - "Interactive custom target output and multiplier input"
+          - "Live side-by-side comparison of output yield and batch cost before applying"
+        dependencies: ["12.2"]
+        tech_stack: [kotlin, android, compose]
+        test_focus: [ui, unit]
+        complexity: MEDIUM
+
+      "15.3":
+        title: "Recipe Cook Mode Full-Screen Focus with Cost Masking & Step Checkoffs"
+        description: "As a kitchen worker, I want a distraction-free Cook Mode with awake screen, masked financials for employee privacy, large typography, pinned operational notes, and interactive checkoffs"
+        acceptance_criteria:
+          - "Cook Mode toggle accessible from top AppBar action and recipe card"
+          - "Keeps device screen awake while active (FLAG_KEEP_SCREEN_ON)"
+          - "Masks financial line costs, total cost, and cost per kg for privacy"
+          - "Pins operational and informational notes (ट्रे size, packaging) into dedicated top banner"
+          - "Enlarges ingredient typography (18sp amounts, 17sp names) with 28dp strike-through checkoffs"
+        dependencies: ["11.2", "12.3"]
+        tech_stack: [kotlin, android, compose]
+        test_focus: [ui, unit]
+        complexity: MEDIUM
+
 # Story Prioritization
 prioritization:
   high: ["1.1", "1.2", "1.3", "2.1", "2.2", "2.3", "3.1", "3.2", "3.3", "6.1", "6.2", "6.3"]
@@ -656,6 +702,30 @@ story_implementations:
     files:
       - "app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt"
       - "app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt"
+      - "app/src/test/java/com/herohiman/tournant/RecipeViewerLineCostUiTest.kt"
+
+  "15.1":
+    status: "completed"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt"
+      - "app/src/main/java/com/herohiman/tournant/data/room/RecipeRepository.kt"
+      - "app/src/test/java/com/herohiman/tournant/RecipeViewerLineCostUiTest.kt"
+
+  "15.2":
+    status: "completed"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt"
+      - "app/src/test/java/com/herohiman/tournant/RecipeViewerLineCostUiTest.kt"
+
+  "15.3":
+    status: "completed"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt"
+      - "app/src/main/res/menu/options_recipe.xml"
+      - "app/src/main/res/values/strings.xml"
       - "app/src/test/java/com/herohiman/tournant/RecipeViewerLineCostUiTest.kt"
 
 # Implementation plan

@@ -20,10 +20,29 @@ This document tracks the implementation status of all feature epics, stories, an
 | **Epic 11: Recipe Metadata & Cost Exclusions** | **100% Complete** | `InformationalCostExclusionTest`, `YieldParserTest` |
 | **Epic 12: Modern Recipe UI & Output Dashboard** | **100% Complete** | `RecipeViewerLineCostUiTest`, `YieldParserTest` |
 | **Epic 14: Quick-Edit Pricing Integration** | **100% Complete** | `RecipeViewerLineCostUiTest` |
+| **Epic 15: Commercial Kitchen & UX Enhancements** | **100% Complete** | `RecipeViewerLineCostUiTest` |
 
 ---
 
 ## Detailed Story Checklist
+
+### Epic 15: Commercial Kitchen & UX Enhancements
+- [x] **Story 15.1: In-Line Unpriced Item Indicator & Quick-Map Chip (Presentation & Domain Layer)**
+  - Prominent tapable badge `[+ Add Cost / Map]` on unpriced / unmapped ingredient rows in `IngredientDisplay`
+  - Interactive bottom dialog `QuickMapOrPriceDialog` with smart suggestion list of existing master ingredients
+  - 1-tap alias binding via `RecipeViewModel.bindIngredientAlias(...)` to immediately resolve ingredients and trigger live cost updates
+  - Inline new master price entry (₹/unit) directly within the dialog, saving to Room and auto-linking the alias
+- [x] **Story 15.2: Interactive Batch Scaler Bottom Sheet with Common Multipliers (Presentation Layer)**
+  - Added dedicated interactive trigger to the Output Summary Dashboard (tapping Total Output tile or `Scale ⚡` button)
+  - Sleek modal dialog `BatchScalerDialog` with quick preset multiplier chips (`0.5x`, `1.0x`, `2.0x`, `5.0x`, `10.0x`)
+  - Live side-by-side before-and-after comparison showing target yield and recalculated batch cost before applying
+  - Single-tap application integrating seamlessly with `RecipeViewModel.scaleByMultiplier(...)`
+- [x] **Story 15.3: Recipe Cook Mode Full-Screen Focus with Cost Masking & Step Checkoffs (Presentation Layer)**
+  - 1-tap Cook Mode toggle in AppBar (`action_cook_mode` with `ic_restaurant` icon) and recipe overview card
+  - Full-screen wake lock (`FLAG_KEEP_SCREEN_ON`) acquired when Cook Mode is active to prevent display timeout
+  - Employee privacy financial masking: line-item costs, total batch cost, and cost per kg masked with `••••`
+  - High-contrast typography (`18.sp` bold amounts, `17.sp` names) with large 28dp checkboxes and strike-through checkoffs
+  - Prominent pinned operational notes banner at top of ingredients list for tray sizes and packaging details
 
 ### Epic 14: Quick-Edit Pricing Integration
 - [x] **Story 14.1: Row Long-Press Listener & Price Badge Click (Presentation Layer)**

@@ -293,4 +293,126 @@ class RecipeViewerLineCostUiTest {
 		// Total mass: 2 kg + 5 kg = 7 kg -> 2600 / 7 = 371.43
 		assertEquals(371.43, recalculatedBreakdown.costPerKg ?: 0.0, 0.001)
 	}
+
+	@Test
+	fun `alias mapping resolves unpriced ingredient alias and recalculates live on binding`() {
+		val kajuTukda = Ingredient(amount = 10.0, unit = "kg", item = "Kaju Tukda")
+		val sugar = Ingredient(amount = 9.0, unit = "kg", item = "Sugar")
+
+		val masterKaju = MasterIngredientEntity(id = 501L, name = "काजू", unitCost = 700.0, baseUnit = "kg")
+		val masterSugar = MasterIngredientEntity(id = 502L, name = "Sugar", unitCost = 48.0, baseUnit = "kg")
+		val masterIngredients = listOf(masterKaju, masterSugar)
+
+		// 1. Without alias: "Kaju Tukda" is unpriced
+		val unmappedBreakdown = LiveCostCalculator.calculateRecipeCost(
+			ingredients = listOf(kajuTukda, sugar),
+			masterIngredients = masterIngredients,
+			aliases = emptyMap()
+		)
+
+		assertEquals(1, unmappedBreakdown.unpricedItemCount)
+		assertNull(unmappedBreakdown.formattedCostForIngredient(kajuTukda))
+		assertEquals(432.0, unmappedBreakdown.totalCost, 0.001)
+
+		// 2. Map "Kaju Tukda" alias to "काजू" master ingredient
+		val aliases = mapOf("kaju tukda" to masterKaju)
+		val mappedBreakdown = LiveCostCalculator.calculateRecipeCost(
+			ingredients = listOf(kajuTukda, sugar),
+			masterIngredients = masterIngredients,
+			aliases = aliases
+		)
+
+		assertEquals(0, mappedBreakdown.unpricedItemCount)
+		assertNotNull(mappedBreakdown.findCostItem(kajuTukda))
+		assertEquals(501L, mappedBreakdown.findCostItem(kajuTukda)?.masterIngredient?.id)
+		assertEquals("₹7000.00", mappedBreakdown.formattedCostForIngredient(kajuTukda))
+		assertEquals(7432.00, mappedBreakdown.totalCost, 0.001)
+		assertEquals(391.16, mappedBreakdown.costPerKg ?: 0.0, 0.001)
+	}
+
+	@Test
+	fun `batch scaling proportionally multiplies amounts and costs across all presets`() {
+		val kaju = Ingredient(amount = 10.0, unit = "kg", item = "काजू")
+		val sugar = Ingredient(amount = 9.0, unit = "kg", item = "Sugar")
+		val masterIngredients = listOf(
+			MasterIngredientEntity(id = 1L, name = "काजू", unitCost = 700.0, baseUnit = "kg"),
+			MasterIngredientEntity(id = 2L, name = "Sugar", unitCost = 48.0, baseUnit = "kg")
+		)
+
+		// Base (1.0x): ₹7432.00, 19 kg, ₹391.16/kg
+		val baseBreakdown = LiveCostCalculator.calculateRecipeCost(
+			ingredients = listOf(kaju, sugar),
+			masterIngredients = masterIngredients
+		)
+		assertEquals(7432.00, baseBreakdown.totalCost, 0.001)
+		assertEquals(19.0, baseBreakdown.totalMassInKg ?: 0.0, 0.001)
+		assertEquals(391.16, baseBreakdown.costPerKg ?: 0.0, 0.001)
+
+		// 2.0x Batch Scaler
+		val scaled2xIngredients = listOf(
+			kaju.copy(amount = 10.0 * 2.0),
+			sugar.copy(amount = 9.0 * 2.0)
+		)
+		val scaled2xBreakdown = LiveCostCalculator.calculateRecipeCost(
+			ingredients = scaled2xIngredients,
+			masterIngredients = masterIngredients
+		)
+		assertEquals(14864.00, scaled2xBreakdown.totalCost, 0.001)
+		assertEquals(38.0, scaled2xBreakdown.totalMassInKg ?: 0.0, 0.001)
+		assertEquals(391.16, scaled2xBreakdown.costPerKg ?: 0.0, 0.001)
+
+		// 0.5x Batch Scaler
+		val scaledHalfIngredients = listOf(
+			kaju.copy(amount = 10.0 * 0.5),
+			sugar.copy(amount = 9.0 * 0.5)
+		)
+		val scaledHalfBreakdown = LiveCostCalculator.calculateRecipeCost(
+			ingredients = scaledHalfIngredients,
+			masterIngredients = masterIngredients
+		)
+		assertEquals(3716.00, scaledHalfBreakdown.totalCost, 0.001)
+		assertEquals(9.5, scaledHalfBreakdown.totalMassInKg ?: 0.0, 0.001)
+		assertEquals(391.16, scaledHalfBreakdown.costPerKg ?: 0.0, 0.001)
+
+		// 10.0x Commercial Scale
+		val scaled10xIngredients = listOf(
+			kaju.copy(amount = 10.0 * 10.0),
+			sugar.copy(amount = 9.0 * 10.0)
+		)
+		val scaled10xBreakdown = LiveCostCalculator.calculateRecipeCost(
+			ingredients = scaled10xIngredients,
+			masterIngredients = masterIngredients
+		)
+		assertEquals(74320.00, scaled10xBreakdown.totalCost, 0.001)
+		assertEquals(190.0, scaled10xBreakdown.totalMassInKg ?: 0.0, 0.001)
+		assertEquals(391.16, scaled10xBreakdown.costPerKg ?: 0.0, 0.001)
+	}
+
+	@Test
+	fun `cook mode masks costs across line items, total batch cost, and cost per kg`() {
+		val kaju = Ingredient(amount = 10.0, unit = "kg", item = "काजू")
+		val sugar = Ingredient(amount = 9.0, unit = "kg", item = "Sugar")
+		val masterIngredients = listOf(
+			MasterIngredientEntity(id = 1L, name = "काजू", unitCost = 700.0, baseUnit = "kg"),
+			MasterIngredientEntity(id = 2L, name = "Sugar", unitCost = 48.0, baseUnit = "kg")
+		)
+
+		val cookModeBreakdown = LiveCostCalculator.calculateRecipeCost(
+			ingredients = listOf(kaju, sugar),
+			masterIngredients = masterIngredients,
+			isPrivacyMode = true
+		)
+
+		// Line costs are masked
+		assertEquals("••••", cookModeBreakdown.formattedCostForIngredient(kaju))
+		assertEquals("••••", cookModeBreakdown.formattedCostForIngredient(sugar))
+
+		// Header dashboard metrics are masked
+		assertEquals("••••", cookModeBreakdown.formattedTotalCost())
+		assertEquals("••••", cookModeBreakdown.formattedCostPerKg())
+
+		// Internal calculation still preserved for unmasking
+		assertEquals(7432.00, cookModeBreakdown.totalCost, 0.001)
+		assertEquals(19.0, cookModeBreakdown.totalMassInKg ?: 0.0, 0.001)
+	}
 }

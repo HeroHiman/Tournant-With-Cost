@@ -3,6 +3,12 @@
 	xmlns:app="http://schemas.android.com/apk/res-auto">
 
 	<item
+		android:id="@+id/action_cook_mode"
+		android:title="@string/cook_mode"
+		android:icon="@drawable/ic_restaurant"
+		app:showAsAction="ifRoom"/>
+
+	<item
 		android:id="@+id/share"
 		android:title="@string/share"
 		android:icon="@drawable/ic_share"

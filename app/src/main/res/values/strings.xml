@@ -337,4 +337,22 @@
 	<string name="dashboard_total_cost">Batch Cost</string>
 	<string name="dashboard_cost_per_kg">Cost / kg</string>
 
+	<!-- Commercial Kitchen & UX Enhancements (Epic 15) -->
+	<string name="cook_mode">Cook Mode</string>
+	<string name="exit_cook_mode">Exit Cook Mode</string>
+	<string name="cook_mode_active_banner">👨‍🍳 Cook Mode Active • Kitchen View</string>
+	<string name="add_cost_or_map">+ Add Cost / Map</string>
+	<string name="map_or_price_title">Map or Price \"%s\"</string>
+	<string name="link_to_existing_master">Link to Existing Master Ingredient</string>
+	<string name="add_new_master_price">Create New Master Price</string>
+	<string name="map_as_alias">Map as Alias</string>
+	<string name="mapped_as_alias_success">\"%1$s\" mapped to %2$s</string>
+	<string name="batch_scaler">Batch Scaler</string>
+	<string name="apply_scale">Apply Scale</string>
+	<string name="reset_scale">Reset to 1x</string>
+	<string name="target_output">Target Output</string>
+	<string name="multiplier">Multiplier</string>
+	<string name="scale_batch_button">Scale ⚡</string>
+	<string name="kitchen_notes_pinned">📌 Kitchen &amp; Operational Notes (ट्रे / जानकारी):</string>
+
 </resources>
