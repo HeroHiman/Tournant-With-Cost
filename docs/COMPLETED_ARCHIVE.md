@@ -78,7 +78,10 @@ This archive provides technical documentation for all recently implemented stori
   - [`RecipeViewerLineCostUiTest.kt`](file:///workspace/recipeMaker/Tournant/app/src/test/java/com/herohiman/tournant/RecipeViewerLineCostUiTest.kt)
 
 #### Story 12.3: Modernize Ingredient Rows & Action Layout Fix (Presentation Layer)
-- **Summary**: Resolved title text wrapping ("Ingredi" / "ents") by setting `maxLines = 1`, `softWrap = false`, and consolidating the action buttons. Consolidated scaling buttons (`RepeatOne`, `Remove`, `Add`) directly into the Yield / Scale row inside `OutputSummaryDashboard` using compact 28dp icons, leaving only Copy and Weigh buttons in the header row. Styled line-item price badges with a subtle primary-tinted `Surface` container (`RoundedCornerShape(4.dp)`), ensuring prices on the right edge are never occluded.
+- **Summary**: Resolved title text wrapping ("Ingredi" / "ents") by setting `maxLines = 1`, `softWrap = false`, and consolidating the action buttons. Fixed yield text truncation ("1 कि...") by splitting the Yield section in `OutputSummaryDashboard` into two distinct rows:
+  - **Row 1 (Full-Width Yield Display)**: Allocated full horizontal width (`Modifier.weight(1f)`) to the yield label, input field, and unit text (`maxLines = 2`, `overflow = TextOverflow.Ellipsis`), giving long units like `"1 टीपा काजू (10 किलो)"` ample breathing room.
+  - **Row 2 (Dedicated Scaling Action Row)**: Features a dedicated `[⚡ Batch Scaler]` pill button on the left (`Surface` with primary tint) and grouped `[↺ 1x]`, `[ - ]`, `[ + ]` controls on the right with comfortable 30dp touch targets and 8dp spacing.
+  - Styled line-item price badges with a subtle primary-tinted `Surface` container (`RoundedCornerShape(4.dp)`), ensuring prices on the right edge are never occluded.
 - **Technical Files Modified**:
   - [`Button.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/elements/Button.kt)
   - [`RecipeActivity.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt)

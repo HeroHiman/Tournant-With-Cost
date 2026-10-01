@@ -916,11 +916,11 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 					.fillMaxWidth()
 					.padding(horizontal = 14.dp, vertical = 12.dp)
 			) {
-				// Interactive Yield / Scale Row
+				// 1. Yield Information (Full-width, zero truncation)
 				Row(
 					modifier = Modifier.fillMaxWidth(),
 					verticalAlignment = Alignment.CenterVertically,
-					horizontalArrangement = Arrangement.spacedBy(6.dp)
+					horizontalArrangement = Arrangement.spacedBy(8.dp)
 				) {
 					Text(
 						text = stringResource(R.string.yield) + ":",
@@ -933,42 +933,75 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 						placeholder = placeholder.takeIf { it.isNotEmpty() } ?: "1"
 					)
 					Text(
-						modifier = Modifier.weight(1f, fill = false),
+						modifier = Modifier.weight(1f),
 						text = yieldUnit ?: pluralStringResource(
 							R.plurals.lots,
 							(yieldValue.takeIf { it.isNotEmpty() } ?: placeholder).getQuantityIntForPlurals() ?: 3
 						),
-						style = MaterialTheme.typography.body2.copy(fontStyle = FontStyle.Italic),
-						maxLines = 1,
+						style = MaterialTheme.typography.body2.copy(
+							fontStyle = FontStyle.Italic,
+							color = MaterialTheme.colors.onSurface.copy(alpha = 0.85f)
+						),
+						maxLines = 2,
 						overflow = TextOverflow.Ellipsis
 					)
-					Spacer(Modifier.weight(1f))
-					TournantRoundIconButton(
-						size = 28.dp,
-						icon = Icons.Default.Scale,
-						onClick = onOpenBatchScaler,
-						contentDescription = stringResource(R.string.batch_scaler),
-						isDark = false
-					)
-					TournantRoundIconButton(
-						size = 28.dp,
-						icon = Icons.Default.RepeatOne,
-						isDark = true,
-						onClick = onScaleReset,
-						contentDescription = stringResource(R.string.reset)
-					)
-					TournantRoundIconButton(
-						size = 28.dp,
-						icon = Icons.Default.Remove,
-						onClick = onScaleDown,
-						contentDescription = stringResource(R.string.less)
-					)
-					TournantRoundIconButton(
-						size = 28.dp,
-						icon = Icons.Default.Add,
-						onClick = onScaleUp,
-						contentDescription = stringResource(R.string.more)
-					)
+				}
+
+				Spacer(Modifier.height(8.dp))
+
+				// 2. Dedicated Scaling Controls Row
+				Row(
+					modifier = Modifier.fillMaxWidth(),
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.SpaceBetween
+				) {
+					// Quick Batch Scaler Pill Button
+					Surface(
+						shape = RoundedCornerShape(16.dp),
+						color = MaterialTheme.colors.primary.copy(alpha = 0.12f),
+						modifier = Modifier.clickable { onOpenBatchScaler() }
+					) {
+						Row(
+							verticalAlignment = Alignment.CenterVertically,
+							modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+							horizontalArrangement = Arrangement.spacedBy(4.dp)
+						) {
+							Text(text = "⚡", fontSize = 12.sp)
+							Text(
+								text = stringResource(R.string.batch_scaler),
+								style = MaterialTheme.typography.caption.copy(
+									fontWeight = FontWeight.Bold,
+									color = MaterialTheme.colors.primary
+								)
+							)
+						}
+					}
+
+					// Quick Incremental & Reset Controls
+					Row(
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(8.dp)
+					) {
+						TournantRoundIconButton(
+							size = 30.dp,
+							icon = Icons.Default.RepeatOne,
+							isDark = true,
+							onClick = onScaleReset,
+							contentDescription = stringResource(R.string.reset)
+						)
+						TournantRoundIconButton(
+							size = 30.dp,
+							icon = Icons.Default.Remove,
+							onClick = onScaleDown,
+							contentDescription = stringResource(R.string.less)
+						)
+						TournantRoundIconButton(
+							size = 30.dp,
+							icon = Icons.Default.Add,
+							onClick = onScaleUp,
+							contentDescription = stringResource(R.string.more)
+						)
+					}
 				}
 
 				Spacer(Modifier.height(10.dp))

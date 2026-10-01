@@ -68,7 +68,9 @@ This document tracks the implementation status of all feature epics, stories, an
   - Integrated interactive batch scaling controls directly within the dashboard
 - [x] **Story 12.3: Modernize Ingredient Rows & Action Layout Fix (Presentation Layer)**
   - Fixed "Ingredients" title wrapping onto two lines with single line constraints and padding tuning
-  - Consolidated scaling buttons into the Yield row in `OutputSummaryDashboard` with compact 28dp sizing
+  - Resolved yield text truncation ("1 कि...") by splitting `OutputSummaryDashboard` interactive section into two dedicated sub-rows:
+    - Row 1: Full-width yield title, input field, and unit description (`maxLines = 2`, `weight(1f)`) preventing ellipsis on long unit strings
+    - Row 2: Dedicated scaling action sub-row with `[⚡ Batch Scaler]` pill button and grouped `[↺ 1x]`, `[ - ]`, `[ + ]` touch controls (30dp)
   - Expanded ingredient list to full width and styled line-item price badges with subtle container badges
 
 ### Epic 11: Recipe Metadata & Cost Exclusions
