@@ -26,6 +26,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import android.view.WindowManager
+import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -33,9 +34,12 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import com.herohiman.tournant.cost.IngredientCostItem
 import com.herohiman.tournant.cost.RecipeCostBreakdown
 import com.herohiman.tournant.cost.YieldParser
 import com.herohiman.tournant.cost.CostCurrencyFormatter
+import com.herohiman.tournant.data.room.MasterIngredientEntity
+import kotlinx.coroutines.flow.firstOrNull
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -948,9 +952,8 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 						}
 					},
 					onLongClick = {
-						if (item.ingredient.amount != null) {
-							value = TextFieldValue(item.ingredient.amount.toStringForCooks(thousands = false))
-							dialogVisible = true
+						if (!item.ingredient.isInformationalOnly) {
+							showQuickEditPriceDialog(item.ingredient, costBreakdown?.findCostItem(item.ingredient))
 						}
 					},
 					indication = null,
@@ -970,7 +973,18 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 
 			Text(
 				text = amountText,
-				modifier = Modifier.width(amountMaxWidth),
+				modifier = Modifier
+					.width(amountMaxWidth)
+					.pointerInput(Unit) {
+						detectTapGestures(
+							onLongPress = {
+								if (item.ingredient.amount != null) {
+									value = TextFieldValue(item.ingredient.amount.toStringForCooks(thousands = false))
+									dialogVisible = true
+								}
+							}
+						)
+					},
 				textAlign = TextAlign.End,
 				lineHeight = 24.sp
 			)
@@ -1042,8 +1056,9 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 								}
 							},
 							onLongPress = {
-								value = TextFieldValue(item.ingredient.amount.toStringForCooks(thousands = false))
-								dialogVisible = true
+								if (!item.ingredient.isInformationalOnly) {
+									showQuickEditPriceDialog(item.ingredient, costBreakdown?.findCostItem(item.ingredient))
+								}
 							}
 						)
 					},
@@ -1059,6 +1074,11 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 						MaterialTheme.colors.onSurface.copy(alpha = 0.06f)
 					} else {
 						MaterialTheme.colors.primary.copy(alpha = 0.10f)
+					},
+					modifier = Modifier.clickable {
+						if (!item.ingredient.isInformationalOnly) {
+							showQuickEditPriceDialog(item.ingredient, costBreakdown?.findCostItem(item.ingredient))
+						}
 					}
 				) {
 					Text(
@@ -1070,6 +1090,26 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 							} else {
 								MaterialTheme.colors.primary
 							}
+						),
+						modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+						textAlign = TextAlign.End
+					)
+				}
+			} else if (costBreakdown != null && !item.ingredient.isInformationalOnly && !item.ingredient.item.isNullOrBlank()) {
+				Spacer(Modifier.width(8.dp))
+				Surface(
+					shape = RoundedCornerShape(4.dp),
+					border = BorderStroke(1.dp, MaterialTheme.colors.primary.copy(alpha = 0.35f)),
+					color = MaterialTheme.colors.surface,
+					modifier = Modifier.clickable {
+						showQuickEditPriceDialog(item.ingredient, costBreakdown?.findCostItem(item.ingredient))
+					}
+				) {
+					Text(
+						text = "+ ₹",
+						style = MaterialTheme.typography.caption.copy(
+							fontWeight = FontWeight.Bold,
+							color = MaterialTheme.colors.primary.copy(alpha = 0.8f)
 						),
 						modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
 						textAlign = TextAlign.End
@@ -1155,6 +1195,164 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 				putExtra("RECIPE_YIELD_UNIT", yieldUnit)
 			}
 		})
+	}
+
+	fun showQuickEditPriceDialog(
+		ingredient: Ingredient,
+		costItem: IngredientCostItem? = null
+	) {
+		if (ingredient.isInformationalOnly) return
+		val rawName = ingredient.item?.trim().orEmpty()
+		if (rawName.isBlank()) return
+
+		lifecycleScope.launch {
+			val existingMaster = withContext(Dispatchers.IO) {
+				costItem?.masterIngredient
+					?: viewModel.resolveMasterIngredient(
+						rawName = rawName,
+						linkedRecipeId = ingredient.refId
+					)
+			}
+			val titlesWithIds = withContext(Dispatchers.IO) {
+				try {
+					viewModel.getRecipeTitlesWithIds().firstOrNull() ?: emptyList()
+				} catch (e: Exception) {
+					emptyList()
+				}
+			}
+			showMasterCostEditDialogInternal(ingredient, existingMaster, titlesWithIds)
+		}
+	}
+
+	private fun showMasterCostEditDialogInternal(
+		ingredient: Ingredient,
+		existing: MasterIngredientEntity?,
+		titlesWithIds: List<com.herohiman.tournant.data.RecipeTitleId>
+	) {
+		val dialogBuilder = MaterialAlertDialogBuilder(this)
+		val dialogView = LayoutInflater.from(dialogBuilder.context).inflate(R.layout.dialog_edit_master_ingredient, null)
+		val editName = dialogView.findViewById<EditText>(R.id.edit_name)
+		val editBaseUnit = dialogView.findViewById<EditText>(R.id.edit_base_unit)
+		val editCategory = dialogView.findViewById<EditText>(R.id.edit_category)
+		val layoutUnitCost = dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.layout_unit_cost)
+		val editUnitCost = dialogView.findViewById<EditText>(R.id.edit_unit_cost)
+		val switchSubRecipe = dialogView.findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switch_sub_recipe)
+		val layoutSubRecipeContainer = dialogView.findViewById<View>(R.id.layout_sub_recipe_container)
+		val autoLinkedRecipe = dialogView.findViewById<com.google.android.material.textfield.MaterialAutoCompleteTextView>(R.id.auto_linked_recipe)
+		val editYieldRatio = dialogView.findViewById<EditText>(R.id.edit_yield_ratio)
+
+		val recipeTitles = titlesWithIds.map { it.title }
+		val recipeMap = titlesWithIds.associateBy { it.title.trim().lowercase(Locale.ROOT) }
+		val recipeAdapter = android.widget.ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, recipeTitles)
+		autoLinkedRecipe.setAdapter(recipeAdapter)
+		autoLinkedRecipe.setOnClickListener { autoLinkedRecipe.showDropDown() }
+		autoLinkedRecipe.setOnFocusChangeListener { _, hasFocus -> if (hasFocus) autoLinkedRecipe.showDropDown() }
+
+		var selectedRecipeId: Long? = existing?.linkedRecipeId ?: ingredient.refId
+
+		autoLinkedRecipe.setOnItemClickListener { _, _, position, _ ->
+			val selectedTitle = recipeAdapter.getItem(position)
+			selectedRecipeId = titlesWithIds.firstOrNull { it.title == selectedTitle }?.id
+		}
+
+		if (existing != null) {
+			editName.setText(existing.name)
+			if (existing.unitCost > 0.0) {
+				editUnitCost.setText(String.format(Locale.US, "%.4f", existing.unitCost).trimEnd('0').trimEnd('.'))
+			}
+			editBaseUnit.setText(existing.baseUnit)
+			editCategory.setText(existing.category ?: "")
+
+			if (existing.linkedRecipeId != null) {
+				switchSubRecipe.isChecked = true
+				layoutSubRecipeContainer.visibility = View.VISIBLE
+				val matchedTitle = titlesWithIds.firstOrNull { it.id == existing.linkedRecipeId }?.title
+				if (!matchedTitle.isNullOrBlank()) {
+					autoLinkedRecipe.setText(matchedTitle, false)
+				}
+				if (existing.yieldRatio != null) {
+					editYieldRatio.setText(String.format(Locale.US, "%.4f", existing.yieldRatio!!).trimEnd('0').trimEnd('.'))
+				}
+				layoutUnitCost.hint = getString(R.string.unit_cost_optional_fallback)
+			} else {
+				switchSubRecipe.isChecked = false
+				layoutSubRecipeContainer.visibility = View.GONE
+				layoutUnitCost.hint = getString(R.string.unit_cost)
+			}
+		} else {
+			editName.setText(ingredient.item ?: "")
+			editBaseUnit.setText(ingredient.unit?.ifBlank { "kg" } ?: "kg")
+			if (ingredient.refId != null) {
+				switchSubRecipe.isChecked = true
+				layoutSubRecipeContainer.visibility = View.VISIBLE
+				val matchedTitle = titlesWithIds.firstOrNull { it.id == ingredient.refId }?.title
+				if (!matchedTitle.isNullOrBlank()) {
+					autoLinkedRecipe.setText(matchedTitle, false)
+				}
+				layoutUnitCost.hint = getString(R.string.unit_cost_optional_fallback)
+			} else {
+				switchSubRecipe.isChecked = false
+				layoutSubRecipeContainer.visibility = View.GONE
+				layoutUnitCost.hint = getString(R.string.unit_cost)
+			}
+		}
+
+		switchSubRecipe.setOnCheckedChangeListener { _, isChecked ->
+			layoutSubRecipeContainer.visibility = if (isChecked) View.VISIBLE else View.GONE
+			layoutUnitCost.hint = if (isChecked) getString(R.string.unit_cost_optional_fallback) else getString(R.string.unit_cost)
+		}
+
+		val titleRes = if (existing == null) R.string.add_ingredient_cost else R.string.edit_ingredient_cost
+
+		dialogBuilder
+			.setTitle(titleRes)
+			.setView(dialogView)
+			.setPositiveButton(R.string.save) { _, _ ->
+				val name = editName.text.toString().trim()
+				val baseUnit = editBaseUnit.text.toString().trim()
+				val category = editCategory.text.toString().trim().ifBlank { null }
+				val isSubRecipe = switchSubRecipe.isChecked
+				val unitCostStr = editUnitCost.text.toString().trim()
+				val yieldRatioStr = editYieldRatio.text.toString().trim()
+
+				if (name.isBlank() || baseUnit.isBlank()) {
+					Toast.makeText(this, "Name and base unit are required", Toast.LENGTH_SHORT).show()
+					return@setPositiveButton
+				}
+
+				if (!isSubRecipe && unitCostStr.isBlank()) {
+					Toast.makeText(this, "Unit cost is required for manual ingredients", Toast.LENGTH_SHORT).show()
+					return@setPositiveButton
+				}
+
+				val linkedRecipe = if (isSubRecipe) {
+					selectedRecipeId ?: recipeMap[autoLinkedRecipe.text.toString().trim().lowercase(Locale.ROOT)]?.id
+				} else null
+
+				if (isSubRecipe && linkedRecipe == null) {
+					Toast.makeText(this, R.string.select_sub_recipe_error, Toast.LENGTH_SHORT).show()
+					return@setPositiveButton
+				}
+
+				val yieldRatio = if (isSubRecipe) yieldRatioStr.toDoubleOrNull() else null
+				val cost = unitCostStr.toDoubleOrNull() ?: 0.0
+
+				viewModel.saveMasterIngredient(
+					existing = existing,
+					rawItemName = ingredient.item ?: "",
+					name = name,
+					unitCost = cost,
+					baseUnit = baseUnit,
+					category = category,
+					linkedRecipeId = linkedRecipe,
+					yieldRatio = yieldRatio,
+					onSaved = {
+						Toast.makeText(this@RecipeActivity, R.string.cost_saved, Toast.LENGTH_SHORT).show()
+					}
+				)
+			}
+			.setNegativeButton(R.string.cancel, null)
+			.show()
 	}
 
 	override fun showAlarmDialog(minutes: Int) {

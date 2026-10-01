@@ -5,8 +5,29 @@ This archive provides technical documentation for all recently implemented stori
 ---
 
 ## 1. Implemented Stories
-
-### Epic 12: Modern Recipe UI & Output Dashboard
+ 
++### Epic 14: Quick-Edit Pricing Integration
++
++#### Story 14.1: Row Long-Press Listener & Price Badge Click (Presentation Layer)
++- **Summary**: Added seamless quick-edit interactions directly in the Recipe Viewer's `IngredientDisplay` Compose layout. Long-pressing an ingredient row or text triggers `showQuickEditPriceDialog`, retrieving the corresponding master ingredient ID or record for that specific item (e.g. "काजू"). Tapping the price badge (`Surface`) or the unpriced `+ ₹` badge also directly opens the quick edit dialog.
++- **Technical Files Modified**:
++  - [`RecipeActivity.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt)
++
++#### Story 14.2: Master Data Retrieval (Domain Layer)
++- **Summary**: Added `resolveMasterIngredient` and `getRecipeTitlesWithIds` in `RecipeViewModel`. Queries `RecipeRepository` and Room's `MasterIngredientDao` / `IngredientAliasDao` to look up by linked recipe ID, direct master ingredient name, or alias raw name, pre-populating current base price, unit, category, and sub-recipe link options.
++- **Technical Files Modified**:
++  - [`RecipeViewModel.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt)
++
++#### Story 14.3: Dialog Injection & Live Recalculation (Presentation Layer)
++- **Summary**: Injected `dialog_edit_master_ingredient.xml` directly over the Recipe Viewer. On tapping "Save", persisted changes to Room via `RecipeViewModel.saveMasterIngredient(...)` and automatically registered aliases when raw ingredient names differ. Because `_masterIngredients` is an active Room `Flow`, database mutations immediately trigger `LiveCostCalculator` recalculation live on the screen without requiring a page refresh.
++- **Technical Files Modified**:
++  - [`RecipeActivity.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt)
++  - [`RecipeViewModel.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt)
++  - [`RecipeViewerLineCostUiTest.kt`](file:///workspace/recipeMaker/Tournant/app/src/test/java/com/herohiman/tournant/RecipeViewerLineCostUiTest.kt)
++
++---
++
+ ### Epic 12: Modern Recipe UI & Output Dashboard
 
 #### Story 12.1: Fix Layout Spacing Bug (Presentation Layer)
 - **Summary**: Removed the enclosing `FlexboxLayout` with `app:alignItems="stretch"` wrapping `recipe_detail_ingredients` and `recipe_detail_instructions` in `activity_recipe.xml`. Placed `recipe_detail_ingredients` and `recipe_detail_instructions` directly into the vertical `LinearLayout` container with matching `android:layout_marginHorizontal="16dp"` and `android:layout_marginBottom="16dp"`, snapping the ingredients card immediately beneath the header details card and completely eliminating the phantom vertical gap.

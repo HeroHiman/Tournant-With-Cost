@@ -26,6 +26,7 @@ import com.herohiman.tournant.cost.UnitConverterEngine
 import com.herohiman.tournant.data.room.BaseUnitType
 import com.herohiman.tournant.data.room.MasterIngredientEntity
 import com.herohiman.tournant.data.room.UnitAliasEntity
+import com.herohiman.tournant.data.room.IngredientAliasEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -309,6 +310,85 @@ class RecipeViewModel(application: TournantApplication, private val recipeId: Lo
 		viewModelScope.launch {
 			withContext(Dispatchers.IO) {
 				recipeRepository.removePreparation(recipeId, date)
+			}
+		}
+	}
+
+	fun getRecipeTitlesWithIds(): Flow<List<RecipeTitleId>> = recipeRepository.getRecipeTitlesWithIds()
+
+	suspend fun resolveMasterIngredient(
+		rawName: String,
+		linkedRecipeId: Long? = null,
+		masterId: Long? = null
+	): MasterIngredientEntity? {
+		return withContext(Dispatchers.IO) {
+			if (masterId != null && masterId > 0L) {
+				recipeRepository.getMasterIngredientById(masterId)
+			} else if (linkedRecipeId != null && linkedRecipeId > 0L) {
+				recipeRepository.getMasterIngredientByLinkedRecipeId(linkedRecipeId)
+					?: recipeRepository.getMasterIngredientByName(rawName.trim())
+					?: recipeRepository.getMasterIngredientForRawName(rawName.trim())
+			} else {
+				recipeRepository.getMasterIngredientByName(rawName.trim())
+					?: recipeRepository.getMasterIngredientForRawName(rawName.trim())
+			}
+		}
+	}
+
+	fun saveMasterIngredient(
+		existing: MasterIngredientEntity?,
+		rawItemName: String,
+		name: String,
+		unitCost: Double,
+		baseUnit: String,
+		category: String? = null,
+		linkedRecipeId: Long? = null,
+		yieldRatio: Double? = null,
+		onSaved: (() -> Unit)? = null
+	) {
+		viewModelScope.launch {
+			withContext(Dispatchers.IO) {
+				val targetMasterId: Long
+				if (existing != null) {
+					val updated = existing.copy(
+						name = name,
+						unitCost = unitCost,
+						baseUnit = baseUnit,
+						category = category,
+						linkedRecipeId = linkedRecipeId,
+						yieldRatio = yieldRatio,
+						lastUpdated = System.currentTimeMillis()
+					)
+					recipeRepository.updateMasterIngredient(updated)
+					targetMasterId = existing.id
+				} else {
+					val newEntity = MasterIngredientEntity(
+						name = name,
+						unitCost = unitCost,
+						baseUnit = baseUnit,
+						category = category,
+						linkedRecipeId = linkedRecipeId,
+						yieldRatio = yieldRatio,
+						isActive = true,
+						lastUpdated = System.currentTimeMillis()
+					)
+					targetMasterId = recipeRepository.insertMasterIngredient(newEntity)
+				}
+
+				if (rawItemName.isNotBlank() && !rawItemName.trim().equals(name.trim(), ignoreCase = true) && targetMasterId > 0L) {
+					val existingAlias = recipeRepository.getIngredientAliasByRawName(rawItemName.trim())
+					if (existingAlias == null) {
+						recipeRepository.insertIngredientAlias(
+							IngredientAliasEntity(
+								masterIngredientId = targetMasterId,
+								rawName = rawItemName.trim()
+							)
+						)
+					}
+				}
+			}
+			withContext(Dispatchers.Main) {
+				onSaved?.invoke()
 			}
 		}
 	}

@@ -407,6 +407,49 @@ epics:
         test_focus: [ui]
         complexity: LOW
 
+  # Epic 14: Quick-Edit Pricing Integration
+  "14":
+    title: "Quick-Edit Pricing Integration"
+    goal: "Enable cooks to edit master ingredient prices directly from the Recipe Viewer via row long-press and price badge taps without leaving the recipe"
+    priority: HIGH
+    stories:
+      "14.1":
+        title: "Row Long-Press Listener & Price Badge Click"
+        description: "As a cook, I want to long-press an ingredient or tap its price badge in the recipe viewer to edit its master cost directly"
+        acceptance_criteria:
+          - "Long-pressing an ingredient row in Recipe Viewer triggers quick-edit price dialog"
+          - "Clicking an ingredient price badge or unpriced indicator opens quick-edit price dialog"
+          - "Informational rows are safely excluded from price editing"
+        dependencies: ["12.3"]
+        tech_stack: [kotlin, android, compose]
+        test_focus: [ui, unit]
+        complexity: LOW
+
+      "14.2":
+        title: "Master Data Retrieval"
+        description: "As the costing engine, I want to resolve the exact master ingredient record to pre-populate the edit dialog"
+        acceptance_criteria:
+          - "Resolves existing master ingredient by linked recipe ID, direct name, or alias"
+          - "Supplies recipe titles for sub-recipe linking"
+          - "Falls back gracefully to pre-fill raw ingredient name and unit for unpriced items"
+        dependencies: ["14.1"]
+        tech_stack: [kotlin, android, room]
+        test_focus: [unit]
+        complexity: LOW
+
+      "14.3":
+        title: "Dialog Injection & Live Recalculation"
+        description: "As a cook, I want the recipe's line cost, batch cost, and cost per kg to recalculate live immediately upon saving"
+        acceptance_criteria:
+          - "Reuses master cost edit dialog directly over the Recipe Viewer"
+          - "Persists new price, unit, category, and sub-recipe link to Room database"
+          - "Auto-registers alias when raw ingredient name differs from master name"
+          - "Instantly updates recipe totals and line cost without page refresh"
+        dependencies: ["14.2"]
+        tech_stack: [kotlin, android, room, compose]
+        test_focus: [unit, integration]
+        complexity: MEDIUM
+
 # Story Prioritization
 prioritization:
   high: ["1.1", "1.2", "1.3", "2.1", "2.2", "2.3", "3.1", "3.2", "3.3", "6.1", "6.2", "6.3"]
@@ -597,6 +640,23 @@ story_implementations:
     status: "completed"
     files:
       - "app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt"
+
+  "14.1":
+    status: "completed"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt"
+
+  "14.2":
+    status: "completed"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt"
+
+  "14.3":
+    status: "completed"
+    files:
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt"
+      - "app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt"
+      - "app/src/test/java/com/herohiman/tournant/RecipeViewerLineCostUiTest.kt"
 
 # Implementation plan
 implementation_plan:

@@ -19,10 +19,24 @@ This document tracks the implementation status of all feature epics, stories, an
 | **Epic 9: Smart Search Integration** | **100% Complete** | `ReactiveSearchQueriesTest`, `StateManagementSearchViewModelTest` |
 | **Epic 11: Recipe Metadata & Cost Exclusions** | **100% Complete** | `InformationalCostExclusionTest`, `YieldParserTest` |
 | **Epic 12: Modern Recipe UI & Output Dashboard** | **100% Complete** | `RecipeViewerLineCostUiTest`, `YieldParserTest` |
+| **Epic 14: Quick-Edit Pricing Integration** | **100% Complete** | `RecipeViewerLineCostUiTest` |
 
 ---
 
 ## Detailed Story Checklist
+
+### Epic 14: Quick-Edit Pricing Integration
+- [x] **Story 14.1: Row Long-Press Listener & Price Badge Click (Presentation Layer)**
+  - Attached long-press gesture to recipe ingredient rows (`IngredientDisplay`) in `RecipeActivity.kt`
+  - Connected click / long-click listeners directly to ingredient price badges (`Surface`) and `+ ₹` unpriced indicators
+  - Resolved `IngredientCostItem` and `MasterIngredientEntity` to trigger quick-edit dialog without leaving the Recipe Viewer
+- [x] **Story 14.2: Master Data Retrieval (Domain Layer)**
+  - Added `resolveMasterIngredient` in `RecipeViewModel` querying Room database by ID, exact name, or alias
+  - Added `getRecipeTitlesWithIds` to supply sub-recipe autocomplete options
+- [x] **Story 14.3: Dialog Injection & Live Recalculation (Presentation Layer)**
+  - Reused `dialog_edit_master_ingredient.xml` directly over the Recipe Viewer
+  - Built `saveMasterIngredient` in `RecipeViewModel` persisting to Room via `RecipeRepository` and linking aliases
+  - Leveraging active Room `Flow` to automatically recalculate line item costs, total batch cost, and cost per kg live on save
 
 ### Epic 12: Modern Recipe UI & Output Dashboard
 - [x] **Story 12.1: Fix Layout Spacing Bug (Presentation Layer)**

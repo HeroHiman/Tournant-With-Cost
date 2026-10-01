@@ -215,4 +215,82 @@ class RecipeViewerLineCostUiTest {
 		assertEquals(437.18, breakdown.costPerKg!!, 0.001)
 		assertEquals("₹437.18", breakdown.formattedCostPerKg())
 	}
+
+	@Test
+	fun `quick-edit pricing resolves master ingredient and recalculates live on price update`() {
+		val kaju = Ingredient(amount = 10.0, unit = "kg", item = "काजू")
+		val sugar = Ingredient(amount = 9.0, unit = "kg", item = "Sugar")
+
+		val initialMasters = listOf(
+			MasterIngredientEntity(id = 101L, name = "काजू", unitCost = 700.0, baseUnit = "kg"),
+			MasterIngredientEntity(id = 102L, name = "Sugar", unitCost = 48.0, baseUnit = "kg")
+		)
+
+		val initialBreakdown = LiveCostCalculator.calculateRecipeCost(
+			ingredients = listOf(kaju, sugar),
+			masterIngredients = initialMasters
+		)
+
+		// 1. Verify Story 14.1 & 14.2: findCostItem resolves master ingredient accurately
+		val kajuCostItem = initialBreakdown.findCostItem(kaju)
+		assertNotNull(kajuCostItem)
+		assertNotNull(kajuCostItem?.masterIngredient)
+		assertEquals(101L, kajuCostItem?.masterIngredient?.id)
+		assertEquals(700.0, kajuCostItem?.masterIngredient?.unitCost ?: 0.0, 0.001)
+		assertEquals("₹7000.00", kajuCostItem?.formattedCost())
+		assertEquals(7432.00, initialBreakdown.totalCost, 0.001)
+		assertEquals(391.16, initialBreakdown.costPerKg ?: 0.0, 0.001)
+
+		// 2. Simulate Story 14.3: User edits "काजू" price to ₹750.00/kg
+		val updatedMasters = initialMasters.map {
+			if (it.id == 101L) it.copy(unitCost = 750.0) else it
+		}
+
+		val recalculatedBreakdown = LiveCostCalculator.calculateRecipeCost(
+			ingredients = listOf(kaju, sugar),
+			masterIngredients = updatedMasters
+		)
+
+		// Total cost: 7500 + 432 = 7932.00
+		val updatedKajuCostItem = recalculatedBreakdown.findCostItem(kaju)
+		assertNotNull(updatedKajuCostItem)
+		assertEquals("₹7500.00", updatedKajuCostItem?.formattedCost())
+		assertEquals(7932.00, recalculatedBreakdown.totalCost, 0.001)
+		// Cost per kg: 7932.00 / 19 = 417.47368 -> 417.47
+		assertEquals(417.47, recalculatedBreakdown.costPerKg ?: 0.0, 0.001)
+		assertEquals("₹417.47", recalculatedBreakdown.formattedCostPerKg())
+	}
+
+	@Test
+	fun `quick-edit pricing for unpriced ingredient activates line cost and updates totals`() {
+		val pista = Ingredient(amount = 2.0, unit = "kg", item = "पिस्ता")
+		val sugar = Ingredient(amount = 5.0, unit = "kg", item = "Sugar")
+
+		val initialMasters = listOf(
+			MasterIngredientEntity(id = 201L, name = "Sugar", unitCost = 40.0, baseUnit = "kg")
+		)
+
+		val initialBreakdown = LiveCostCalculator.calculateRecipeCost(
+			ingredients = listOf(pista, sugar),
+			masterIngredients = initialMasters
+		)
+
+		assertEquals(1, initialBreakdown.unpricedItemCount)
+		assertEquals(200.0, initialBreakdown.totalCost, 0.001)
+		assertNull(initialBreakdown.formattedCostForIngredient(pista))
+
+		// User adds price for "पिस्ता" at ₹1200/kg
+		val updatedMasters = initialMasters + MasterIngredientEntity(id = 202L, name = "पिस्ता", unitCost = 1200.0, baseUnit = "kg")
+
+		val recalculatedBreakdown = LiveCostCalculator.calculateRecipeCost(
+			ingredients = listOf(pista, sugar),
+			masterIngredients = updatedMasters
+		)
+
+		assertEquals(0, recalculatedBreakdown.unpricedItemCount)
+		assertEquals("₹2400.00", recalculatedBreakdown.formattedCostForIngredient(pista))
+		assertEquals(2600.00, recalculatedBreakdown.totalCost, 0.001)
+		// Total mass: 2 kg + 5 kg = 7 kg -> 2600 / 7 = 371.43
+		assertEquals(371.43, recalculatedBreakdown.costPerKg ?: 0.0, 0.001)
+	}
 }
