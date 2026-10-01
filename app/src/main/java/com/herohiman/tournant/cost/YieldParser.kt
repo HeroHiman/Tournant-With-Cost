@@ -59,15 +59,53 @@ object YieldParser {
 	}
 
 	/**
-	 * Computes cost per kilogram given total cost and parsed weight in kg.
+	 * Computes cost per kilogram given total cost and recipe context.
+	 * Checks for explicit mass yield override first, falls back to the Sum of All Active
+	 * Ingredient Weights (e.g. 10 kg + 9 kg = 19 kg), and finally falls back to string parsing.
 	 */
 	fun calculateCostPerKg(
 		totalCost: Double,
 		yieldValue: Double?,
 		yieldUnit: String?,
-		scaleFactor: Double = 1.0
+		scaleFactor: Double = 1.0,
+		ingredients: List<com.herohiman.tournant.data.Ingredient> = emptyList(),
+		unitAliases: Map<String, com.herohiman.tournant.data.room.UnitAliasEntity> = emptyMap()
 	): Double? {
 		if (totalCost <= 0.0) return null
+
+		// 1. Explicit yield override: strict numeric mass unit in yieldValue & yieldUnit
+		if (yieldValue != null && yieldValue > 0.0 && !yieldUnit.isNullOrBlank()) {
+			val alias = UnitConverterEngine.findAlias(yieldUnit.trim(), unitAliases)
+			if (alias != null && alias.baseUnit == BaseUnitType.KG && alias.conversionFactor > 0.0) {
+				val effectiveScale = if (scaleFactor > 0.0) scaleFactor else 1.0
+				val massKg = yieldValue * alias.conversionFactor * effectiveScale
+				if (massKg > 0.0) {
+					return totalCost / massKg
+				}
+			}
+		}
+
+		// 2. The Automatic Sum Fix: calculate Sum of All Active Ingredient Weights
+		if (ingredients.isNotEmpty()) {
+			val activeIngredients = LiveCostCalculator.filterActiveIngredients(ingredients)
+				.filter { !it.isInformationalOnly && !it.optional }
+			val activeMassSum = activeIngredients.mapNotNull { ing ->
+				val amount = ing.amount ?: return@mapNotNull null
+				if (amount <= 0.0) return@mapNotNull null
+				val alias = UnitConverterEngine.findAlias(ing.unit, unitAliases)
+				if (alias != null && alias.baseUnit == BaseUnitType.KG && alias.conversionFactor > 0.0) {
+					amount * alias.conversionFactor * (if (scaleFactor > 0.0) scaleFactor else 1.0)
+				} else {
+					null
+				}
+			}.sum()
+
+			if (activeMassSum > 0.0) {
+				return totalCost / activeMassSum
+			}
+		}
+
+		// 3. Fallback to descriptive yield string parser if ingredients are empty (legacy / test support)
 		val parsed = parseWeightInKg(yieldValue, yieldUnit, scaleFactor) ?: return null
 		if (parsed.amountInKg <= 0.0) return null
 		return totalCost / parsed.amountInKg

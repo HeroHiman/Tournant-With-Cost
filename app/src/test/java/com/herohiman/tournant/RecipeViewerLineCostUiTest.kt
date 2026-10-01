@@ -162,4 +162,57 @@ class RecipeViewerLineCostUiTest {
 		val displayCostPerKg = "${com.herohiman.tournant.cost.CostCurrencyFormatter.formatAmount(costPerKg!!)} / kg"
 		assertEquals("₹700.00 / kg", displayCostPerKg)
 	}
+
+	@Test
+	fun `automatic sum of active ingredient weights calculates true cost per kg 10kg plus 9kg equals 19kg`() {
+		val kaju = Ingredient(amount = 10.0, unit = "kg", item = "काजू")
+		val sugar = Ingredient(amount = 9.0, unit = "kg", item = "Sugar")
+		val packagingNote = Ingredient(amount = 17.0, unit = "kg", item = "डब्बा में पैक", isInformationalOnly = true)
+
+		val masterIngredients = listOf(
+			MasterIngredientEntity(id = 1, name = "काजू", unitCost = 700.0, baseUnit = "kg"), // ₹7000.00
+			MasterIngredientEntity(id = 2, name = "Sugar", unitCost = 48.0, baseUnit = "kg")   // ₹432.00
+		)
+
+		val breakdown = LiveCostCalculator.calculateRecipeCost(
+			ingredients = listOf(kaju, sugar, packagingNote),
+			masterIngredients = masterIngredients
+		)
+
+		// Total cost: 7000 + 432 = 7432.00
+		assertEquals(7432.00, breakdown.totalCost, 0.001)
+		// Active weight sum: 10 + 9 = 19 kg (packagingNote is excluded)
+		assertNotNull(breakdown.totalMassInKg)
+		assertEquals(19.0, breakdown.totalMassInKg!!, 0.001)
+
+		// Cost per kg: 7432.00 / 19.0 = 391.15789 -> 391.16
+		assertNotNull(breakdown.costPerKg)
+		assertEquals(391.16, breakdown.costPerKg!!, 0.001)
+		assertEquals("₹391.16", breakdown.formattedCostPerKg())
+	}
+
+	@Test
+	fun `explicit yield override takes precedence over sum of raw ingredient weights due to evaporation`() {
+		val kaju = Ingredient(amount = 10.0, unit = "kg", item = "काजू")
+		val sugar = Ingredient(amount = 9.0, unit = "kg", item = "Sugar")
+
+		val masterIngredients = listOf(
+			MasterIngredientEntity(id = 1, name = "काजू", unitCost = 700.0, baseUnit = "kg"),
+			MasterIngredientEntity(id = 2, name = "Sugar", unitCost = 48.0, baseUnit = "kg")
+		)
+
+		// Total raw materials = 19 kg, but boiled down to 17 kg
+		val breakdown = LiveCostCalculator.calculateRecipeCost(
+			ingredients = listOf(kaju, sugar),
+			masterIngredients = masterIngredients,
+			explicitYieldWeightKg = 17.0
+		)
+
+		assertEquals(7432.00, breakdown.totalCost, 0.001)
+		assertEquals(17.0, breakdown.totalMassInKg!!, 0.001)
+
+		// Cost per kg: 7432.00 / 17.0 = 437.176 -> 437.18
+		assertEquals(437.18, breakdown.costPerKg!!, 0.001)
+		assertEquals("₹437.18", breakdown.formattedCostPerKg())
+	}
 }

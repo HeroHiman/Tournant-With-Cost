@@ -28,11 +28,14 @@ This document tracks the implementation status of all feature epics, stories, an
 - [x] **Story 12.1: Fix Layout Spacing Bug (Presentation Layer)**
   - Replaced stretching FlexboxLayout with direct LinearLayout container
   - Snapped ingredients ComposeView and instructions card directly beneath header
-- [x] **Story 12.2: Output Summary Dashboard Card (Presentation Layer)**
+- [x] **Story 12.2: Output Summary Dashboard & Math Correction (Domain & Presentation Layer)**
   - Built prominent `OutputSummaryDashboard` card showing Total Output, Batch Cost, and Cost / kg
+  - Implemented Automatic Sum of Active Ingredient Weights (e.g. 10 kg + 9 kg = 19 kg -> ₹391.16 / kg)
+  - Implemented Explicit Mass Yield Override for evaporation (e.g. 17 kg -> ₹437.18 / kg)
   - Integrated interactive batch scaling controls directly within the dashboard
-- [x] **Story 12.3: Modernize Ingredient Rows & Relocate Action Buttons (Presentation Layer)**
-  - Relocated Copy and Weigh buttons to the header actions row beside scale buttons
+- [x] **Story 12.3: Modernize Ingredient Rows & Action Layout Fix (Presentation Layer)**
+  - Fixed "Ingredients" title wrapping onto two lines with single line constraints and padding tuning
+  - Consolidated scaling buttons into the Yield row in `OutputSummaryDashboard` with compact 28dp sizing
   - Expanded ingredient list to full width and styled line-item price badges with subtle container badges
 
 ### Epic 11: Recipe Metadata & Cost Exclusions

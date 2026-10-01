@@ -22,6 +22,8 @@ import com.herohiman.tournant.separator
 import com.herohiman.tournant.toStringForCooks
 import com.herohiman.tournant.cost.LiveCostCalculator
 import com.herohiman.tournant.cost.RecipeCostBreakdown
+import com.herohiman.tournant.cost.UnitConverterEngine
+import com.herohiman.tournant.data.room.BaseUnitType
 import com.herohiman.tournant.data.room.MasterIngredientEntity
 import com.herohiman.tournant.data.room.UnitAliasEntity
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +52,7 @@ class RecipeViewModel(application: TournantApplication, private val recipeId: Lo
 	val uiEvents = _uiEvents.receiveAsFlow()
 
 	private val _recipeYieldValue = MutableStateFlow<Double?>(null)
+	private val _recipeYieldUnit = MutableStateFlow<String?>(null)
 	private val _targetYieldValue = MutableStateFlow<Double?>(null)
 	private val _yieldFromTextField = MutableStateFlow<String?>(null)
 
@@ -107,6 +110,18 @@ class RecipeViewModel(application: TournantApplication, private val recipeId: Lo
 			null
 		} else {
 			val aliasMap = aliases.associateBy { it.aliasName.trim().lowercase(java.util.Locale.ROOT) }
+			val yieldUnit = _recipeYieldUnit.value
+			val explicitYieldWeightKg = if (yield != null && yield > 0.0 && !yieldUnit.isNullOrBlank()) {
+				val unitAlias = UnitConverterEngine.findAlias(yieldUnit.trim(), aliasMap)
+				if (unitAlias != null && unitAlias.baseUnit == BaseUnitType.KG && unitAlias.conversionFactor > 0.0) {
+					yield * unitAlias.conversionFactor
+				} else {
+					null
+				}
+			} else {
+				null
+			}
+
 			LiveCostCalculator.calculateRecipeCost(
 				ingredients = rawIngredients,
 				masterIngredients = masters,
@@ -114,7 +129,8 @@ class RecipeViewModel(application: TournantApplication, private val recipeId: Lo
 				scaleFactor = scale,
 				unitAliases = aliasMap,
 				subRecipeResolver = recipeRepository.asSubRecipeResolver(),
-				currentRecipeId = recipeId
+				currentRecipeId = recipeId,
+				explicitYieldWeightKg = explicitYieldWeightKg
 			)
 		}
 	}.flowOn(Dispatchers.IO)
@@ -159,6 +175,7 @@ class RecipeViewModel(application: TournantApplication, private val recipeId: Lo
 			recipe.yieldValue.let {
 				_yieldFromTextField.value = null
 				_recipeYieldValue.value = it
+				_recipeYieldUnit.value = recipe.yieldUnit
 			}
 		}
 

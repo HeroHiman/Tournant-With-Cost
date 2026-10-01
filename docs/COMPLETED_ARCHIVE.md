@@ -13,19 +13,23 @@ This archive provides technical documentation for all recently implemented stori
 - **Technical Files Modified**:
   - [`activity_recipe.xml`](file:///workspace/recipeMaker/Tournant/app/src/main/res/layout/activity_recipe.xml)
 
-#### Story 12.2: Output Summary Dashboard (Presentation Layer)
-- **Summary**: Replaced the plain single-line text string with a dedicated Material summary card (`OutputSummaryDashboard`) embedded at the top of the ingredients section. Displays interactive yield scaling controls and three distinct financial dashboard metrics:
-  - **Total Output**: Extracted/scaled quantity with unit (e.g. `10 किलो`)
-  - **Batch Cost**: Total batch cost formatted in Indian Rupee (`₹7,000.00`)
-  - **Cost / kg**: Dynamically computed cost per kilogram (`₹700.00 / kg`)
+#### Story 12.2: Output Summary Dashboard & Math Correction (Domain & Presentation Layer)
+- **Summary**: Replaced the plain single-line text string with a dedicated Material summary card (`OutputSummaryDashboard`) embedded at the top of the ingredients section. Corrected cost and yield math by calculating the **Sum of All Active Ingredient Weights** (e.g. 10 kg cashew + 9 kg sugar = 19 kg) as the divisor for true Cost / kg (`₹7432.00 / 19 = ₹391.16 / kg`), with explicit mass yield override support for evaporation (e.g. 17 kg). Displays interactive yield scaling controls and three distinct financial dashboard metrics:
+  - **Total Output**: Active raw material mass sum or explicit yield weight (e.g. `19 kg` or `17 kg`)
+  - **Batch Cost**: Total batch cost formatted in Indian Rupee (`₹7,432.00`)
+  - **Cost / kg**: True cost per kilogram (`₹391.16 / kg` or `₹437.18 / kg`)
 - **Technical Files Modified**:
+  - [`LiveCostCalculator.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/cost/LiveCostCalculator.kt)
+  - [`YieldParser.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/cost/YieldParser.kt)
+  - [`RecipeViewModel.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeViewModel.kt)
   - [`RecipeActivity.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt)
   - [`strings.xml`](file:///workspace/recipeMaker/Tournant/app/src/main/res/values/strings.xml)
   - [`RecipeViewerLineCostUiTest.kt`](file:///workspace/recipeMaker/Tournant/app/src/test/java/com/herohiman/tournant/RecipeViewerLineCostUiTest.kt)
 
-#### Story 12.3: Modernize Ingredient Rows & Relocate Action Buttons (Presentation Layer)
-- **Summary**: Relocated the Copy (`ContentCopy`) and Scale (`Scale`) buttons into the header action row next to the scaling controls (`RepeatOne`, `Remove`, `Add`), allowing `IngredientList` to take full screen width without being crowded or covered. Styled line-item price badges with a subtle primary-tinted `Surface` container (`RoundedCornerShape(4.dp)`), ensuring prices on the right edge are never occluded.
+#### Story 12.3: Modernize Ingredient Rows & Action Layout Fix (Presentation Layer)
+- **Summary**: Resolved title text wrapping ("Ingredi" / "ents") by setting `maxLines = 1`, `softWrap = false`, and consolidating the action buttons. Consolidated scaling buttons (`RepeatOne`, `Remove`, `Add`) directly into the Yield / Scale row inside `OutputSummaryDashboard` using compact 28dp icons, leaving only Copy and Weigh buttons in the header row. Styled line-item price badges with a subtle primary-tinted `Surface` container (`RoundedCornerShape(4.dp)`), ensuring prices on the right edge are never occluded.
 - **Technical Files Modified**:
+  - [`Button.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/elements/Button.kt)
   - [`RecipeActivity.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt)
 
 ---

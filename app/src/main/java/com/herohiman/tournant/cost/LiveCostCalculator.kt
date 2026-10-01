@@ -89,7 +89,9 @@ data class RecipeCostBreakdown(
 	val isPrivacyMode: Boolean = false,
 	val items: List<IngredientCostItem> = emptyList(),
 	val unpricedItemCount: Int = 0,
-	val hasRecursionCycle: Boolean = items.any { it.status == CostStatus.RECURSION_CYCLE_DETECTED }
+	val hasRecursionCycle: Boolean = items.any { it.status == CostStatus.RECURSION_CYCLE_DETECTED },
+	val totalMassInKg: Double? = null,
+	val costPerKg: Double? = null
 ) {
 	fun formattedTotalCost(symbol: String = CostCurrencyFormatter.DEFAULT_CURRENCY_SYMBOL, mask: String = "••••"): String {
 		return CostCurrencyFormatter.formatAmount(totalCost, symbol = symbol, decimals = 2, isPrivacyMode = isPrivacyMode, mask = mask)
@@ -97,6 +99,11 @@ data class RecipeCostBreakdown(
 
 	fun formattedCostPerPortion(symbol: String = CostCurrencyFormatter.DEFAULT_CURRENCY_SYMBOL, mask: String = "••••"): String {
 		return CostCurrencyFormatter.formatAmount(costPerPortion, symbol = symbol, decimals = 2, isPrivacyMode = isPrivacyMode, mask = mask)
+	}
+
+	fun formattedCostPerKg(symbol: String = CostCurrencyFormatter.DEFAULT_CURRENCY_SYMBOL, mask: String = "••••"): String? {
+		if (costPerKg == null || costPerKg <= 0.0) return null
+		return CostCurrencyFormatter.formatAmount(costPerKg, symbol = symbol, decimals = 2, isPrivacyMode = isPrivacyMode, mask = mask)
 	}
 
 	/**
@@ -256,7 +263,8 @@ object LiveCostCalculator {
 		unitAliases: Map<String, UnitAliasEntity> = emptyMap(),
 		subRecipeResolver: SubRecipeResolver? = null,
 		currentRecipeId: Long? = null,
-		visitedRecipeIds: Set<Long> = emptySet()
+		visitedRecipeIds: Set<Long> = emptySet(),
+		explicitYieldWeightKg: Double? = null
 	): RecipeCostBreakdown {
 		val scaledIngredients = if (scaleFactor > 0.0 && scaleFactor != 1.0) {
 			ingredients.map { it.withScaledAmount(scaleFactor) }
@@ -289,6 +297,33 @@ object LiveCostCalculator {
 			it.status == CostStatus.RECURSION_CYCLE_DETECTED
 		}
 
+		// Calculate the Sum of All Active Ingredient Weights (in kg)
+		val activeIngredients = filterActiveIngredients(normalizedIngredients)
+			.filter { !it.isInformationalOnly && (!it.optional || includeOptional) }
+
+		val activeMassKgSum = activeIngredients.mapNotNull { ing ->
+			val amount = ing.amount ?: return@mapNotNull null
+			if (amount <= 0.0) return@mapNotNull null
+			val alias = UnitConverterEngine.findAlias(ing.unit, unitAliases)
+			if (alias != null && alias.baseUnit == com.herohiman.tournant.data.room.BaseUnitType.KG && alias.conversionFactor > 0.0) {
+				amount * alias.conversionFactor
+			} else {
+				null
+			}
+		}.sum().takeIf { it > 0.0 }
+
+		val effectiveTotalMassInKg = if (explicitYieldWeightKg != null && explicitYieldWeightKg > 0.0) {
+			explicitYieldWeightKg * (if (scaleFactor > 0.0) scaleFactor else 1.0)
+		} else {
+			activeMassKgSum
+		}
+
+		val costPerKg = if (effectiveTotalMassInKg != null && effectiveTotalMassInKg > 0.0 && totalCost > 0.0) {
+			roundToTwoDecimals(totalCost / effectiveTotalMassInKg)
+		} else {
+			null
+		}
+
 		return RecipeCostBreakdown(
 			totalCost = totalCost,
 			costPerPortion = portionCost,
@@ -296,7 +331,9 @@ object LiveCostCalculator {
 			currency = currency,
 			isPrivacyMode = isPrivacyMode,
 			items = items,
-			unpricedItemCount = unpricedCount
+			unpricedItemCount = unpricedCount,
+			totalMassInKg = effectiveTotalMassInKg?.let { roundToTwoDecimals(it) },
+			costPerKg = costPerKg
 		)
 	}
 

@@ -561,7 +561,7 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 			shape = RoundedCornerShape(8.dp)
 		) {
 			Surface(
-				Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
+				Modifier.padding(horizontal = 16.dp, vertical = 14.dp)
 			) {
 				val textMeasurer = rememberTextMeasurer()
 				val weighingModeOn by viewModel.weighingModeOn.collectAsState(false)
@@ -572,25 +572,8 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 				val placeholder = recipe.yieldValue.toStringForCooks(thousands = false)
 				val items by viewModel.ingredientsScaled.collectAsState(listOf())
 
-				val costPerKg = costBreakdown?.let {
-					YieldParser.calculateCostPerKg(
-						totalCost = it.totalCost,
-						yieldValue = recipe.yieldValue,
-						yieldUnit = recipe.yieldUnit,
-						scaleFactor = scaleRatio
-					)
-				}
-				val formattedCostPerKg = costPerKg?.let {
-					CostCurrencyFormatter.formatAmount(it)
-				}
-
-				val parsedYield = YieldParser.parseWeightInKg(
-					yieldValue = recipe.yieldValue,
-					yieldUnit = recipe.yieldUnit,
-					scaleFactor = scaleRatio
-				)
-				val displayOutput = if (parsedYield != null) {
-					"${parsedYield.rawAmount.toStringForCooks()} ${parsedYield.rawUnit}"
+				val displayOutput = if (costBreakdown?.totalMassInKg != null && costBreakdown!!.totalMassInKg!! > 0.0) {
+					"${costBreakdown!!.totalMassInKg!!.toStringForCooks()} kg"
 				} else {
 					val effectiveYield = yieldValue.ifEmpty { placeholder }
 					val unit = recipe.yieldUnit ?: ""
@@ -605,8 +588,8 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 				} else {
 					"—"
 				}
-				val displayCostPerKg = if (formattedCostPerKg != null) {
-					"$formattedCostPerKg / kg"
+				val displayCostPerKg = if (costBreakdown?.costPerKg != null && costBreakdown!!.costPerKg!! > 0.0) {
+					"${costBreakdown!!.formattedCostPerKg() ?: CostCurrencyFormatter.formatAmount(costBreakdown!!.costPerKg!!)} / kg"
 				} else {
 					"—"
 				}
@@ -624,7 +607,10 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 						Text(
 							modifier = Modifier.weight(1f),
 							text = stringResource(R.string.ingredients),
-							style = MaterialTheme.typography.h2
+							style = MaterialTheme.typography.h2,
+							maxLines = 1,
+							softWrap = false,
+							overflow = TextOverflow.Ellipsis
 						)
 						if (weighingModeOn) {
 							Text(
@@ -638,6 +624,7 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 							)
 						}
 						TournantRoundIconButton(
+							size = 32.dp,
 							icon = Icons.Default.ContentCopy,
 							onClick = {
 								(getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(
@@ -655,26 +642,11 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 							contentDescription = stringResource(R.string.copy_to_clipboard)
 						)
 						TournantRoundIconButton(
+							size = 32.dp,
 							icon = Icons.Default.Scale,
 							onClick = { viewModel.toggleWeighingMode() },
 							contentDescription = stringResource(R.string.weigh),
 							isDark = weighingModeOn
-						)
-						TournantRoundIconButton(
-							icon = Icons.Default.RepeatOne,
-							isDark = true,
-							onClick = { viewModel.scaleReset() },
-							contentDescription = stringResource(R.string.reset)
-						)
-						TournantRoundIconButton(
-							icon = Icons.Default.Remove,
-							onClick = { viewModel.scaleDown() },
-							contentDescription = stringResource(R.string.less)
-						)
-						TournantRoundIconButton(
-							icon = Icons.Default.Add,
-							onClick = { viewModel.scaleUp() },
-							contentDescription = stringResource(R.string.more)
 						)
 					}
 
@@ -687,6 +659,9 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 						placeholder = placeholder,
 						yieldUnit = recipe.yieldUnit,
 						onYieldChange = { viewModel.scale(it) },
+						onScaleReset = { viewModel.scaleReset() },
+						onScaleDown = { viewModel.scaleDown() },
+						onScaleUp = { viewModel.scaleUp() },
 						textMeasurer = textMeasurer
 					)
 
@@ -712,6 +687,9 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 		placeholder: String,
 		yieldUnit: String?,
 		onYieldChange: (String) -> Unit,
+		onScaleReset: () -> Unit,
+		onScaleDown: () -> Unit,
+		onScaleUp: () -> Unit,
 		textMeasurer: TextMeasurer,
 		modifier: Modifier = Modifier
 	) {
@@ -730,7 +708,7 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 				Row(
 					modifier = Modifier.fillMaxWidth(),
 					verticalAlignment = Alignment.CenterVertically,
-					horizontalArrangement = Arrangement.spacedBy(8.dp)
+					horizontalArrangement = Arrangement.spacedBy(6.dp)
 				) {
 					Text(
 						text = stringResource(R.string.yield) + ":",
@@ -743,11 +721,34 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 						placeholder = placeholder.takeIf { it.isNotEmpty() } ?: "1"
 					)
 					Text(
+						modifier = Modifier.weight(1f, fill = false),
 						text = yieldUnit ?: pluralStringResource(
 							R.plurals.lots,
 							(yieldValue.takeIf { it.isNotEmpty() } ?: placeholder).getQuantityIntForPlurals() ?: 3
 						),
-						style = MaterialTheme.typography.body2.copy(fontStyle = FontStyle.Italic)
+						style = MaterialTheme.typography.body2.copy(fontStyle = FontStyle.Italic),
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis
+					)
+					Spacer(Modifier.weight(1f))
+					TournantRoundIconButton(
+						size = 28.dp,
+						icon = Icons.Default.RepeatOne,
+						isDark = true,
+						onClick = onScaleReset,
+						contentDescription = stringResource(R.string.reset)
+					)
+					TournantRoundIconButton(
+						size = 28.dp,
+						icon = Icons.Default.Remove,
+						onClick = onScaleDown,
+						contentDescription = stringResource(R.string.less)
+					)
+					TournantRoundIconButton(
+						size = 28.dp,
+						icon = Icons.Default.Add,
+						onClick = onScaleUp,
+						contentDescription = stringResource(R.string.more)
 					)
 				}
 

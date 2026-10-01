@@ -17,13 +17,14 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TournantRoundIconButton(
 	modifier: Modifier = Modifier,
+	size: androidx.compose.ui.unit.Dp = 36.dp,
 	isDark: Boolean = false,
 	onClick: () -> Unit,
 	icon: ImageVector,
 	contentDescription: String?
 ) {
 	Surface(
-		modifier = modifier.size(36.dp),
+		modifier = modifier.size(size),
 		shape = CircleShape,
 		color = if (isDark) MaterialTheme.colors.primary else MaterialTheme.colors.secondary,
 		contentColor = if (isDark) MaterialTheme.colors.onPrimary else MaterialTheme.colors.onSecondary
@@ -33,7 +34,7 @@ fun TournantRoundIconButton(
 			onClick = onClick
 		) {
 			Icon(
-				modifier = Modifier.size(24.dp),
+				modifier = Modifier.size((size.value * 0.65f).dp),
 				imageVector = icon,
 				contentDescription = contentDescription
 			)
