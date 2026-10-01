@@ -6,6 +6,30 @@ This archive provides technical documentation for all recently implemented stori
 
 ## 1. Implemented Stories
 
+### Epic 12: Modern Recipe UI & Output Dashboard
+
+#### Story 12.1: Fix Layout Spacing Bug (Presentation Layer)
+- **Summary**: Removed the enclosing `FlexboxLayout` with `app:alignItems="stretch"` wrapping `recipe_detail_ingredients` and `recipe_detail_instructions` in `activity_recipe.xml`. Placed `recipe_detail_ingredients` and `recipe_detail_instructions` directly into the vertical `LinearLayout` container with matching `android:layout_marginHorizontal="16dp"` and `android:layout_marginBottom="16dp"`, snapping the ingredients card immediately beneath the header details card and completely eliminating the phantom vertical gap.
+- **Technical Files Modified**:
+  - [`activity_recipe.xml`](file:///workspace/recipeMaker/Tournant/app/src/main/res/layout/activity_recipe.xml)
+
+#### Story 12.2: Output Summary Dashboard (Presentation Layer)
+- **Summary**: Replaced the plain single-line text string with a dedicated Material summary card (`OutputSummaryDashboard`) embedded at the top of the ingredients section. Displays interactive yield scaling controls and three distinct financial dashboard metrics:
+  - **Total Output**: Extracted/scaled quantity with unit (e.g. `10 किलो`)
+  - **Batch Cost**: Total batch cost formatted in Indian Rupee (`₹7,000.00`)
+  - **Cost / kg**: Dynamically computed cost per kilogram (`₹700.00 / kg`)
+- **Technical Files Modified**:
+  - [`RecipeActivity.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt)
+  - [`strings.xml`](file:///workspace/recipeMaker/Tournant/app/src/main/res/values/strings.xml)
+  - [`RecipeViewerLineCostUiTest.kt`](file:///workspace/recipeMaker/Tournant/app/src/test/java/com/herohiman/tournant/RecipeViewerLineCostUiTest.kt)
+
+#### Story 12.3: Modernize Ingredient Rows & Relocate Action Buttons (Presentation Layer)
+- **Summary**: Relocated the Copy (`ContentCopy`) and Scale (`Scale`) buttons into the header action row next to the scaling controls (`RepeatOne`, `Remove`, `Add`), allowing `IngredientList` to take full screen width without being crowded or covered. Styled line-item price badges with a subtle primary-tinted `Surface` container (`RoundedCornerShape(4.dp)`), ensuring prices on the right edge are never occluded.
+- **Technical Files Modified**:
+  - [`RecipeActivity.kt`](file:///workspace/recipeMaker/Tournant/app/src/main/java/com/herohiman/tournant/ui/RecipeActivity.kt)
+
+---
+
 ### Epic 11: Recipe Metadata, Informational Cost Exclusions & Yield Parsing
 
 #### Story 11.1: Informational Cost Exclusion (Domain & Schema Layer)

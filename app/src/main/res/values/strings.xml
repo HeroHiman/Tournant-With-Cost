@@ -332,4 +332,9 @@
 	<string name="total_cost_label">Total Cost: %s</string>
 	<string name="cost_per_kg_label">Cost per kg: %s</string>
 
+	<!-- Modern Recipe UI & Output Dashboard (Epic 12) -->
+	<string name="dashboard_total_output">Total Output</string>
+	<string name="dashboard_total_cost">Batch Cost</string>
+	<string name="dashboard_cost_per_kg">Cost / kg</string>
+
 </resources>

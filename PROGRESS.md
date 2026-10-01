@@ -18,10 +18,22 @@ This document tracks the implementation status of all feature epics, stories, an
 | **Epic 8: Line-Item Costing & Currency Localization (₹)** | **100% Complete** | `CostCurrencyFormatterTest`, `LineItemCostResolutionTest` |
 | **Epic 9: Smart Search Integration** | **100% Complete** | `ReactiveSearchQueriesTest`, `StateManagementSearchViewModelTest` |
 | **Epic 11: Recipe Metadata & Cost Exclusions** | **100% Complete** | `InformationalCostExclusionTest`, `YieldParserTest` |
+| **Epic 12: Modern Recipe UI & Output Dashboard** | **100% Complete** | `RecipeViewerLineCostUiTest`, `YieldParserTest` |
 
 ---
 
 ## Detailed Story Checklist
+
+### Epic 12: Modern Recipe UI & Output Dashboard
+- [x] **Story 12.1: Fix Layout Spacing Bug (Presentation Layer)**
+  - Replaced stretching FlexboxLayout with direct LinearLayout container
+  - Snapped ingredients ComposeView and instructions card directly beneath header
+- [x] **Story 12.2: Output Summary Dashboard Card (Presentation Layer)**
+  - Built prominent `OutputSummaryDashboard` card showing Total Output, Batch Cost, and Cost / kg
+  - Integrated interactive batch scaling controls directly within the dashboard
+- [x] **Story 12.3: Modernize Ingredient Rows & Relocate Action Buttons (Presentation Layer)**
+  - Relocated Copy and Weigh buttons to the header actions row beside scale buttons
+  - Expanded ingredient list to full width and styled line-item price badges with subtle container badges
 
 ### Epic 11: Recipe Metadata & Cost Exclusions
 - [x] **Story 11.1: Informational Cost Exclusion (Domain & Schema Layer)**

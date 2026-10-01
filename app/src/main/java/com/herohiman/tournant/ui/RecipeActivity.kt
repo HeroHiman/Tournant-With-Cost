@@ -60,9 +60,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.AlertDialog
+import androidx.compose.material.Card
 import androidx.compose.material.Chip
 import androidx.compose.material.ChipDefaults
 import androidx.compose.material.ContentAlpha
+import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.LocalRippleConfiguration
 import androidx.compose.material.LocalTextStyle
@@ -172,9 +174,7 @@ import com.herohiman.tournant.splitLines
 import com.herohiman.tournant.toStringForCooks
 import com.herohiman.tournant.ui.adapter.InstructionsTextAdapter
 import com.herohiman.tournant.ui.adapter.PreparationsAdapter
-import com.herohiman.tournant.ui.elements.TournantCard
 import com.herohiman.tournant.ui.elements.TournantRoundIconButton
-import com.herohiman.tournant.ui.elements.TournantRoundedIconButton
 import com.herohiman.tournant.ui.elements.TournantUnderlinedTextField
 import com.herohiman.tournant.utils.RecipeMarkwonPlugin
 import io.noties.markwon.Markwon
@@ -555,35 +555,23 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 
 	@Composable
 	fun IngredientCard(recipe: Recipe) {
-		TournantCard(marginEnd = 16.dp, marginBottom = 16.dp) {
-			val textMeasurer = rememberTextMeasurer()
-			val weighingModeOn by viewModel.weighingModeOn.collectAsState(false)
-			Column {
-				Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-					Text(
-						modifier = Modifier.weight(1f),
-						text = stringResource(R.string.ingredients),
-						style = MaterialTheme.typography.h2
-					)
-					TournantRoundIconButton(
-						icon = Icons.Default.RepeatOne,
-						isDark = true,
-						onClick = { viewModel.scaleReset() },
-						contentDescription = stringResource(R.string.reset)
-					)
-					TournantRoundIconButton(
-						icon = Icons.Default.Remove,
-						onClick = { viewModel.scaleDown() },
-						contentDescription = stringResource(R.string.less)
-					)
-					TournantRoundIconButton(
-						icon = Icons.Default.Add,
-						onClick = { viewModel.scaleUp() },
-						contentDescription = stringResource(R.string.more)
-					)
-				}
+		Card(
+			modifier = Modifier.fillMaxWidth(),
+			elevation = 4.dp,
+			shape = RoundedCornerShape(8.dp)
+		) {
+			Surface(
+				Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
+			) {
+				val textMeasurer = rememberTextMeasurer()
+				val weighingModeOn by viewModel.weighingModeOn.collectAsState(false)
+				val weight by viewModel.ingredientWeight.collectAsState(0.0)
 				val costBreakdown by viewModel.recipeCostBreakdown.collectAsState(null)
 				val scaleRatio by viewModel.scaleRatio.collectAsState(1.0)
+				val yieldValue by viewModel.yieldValueScaled.collectAsState("")
+				val placeholder = recipe.yieldValue.toStringForCooks(thousands = false)
+				val items by viewModel.ingredientsScaled.collectAsState(listOf())
+
 				val costPerKg = costBreakdown?.let {
 					YieldParser.calculateCostPerKg(
 						totalCost = it.totalCost,
@@ -595,59 +583,61 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 				val formattedCostPerKg = costPerKg?.let {
 					CostCurrencyFormatter.formatAmount(it)
 				}
-				Row(
-					Modifier.padding(vertical = 16.dp)
-				) {
-					val yieldValue by viewModel.yieldValueScaled.collectAsState("")
-					val placeholder = recipe.yieldValue.toStringForCooks(thousands = false)
-					val italicTextStyle = LocalTextStyle.current.copy(fontStyle = FontStyle.Italic)
-					Text(
-						text = stringResource(R.string.yield),
-						style = italicTextStyle
-					)
-					TournantUnderlinedTextField(
-						value = yieldValue,
-						onValueChange = {
-							viewModel.scale(it)
-						},
-						textMeasurer = textMeasurer,
-						placeholder = placeholder.takeIf { it.isNotEmpty() } ?: "1"
-					)
-					Text(
-						recipe.yieldUnit
-							?: pluralStringResource(
-								R.plurals.lots,
-								(yieldValue.takeIf { it.isNotEmpty() } ?: placeholder).getQuantityIntForPlurals() ?: 3
-							),
-						style = italicTextStyle
-					)
-					if (costBreakdown != null && costBreakdown!!.totalCost > 0.0) {
-						Text(
-							text = " • " + stringResource(R.string.total_cost_label, costBreakdown!!.formattedTotalCost()),
-							style = italicTextStyle
-						)
-						if (formattedCostPerKg != null) {
-							Text(
-								text = " • " + stringResource(R.string.cost_per_kg_label, formattedCostPerKg),
-								style = italicTextStyle
-							)
-						}
+
+				val parsedYield = YieldParser.parseWeightInKg(
+					yieldValue = recipe.yieldValue,
+					yieldUnit = recipe.yieldUnit,
+					scaleFactor = scaleRatio
+				)
+				val displayOutput = if (parsedYield != null) {
+					"${parsedYield.rawAmount.toStringForCooks()} ${parsedYield.rawUnit}"
+				} else {
+					val effectiveYield = yieldValue.ifEmpty { placeholder }
+					val unit = recipe.yieldUnit ?: ""
+					if (effectiveYield.isNotEmpty() || unit.isNotEmpty()) {
+						"$effectiveYield $unit".trim()
+					} else {
+						"—"
 					}
 				}
-				Row {
-					val items by viewModel.ingredientsScaled.collectAsState(listOf())
-					IngredientList(
-						items,
-						Modifier.weight(1f),
-						textMeasurer,
-						weighingModeOn,
-						costBreakdown
-					)
-					Column(
-						verticalArrangement = Arrangement.spacedBy(8.dp),
-						horizontalAlignment = Alignment.End
+				val displayTotalCost = if (costBreakdown != null && costBreakdown!!.totalCost > 0.0) {
+					costBreakdown!!.formattedTotalCost()
+				} else {
+					"—"
+				}
+				val displayCostPerKg = if (formattedCostPerKg != null) {
+					"$formattedCostPerKg / kg"
+				} else {
+					"—"
+				}
+
+				Column(
+					modifier = Modifier.fillMaxWidth(),
+					verticalArrangement = Arrangement.spacedBy(14.dp)
+				) {
+					// 1. Ingredients Header & Actions
+					Row(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalArrangement = Arrangement.spacedBy(8.dp),
+						verticalAlignment = Alignment.CenterVertically
 					) {
-						TournantRoundedIconButton(
+						Text(
+							modifier = Modifier.weight(1f),
+							text = stringResource(R.string.ingredients),
+							style = MaterialTheme.typography.h2
+						)
+						if (weighingModeOn) {
+							Text(
+								text = "${weight.toStringForCooks()} g",
+								style = MaterialTheme.typography.subtitle1.copy(
+									fontWeight = FontWeight.Bold,
+									color = MaterialTheme.colors.primary
+								),
+								overflow = TextOverflow.Visible,
+								softWrap = false
+							)
+						}
+						TournantRoundIconButton(
 							icon = Icons.Default.ContentCopy,
 							onClick = {
 								(getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(
@@ -664,19 +654,182 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 							},
 							contentDescription = stringResource(R.string.copy_to_clipboard)
 						)
-						TournantRoundedIconButton(
+						TournantRoundIconButton(
 							icon = Icons.Default.Scale,
 							onClick = { viewModel.toggleWeighingMode() },
 							contentDescription = stringResource(R.string.weigh),
 							isDark = weighingModeOn
 						)
-						val weight by viewModel.ingredientWeight.collectAsState(0.0)
-						if (weighingModeOn) {
-							Text("${weight.toStringForCooks()} g", overflow = TextOverflow.Visible, softWrap = false)
-						}
+						TournantRoundIconButton(
+							icon = Icons.Default.RepeatOne,
+							isDark = true,
+							onClick = { viewModel.scaleReset() },
+							contentDescription = stringResource(R.string.reset)
+						)
+						TournantRoundIconButton(
+							icon = Icons.Default.Remove,
+							onClick = { viewModel.scaleDown() },
+							contentDescription = stringResource(R.string.less)
+						)
+						TournantRoundIconButton(
+							icon = Icons.Default.Add,
+							onClick = { viewModel.scaleUp() },
+							contentDescription = stringResource(R.string.more)
+						)
 					}
+
+					// 2. Output & Cost Dashboard Card
+					OutputSummaryDashboard(
+						displayOutput = displayOutput,
+						displayTotalCost = displayTotalCost,
+						displayCostPerKg = displayCostPerKg,
+						yieldValue = yieldValue,
+						placeholder = placeholder,
+						yieldUnit = recipe.yieldUnit,
+						onYieldChange = { viewModel.scale(it) },
+						textMeasurer = textMeasurer
+					)
+
+					// 3. Full-width Ingredient List
+					IngredientList(
+						items = items,
+						modifier = Modifier.fillMaxWidth(),
+						textMeasurer = textMeasurer,
+						weighMode = weighingModeOn,
+						costBreakdown = costBreakdown
+					)
 				}
 			}
+		}
+	}
+
+	@Composable
+	fun OutputSummaryDashboard(
+		displayOutput: String,
+		displayTotalCost: String,
+		displayCostPerKg: String,
+		yieldValue: String,
+		placeholder: String,
+		yieldUnit: String?,
+		onYieldChange: (String) -> Unit,
+		textMeasurer: TextMeasurer,
+		modifier: Modifier = Modifier
+	) {
+		Card(
+			modifier = modifier.fillMaxWidth(),
+			shape = RoundedCornerShape(10.dp),
+			elevation = 0.dp,
+			backgroundColor = MaterialTheme.colors.onSurface.copy(alpha = 0.04f)
+		) {
+			Column(
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(horizontal = 14.dp, vertical = 12.dp)
+			) {
+				// Interactive Yield / Scale Row
+				Row(
+					modifier = Modifier.fillMaxWidth(),
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.spacedBy(8.dp)
+				) {
+					Text(
+						text = stringResource(R.string.yield) + ":",
+						style = MaterialTheme.typography.subtitle2.copy(fontWeight = FontWeight.Bold)
+					)
+					TournantUnderlinedTextField(
+						value = yieldValue,
+						onValueChange = onYieldChange,
+						textMeasurer = textMeasurer,
+						placeholder = placeholder.takeIf { it.isNotEmpty() } ?: "1"
+					)
+					Text(
+						text = yieldUnit ?: pluralStringResource(
+							R.plurals.lots,
+							(yieldValue.takeIf { it.isNotEmpty() } ?: placeholder).getQuantityIntForPlurals() ?: 3
+						),
+						style = MaterialTheme.typography.body2.copy(fontStyle = FontStyle.Italic)
+					)
+				}
+
+				Spacer(Modifier.height(10.dp))
+				Divider(color = MaterialTheme.colors.onSurface.copy(alpha = 0.08f), thickness = 1.dp)
+				Spacer(Modifier.height(10.dp))
+
+				// 3 Dashboard Metrics: Total Output | Batch Cost | Cost / kg
+				Row(
+					modifier = Modifier.fillMaxWidth(),
+					horizontalArrangement = Arrangement.SpaceEvenly,
+					verticalAlignment = Alignment.CenterVertically
+				) {
+					DashboardMetricTile(
+						label = stringResource(R.string.dashboard_total_output),
+						value = displayOutput,
+						modifier = Modifier.weight(1f)
+					)
+					Divider(
+						modifier = Modifier
+							.height(34.dp)
+							.width(1.dp),
+						color = MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
+					)
+					DashboardMetricTile(
+						label = stringResource(R.string.dashboard_total_cost),
+						value = displayTotalCost,
+						modifier = Modifier.weight(1f),
+						isPrimary = true
+					)
+					Divider(
+						modifier = Modifier
+							.height(34.dp)
+							.width(1.dp),
+						color = MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
+					)
+					DashboardMetricTile(
+						label = stringResource(R.string.dashboard_cost_per_kg),
+						value = displayCostPerKg,
+						modifier = Modifier.weight(1f),
+						isPrimary = true
+					)
+				}
+			}
+		}
+	}
+
+	@Composable
+	fun DashboardMetricTile(
+		label: String,
+		value: String,
+		modifier: Modifier = Modifier,
+		isPrimary: Boolean = false
+	) {
+		Column(
+			modifier = modifier.padding(horizontal = 4.dp),
+			horizontalAlignment = Alignment.CenterHorizontally
+		) {
+			Text(
+				text = label.uppercase(),
+				style = MaterialTheme.typography.overline.copy(
+					fontSize = 9.sp,
+					fontWeight = FontWeight.Bold,
+					letterSpacing = 0.5.sp
+				),
+				color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
+				textAlign = TextAlign.Center,
+				maxLines = 1,
+				overflow = TextOverflow.Ellipsis
+			)
+			Spacer(Modifier.height(3.dp))
+			Text(
+				text = value,
+				style = MaterialTheme.typography.subtitle2.copy(
+					fontWeight = FontWeight.Bold,
+					fontSize = if (value.length > 11) 12.sp else 14.sp
+				),
+				color = if (isPrimary && value != "—") MaterialTheme.colors.primary else MaterialTheme.colors.onSurface,
+				textAlign = TextAlign.Center,
+				maxLines = 1,
+				overflow = TextOverflow.Ellipsis
+			)
 		}
 	}
 
@@ -781,10 +934,10 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 		}
 
 		Row(
-			Modifier
+			modifier = Modifier
 				.fillMaxWidth()
 				.alpha(if (weighMode && item.isSelected || !weighMode && item.isChecked) ContentAlpha.disabled else if (isInactiveSub) 0.55f else 1f)
-				.padding(vertical = 2.dp)
+				.padding(vertical = 4.dp)
 				.combinedClickable(
 					onClick = {
 						if (isSubstitute && !item.ingredient.isActiveSubstitute) {
@@ -801,7 +954,8 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 					},
 					indication = null,
 					interactionSource = interactionSource
-				)
+				),
+			verticalAlignment = Alignment.CenterVertically
 		) {
 			if (isSubstitute) {
 				RadioButton(
@@ -819,6 +973,7 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 				textAlign = TextAlign.End,
 				lineHeight = 24.sp
 			)
+			Spacer(Modifier.width(8.dp))
 			val baseItemString = buildAnnotatedString {
 				if (item.ingredient.isInformationalOnly) {
 					withStyle(SpanStyle(color = MaterialTheme.colors.primary, fontWeight = FontWeight.Bold, fontSize = 11.sp)) {
@@ -897,19 +1052,28 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 
 			if (!lineCostFormatted.isNullOrEmpty()) {
 				Spacer(Modifier.width(8.dp))
-				Text(
-					text = lineCostFormatted,
-					style = MaterialTheme.typography.body2.copy(
-						fontWeight = FontWeight.SemiBold,
-						color = if (isInactiveSub) {
-							MaterialTheme.colors.onSurface.copy(alpha = 0.45f)
-						} else {
-							MaterialTheme.colors.primary.copy(alpha = 0.85f)
-						}
-					),
-					modifier = Modifier.align(Alignment.CenterVertically),
-					textAlign = TextAlign.End
-				)
+				Surface(
+					shape = RoundedCornerShape(4.dp),
+					color = if (isInactiveSub) {
+						MaterialTheme.colors.onSurface.copy(alpha = 0.06f)
+					} else {
+						MaterialTheme.colors.primary.copy(alpha = 0.10f)
+					}
+				) {
+					Text(
+						text = lineCostFormatted,
+						style = MaterialTheme.typography.body2.copy(
+							fontWeight = FontWeight.SemiBold,
+							color = if (isInactiveSub) {
+								MaterialTheme.colors.onSurface.copy(alpha = 0.45f)
+							} else {
+								MaterialTheme.colors.primary
+							}
+						),
+						modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+						textAlign = TextAlign.End
+					)
+				}
 			}
 		}
 		

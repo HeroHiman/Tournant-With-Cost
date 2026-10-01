@@ -127,4 +127,39 @@ class RecipeViewerLineCostUiTest {
 		assertEquals(1, breakdown.unpricedItemCount)
 		assertNull(breakdown.formattedCostForIngredient(emptyItem))
 	}
+
+	@Test
+	fun `output summary dashboard correctly prepares output, total batch cost, and cost per kg metrics`() {
+		val kaju = Ingredient(amount = 10.0, unit = "kg", item = "काजू")
+		val masterIngredients = listOf(
+			MasterIngredientEntity(id = 1, name = "काजू", unitCost = 700.0, baseUnit = "kg")
+		)
+		val breakdown = LiveCostCalculator.calculateRecipeCost(
+			ingredients = listOf(kaju),
+			masterIngredients = masterIngredients
+		)
+
+		val yieldUnit = "1 टीपा काजू (10 किलो)"
+		val parsedYield = com.herohiman.tournant.cost.YieldParser.parseWeightInKg(
+			yieldValue = 1.0,
+			yieldUnit = yieldUnit,
+			scaleFactor = 1.0
+		)
+		assertNotNull(parsedYield)
+		val displayOutput = "${parsedYield!!.rawAmount.toStringForCooks()} ${parsedYield.rawUnit}"
+		assertEquals("10 किलो", displayOutput)
+
+		val displayTotalCost = breakdown.formattedTotalCost()
+		assertEquals("₹7000.00", displayTotalCost)
+
+		val costPerKg = com.herohiman.tournant.cost.YieldParser.calculateCostPerKg(
+			totalCost = breakdown.totalCost,
+			yieldValue = 1.0,
+			yieldUnit = yieldUnit,
+			scaleFactor = 1.0
+		)
+		assertNotNull(costPerKg)
+		val displayCostPerKg = "${com.herohiman.tournant.cost.CostCurrencyFormatter.formatAmount(costPerKg!!)} / kg"
+		assertEquals("₹700.00 / kg", displayCostPerKg)
+	}
 }

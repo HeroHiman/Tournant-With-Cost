@@ -238,59 +238,50 @@
 
 			</com.google.android.flexbox.FlexboxLayout>
 
-			<com.google.android.flexbox.FlexboxLayout
+			<androidx.compose.ui.platform.ComposeView
+				android:id="@+id/recipe_detail_ingredients"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
-				android:paddingStart="16dp"
-				app:flexWrap="wrap"
-				app:alignItems="stretch"
-				tools:ignore="RtlSymmetry">
+				android:layout_marginHorizontal="16dp"
+				android:layout_marginBottom="16dp"/>
 
-				<androidx.compose.ui.platform.ComposeView
-					android:id="@+id/recipe_detail_ingredients"
+			<com.google.android.material.card.MaterialCardView
+				android:id="@+id/recipe_detail_instructions"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginHorizontal="16dp"
+				android:layout_marginBottom="16dp"
+				android:elevation="4dp"
+				app:cardCornerRadius="8dp"
+				android:visibility="gone"
+				tools:visibility="visible">
+
+				<LinearLayout
 					android:layout_width="match_parent"
-					android:layout_height="wrap_content"/>
-
-				<com.google.android.material.card.MaterialCardView
-					android:id="@+id/recipe_detail_instructions"
-					android:layout_width="300dp"
 					android:layout_height="wrap_content"
-					app:layout_flexGrow="1"
-					android:layout_marginEnd="16dp"
-					android:layout_marginBottom="16dp"
-					android:elevation="4dp"
-					app:cardCornerRadius="8dp"
-					android:visibility="gone"
-					tools:visibility="visible">
+					android:orientation="vertical"
+					android:paddingHorizontal="20dp"
+					android:paddingVertical="16dp">
 
-					<LinearLayout
+					<TextView
 						android:layout_width="match_parent"
 						android:layout_height="wrap_content"
-						android:orientation="vertical"
-						android:paddingHorizontal="20dp"
-						android:paddingVertical="16dp">
+						android:layout_marginBottom="4dp"
+						android:layout_marginTop="-4dp"
+						android:text="@string/instructions"
+						style="@style/h2"/>
 
-						<TextView
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:layout_marginBottom="4dp"
-							android:layout_marginTop="-4dp"
-							android:text="@string/instructions"
-							style="@style/h2"/>
+					<androidx.recyclerview.widget.RecyclerView
+						android:id="@+id/recipe_detail_instructions_recycler"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginEnd="-4dp"
+						android:nestedScrollingEnabled="false"
+						app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
 
-						<androidx.recyclerview.widget.RecyclerView
-							android:id="@+id/recipe_detail_instructions_recycler"
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:layout_marginEnd="-4dp"
-							android:nestedScrollingEnabled="false"
-							app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+				</LinearLayout>
 
-					</LinearLayout>
-
-				</com.google.android.material.card.MaterialCardView>
-
-			</com.google.android.flexbox.FlexboxLayout>
+			</com.google.android.material.card.MaterialCardView>
 
 			<com.google.android.material.card.MaterialCardView
 				android:id="@+id/recipe_detail_notes"
