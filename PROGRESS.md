@@ -43,6 +43,7 @@ This document tracks the implementation status of all feature epics, stories, an
   - Employee privacy financial masking: line-item costs, total batch cost, and cost per kg masked with `••••`
   - High-contrast typography (`18.sp` bold amounts, `17.sp` names) with large 28dp checkboxes and strike-through checkoffs
   - Prominent pinned operational notes banner at top of ingredients list for tray sizes and packaging details
+  - Fixed Cook Mode banner text wrapping ("Exit Cook Mode" vertical stacking) using weight rebalance on title (`Modifier.weight(1f)`, `maxLines = 1`) and styled exit control as an outlined pill button with close icon and non-wrapping text (`softWrap = false`)
 
 ### Epic 14: Quick-Edit Pricing Integration
 - [x] **Story 14.1: Row Long-Press Listener & Price Badge Click (Presentation Layer)**

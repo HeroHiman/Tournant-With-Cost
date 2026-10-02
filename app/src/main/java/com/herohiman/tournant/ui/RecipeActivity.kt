@@ -78,6 +78,7 @@ import androidx.compose.material.ChipDefaults
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
 import androidx.compose.material.LocalRippleConfiguration
 import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.MaterialTheme
@@ -715,25 +716,50 @@ class RecipeActivity : AppCompatActivity(), InstructionsTextAdapter.Instructions
 							border = BorderStroke(1.dp, MaterialTheme.colors.primary.copy(alpha = 0.5f))
 						) {
 							Row(
-								modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+								modifier = Modifier
+									.fillMaxWidth()
+									.padding(start = 12.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
 								verticalAlignment = Alignment.CenterVertically,
 								horizontalArrangement = Arrangement.SpaceBetween
 							) {
 								Text(
 									text = stringResource(R.string.cook_mode_active_banner),
+									modifier = Modifier.weight(1f),
 									style = MaterialTheme.typography.subtitle2.copy(
 										fontWeight = FontWeight.Bold,
 										color = MaterialTheme.colors.primary
-									)
+									),
+									maxLines = 1,
+									overflow = TextOverflow.Ellipsis
 								)
-								TextButton(
-									onClick = { viewModel.setCookMode(false) },
-									contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+								Spacer(Modifier.width(8.dp))
+								Surface(
+									shape = RoundedCornerShape(14.dp),
+									border = BorderStroke(1.dp, MaterialTheme.colors.primary.copy(alpha = 0.6f)),
+									color = MaterialTheme.colors.surface,
+									modifier = Modifier.clickable { viewModel.setCookMode(false) }
 								) {
-									Text(
-										text = stringResource(R.string.exit_cook_mode),
-										style = MaterialTheme.typography.caption.copy(fontWeight = FontWeight.Bold)
-									)
+									Row(
+										verticalAlignment = Alignment.CenterVertically,
+										modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+										horizontalArrangement = Arrangement.spacedBy(4.dp)
+									) {
+										Icon(
+											imageVector = Icons.Default.Close,
+											contentDescription = stringResource(R.string.exit_cook_mode),
+											modifier = Modifier.size(14.dp),
+											tint = MaterialTheme.colors.primary
+										)
+										Text(
+											text = stringResource(R.string.exit_cook_mode),
+											style = MaterialTheme.typography.caption.copy(
+												fontWeight = FontWeight.Bold,
+												color = MaterialTheme.colors.primary
+											),
+											maxLines = 1,
+											softWrap = false
+										)
+									}
 								}
 							}
 						}
